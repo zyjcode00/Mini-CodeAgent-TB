@@ -18,7 +18,7 @@ class ReadTool(BaseTool):
     description = "读取文件内容。支持指定行范围，这在处理大文件时非常高效。建议先读取前 100 行了解结构。"
     args_schema = ReadArgs
 
-    def run(self, path: str, start_line: int = 1, end_line: int = None, raw_mode: bool = False) -> str:
+    def run(self, path: str, start_line: int = 1, end_line: int = None, raw_mode: bool = True) -> str:
         try:
             if not os.path.exists(path):
                 return f"错误: 找不到文件 {path}"
