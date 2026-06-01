@@ -92,6 +92,9 @@ class BenchmarkCaseResult:
     forbidden_hits: List[str]
     expected_file_hits: List[str]
     expected_kind_hits: List[str]
+    ranked_signal_counts: Dict[str, int]
+    diagnostic_flags: List[str]
+    diagnostic_summary: str
 
     @property
     def hit(self) -> bool:
@@ -147,6 +150,9 @@ def _case_result_from_dict(data: Dict[str, Any]) -> BenchmarkCaseResult:
         forbidden_hits=list(data.get("forbidden_hits", [])),
         expected_file_hits=list(data.get("expected_file_hits", [])),
         expected_kind_hits=list(data.get("expected_kind_hits", [])),
+        ranked_signal_counts={str(key): int(value) for key, value in data.get("ranked_signal_counts", {}).items()},
+        diagnostic_flags=list(data.get("diagnostic_flags", [])),
+        diagnostic_summary=str(data.get("diagnostic_summary", "")),
     )
 
 
@@ -362,6 +368,42 @@ def default_memory_specs() -> List[BenchmarkMemorySpec]:
             importance=0.88,
         ),
         BenchmarkMemorySpec(
+            id="bench_benchmark_diagnostics_plan",
+            kind=MemoryKind.DECISION.value,
+            title="Memory recall benchmark 应增强失败诊断报告",
+            content=(
+                "memory recall benchmark 后续应扩充 cases，并在报告中展示每个 case 的 query、expected、top-k ids、"
+                "ranked reasons、BM25/Vector/Metadata/file/error 信号贡献、缺失 expected file/kind、forbidden hits 和弱排序诊断。"
+            ),
+            concepts=["benchmark", "diagnostics", "failure analysis", "retrieval signals", "weak ranking"],
+            files=["benchmark/memory_recall_benchmark.py", "tests/test_memory_recall_benchmark.py", "benchmark/memory_recall_latest.md"],
+            importance=0.91,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_decision_quality_over_recency",
+            kind=MemoryKind.DECISION.value,
+            title="召回排序应避免近期低质量摘要淹没高质量决策",
+            content=(
+                "检索排序优化时不要让近期低质量 session summary 淹没高质量旧决策。"
+                "应综合 importance、confidence、kind、文件/错误精确命中、BM25、Vector 和 Metadata 信号。"
+            ),
+            concepts=["rerank", "recency", "quality", "decision", "session summary"],
+            files=["core/memory_retrieval.py", "benchmark/memory_recall_benchmark.py"],
+            importance=0.92,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_file_history_specialized_recall",
+            kind=MemoryKind.ARCHITECTURE.value,
+            title="File/Error 专用召回应保持强命中能力",
+            content=(
+                "memory_file_history 与 memory_error_history 这类专用召回入口需要强命中文件路径和错误类型。"
+                "即使 general hybrid recall 调整排序，也不能削弱 file exact match 与 error_type match。"
+            ),
+            concepts=["file history", "error history", "specialized recall", "exact match"],
+            files=["core/memory_manager.py", "core/memory_retrieval.py", "tests/test_memory_manager.py"],
+            importance=0.9,
+        ),
+        BenchmarkMemorySpec(
             id="bench_file_resume_templates_readme",
             kind=MemoryKind.TASK.value,
             title="README 保持原规范并补充项目修改内容",
@@ -514,6 +556,30 @@ def default_cases() -> List[BenchmarkCase]:
             expected_any=["bench_arch_retrieval_not_rewrite", "bench_phase5_rrf_fusion"],
             forbidden=["bench_old_keyword_retrieval_archived"],
         ),
+        BenchmarkCase(
+            id="benchmark_failure_diagnostics",
+            category="diagnostics",
+            query="memory recall benchmark 失败时报告要怎么看 BM25 Vector metadata file error 各路贡献和 weak ranking？",
+            expected_any=["bench_benchmark_diagnostics_plan"],
+            expected_files=["benchmark/memory_recall_benchmark.py"],
+            expected_kinds=[MemoryKind.DECISION.value],
+        ),
+        BenchmarkCase(
+            id="quality_over_recent_summary",
+            category="rerank_quality",
+            query="召回排序优化时如何避免近期低质量 session summary 淹没高质量旧决策？",
+            expected_any=["bench_decision_quality_over_recency"],
+            expected_files=["core/memory_retrieval.py"],
+            expected_kinds=[MemoryKind.DECISION.value],
+        ),
+        BenchmarkCase(
+            id="file_error_specialized_recall",
+            category="specialized_recall",
+            query="调整 hybrid recall 后 file history 和 error history 专用召回为什么仍要保持 exact match 强命中？",
+            expected_any=["bench_file_history_specialized_recall"],
+            expected_files=["core/memory_manager.py"],
+            expected_kinds=[MemoryKind.ARCHITECTURE.value],
+        ),
     ]
 
 
@@ -564,6 +630,16 @@ def evaluate_cases(manager: MemoryManager, cases: Sequence[BenchmarkCase] | None
         expected_kind_hits = sorted({kind for kind in ranked_kinds if kind in expected_kind_set})
 
         forbidden_hits = [item_id for item_id in ranked_ids if item_id in set(case.forbidden)]
+        ranked_signal_counts = _count_reason_signals(ranked_reasons)
+        diagnostic_flags = _diagnose_case(
+            case=case,
+            hit_rank=hit_rank,
+            forbidden_hits=forbidden_hits,
+            expected_file_hits=expected_file_hits,
+            expected_kind_hits=expected_kind_hits,
+            ranked_signal_counts=ranked_signal_counts,
+        )
+        diagnostic_summary = "; ".join(diagnostic_flags) if diagnostic_flags else "ok"
         case_results.append(
             BenchmarkCaseResult(
                 case_id=case.id,
@@ -585,6 +661,9 @@ def evaluate_cases(manager: MemoryManager, cases: Sequence[BenchmarkCase] | None
                 forbidden_hits=forbidden_hits,
                 expected_file_hits=expected_file_hits,
                 expected_kind_hits=expected_kind_hits,
+                ranked_signal_counts=ranked_signal_counts,
+                diagnostic_flags=diagnostic_flags,
+                diagnostic_summary=diagnostic_summary,
             )
         )
 
@@ -641,20 +720,59 @@ def _count_retrieval_signals(case_results: Sequence[BenchmarkCaseResult]) -> Dic
     semantic, metadata, or specialized history recall paths.
     """
 
-    signal_markers = {
+    counts = {signal: 0 for signal in _signal_markers()}
+    for result in case_results:
+        for signal, count in result.ranked_signal_counts.items():
+            if count > 0:
+                counts[signal] += 1
+    return counts
+
+
+def _signal_markers() -> Dict[str, str]:
+    return {
         "bm25": "BM25 rank",
         "vector": "Vector rank",
         "metadata": "Metadata rank",
         "file": "file",
         "error": "error",
     }
-    counts = {signal: 0 for signal in signal_markers}
-    for result in case_results:
-        reason_blob = "\n".join(result.ranked_reasons).lower()
-        for signal, marker in signal_markers.items():
-            if marker.lower() in reason_blob:
-                counts[signal] += 1
+
+
+def _count_reason_signals(reasons: Sequence[str]) -> Dict[str, int]:
+    counts = {signal: 0 for signal in _signal_markers()}
+    reason_blob = "\n".join(reasons).lower()
+    for signal, marker in _signal_markers().items():
+        counts[signal] = reason_blob.count(marker.lower())
     return counts
+
+
+def _diagnose_case(
+    *,
+    case: BenchmarkCase,
+    hit_rank: Optional[int],
+    forbidden_hits: Sequence[str],
+    expected_file_hits: Sequence[str],
+    expected_kind_hits: Sequence[str],
+    ranked_signal_counts: Dict[str, int],
+) -> List[str]:
+    flags: List[str] = []
+    if hit_rank is None:
+        flags.append("expected_missing")
+    elif hit_rank > 1:
+        flags.append("weak_ranking")
+    if forbidden_hits:
+        flags.append("forbidden_hit")
+    if case.expected_files and not expected_file_hits:
+        flags.append("expected_file_missing")
+    if case.expected_kinds and not expected_kind_hits:
+        flags.append("expected_kind_missing")
+    if not any(ranked_signal_counts.values()):
+        flags.append("no_rank_reason_signals")
+    if ranked_signal_counts.get("bm25", 0) == 0:
+        flags.append("bm25_signal_absent")
+    if ranked_signal_counts.get("vector", 0) == 0:
+        flags.append("vector_signal_absent")
+    return flags
 
 
 def run_default_benchmark(storage_dir: str | Path | None = None) -> BenchmarkReport:
@@ -716,10 +834,14 @@ def format_markdown_report(report: BenchmarkReport) -> str:
             )
         )
 
-    failures = [result for result in report.case_results if not result.hit or result.forbidden_hits]
-    lines.extend(["", "## Failures", ""])
+    failures = [
+        result
+        for result in report.case_results
+        if not result.hit or result.forbidden_hits or result.diagnostic_flags
+    ]
+    lines.extend(["", "## Failures and Weak Rankings", ""])
     if not failures:
-        lines.append("No failed cases or forbidden hits.")
+        lines.append("No failed, forbidden, or weak-ranking cases.")
     else:
         for result in failures:
             lines.extend(
@@ -728,12 +850,21 @@ def format_markdown_report(report: BenchmarkReport) -> str:
                     "",
                     f"- Query: {result.query}",
                     f"- Expected any: {', '.join(result.expected_any)}",
+                    f"- Expected files: {', '.join(result.expected_files) if result.expected_files else 'none'}",
+                    f"- Expected kinds: {', '.join(result.expected_kinds) if result.expected_kinds else 'none'}",
                     f"- Hit rank: {result.hit_rank}",
+                    f"- Diagnostic: {result.diagnostic_summary}",
                     f"- Forbidden hits: {', '.join(result.forbidden_hits) if result.forbidden_hits else 'none'}",
+                    f"- Expected file hits: {', '.join(result.expected_file_hits) if result.expected_file_hits else 'none'}",
+                    f"- Expected kind hits: {', '.join(result.expected_kind_hits) if result.expected_kind_hits else 'none'}",
+                    f"- Signal counts: {_format_signal_counts(result.ranked_signal_counts)}",
                     f"- Ranked ids: {', '.join(result.ranked_ids)}",
+                    "",
+                    "#### Ranked Reasons",
                     "",
                 ]
             )
+            lines.extend(_format_ranked_reasons(result))
 
     lines.extend(["", "## Case Details", ""])
     for result in report.case_results:
@@ -744,12 +875,36 @@ def format_markdown_report(report: BenchmarkReport) -> str:
                 f"- Category: {result.category}",
                 f"- Query: {result.query}",
                 f"- Expected any: {', '.join(result.expected_any)}",
+                f"- Expected files: {', '.join(result.expected_files) if result.expected_files else 'none'}",
+                f"- Expected kinds: {', '.join(result.expected_kinds) if result.expected_kinds else 'none'}",
                 f"- Hit rank: {result.hit_rank}",
+                f"- Diagnostic: {result.diagnostic_summary}",
+                f"- Signal counts: {_format_signal_counts(result.ranked_signal_counts)}",
                 f"- Ranked ids: {', '.join(result.ranked_ids)}",
+                "",
+                "#### Ranked Reasons",
                 "",
             ]
         )
+        lines.extend(_format_ranked_reasons(result))
     return "\n".join(lines)
+
+
+def _format_signal_counts(signal_counts: Dict[str, int]) -> str:
+    """Render per-case retrieval signal counts in a stable order."""
+
+    return ", ".join(f"{signal}={count}" for signal, count in sorted(signal_counts.items()))
+
+
+def _format_ranked_reasons(result: BenchmarkCaseResult) -> List[str]:
+    """Render aligned top-k ids and reasons for diagnosis."""
+
+    if not result.ranked_ids:
+        return ["- none"]
+    return [
+        f"- #{rank} `{item_id}`: {reason}"
+        for rank, (item_id, reason) in enumerate(zip(result.ranked_ids, result.ranked_reasons), start=1)
+    ]
 
 
 def compare_reports(baseline: BenchmarkReport, current: BenchmarkReport) -> BenchmarkComparisonReport:

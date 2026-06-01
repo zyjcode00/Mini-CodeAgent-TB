@@ -19,7 +19,7 @@ def test_memory_recall_benchmark_metrics_pass_quality_gate(tmp_path):
     report = run_default_benchmark(storage_dir=tmp_path / "long_term")
 
     assert isinstance(report, BenchmarkReport)
-    assert report.total_cases >= 10
+    assert report.total_cases >= 13
     assert report.hit_at_5 >= 0.75, report.to_dict()
     assert report.hit_at_3 >= 0.65, report.to_dict()
     assert report.mrr >= 0.50, report.to_dict()
@@ -75,5 +75,11 @@ def test_memory_recall_benchmark_markdown_and_json_are_serializable(tmp_path):
     assert "## Retrieval Signals" in markdown
     assert "File Hit" in markdown
     assert "phase5_rrf_done" in markdown
-    assert "retrieval_signal_counts" in encoded
+    assert "## Failures and Weak Rankings" in markdown
+    assert "#### Ranked Reasons" in markdown
+    assert "Signal counts:" in markdown
+    assert "Diagnostic:" in markdown
+    assert "benchmark_failure_diagnostics" in encoded
+    assert "ranked_signal_counts" in encoded
+    assert "diagnostic_flags" in encoded
     assert "case_results" in encoded
