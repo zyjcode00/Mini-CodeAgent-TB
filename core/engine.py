@@ -12,6 +12,7 @@ from core.context import ContextManager  # <--- 导入新管家
 from core.context_assembler import ContextAssembler, ContextBudget
 from core.memory_items import MemoryKind, ObservationType, RawObservation
 from core.memory_manager import MemoryManager
+from core.read_guard import ReadOnlyStreakGuard, RuntimeReadLedger
 
 # Git 自动化保险导入
 from tools.git_tool import create_snapshot, rollback_to, has_uncommitted_changes, start_task_branch, finalize_task, start_plan_branch, finalize_plan
@@ -179,6 +180,9 @@ class AgentEngine:
 
         await self.compress_messages()
 
+        read_ledger = RuntimeReadLedger()
+        read_only_guard = ReadOnlyStreakGuard()
+
         step = 0
         max_steps = 80
 
@@ -210,7 +214,7 @@ class AgentEngine:
 
             if stop_reason != "tool_use":
                 final_ans = "".join([b["text"] for b in content_blocks if b["type"] == "text"])
-                
+
                 # ✅ 新增：检查答案是否为空
                 if not final_ans.strip():
                     print(" ⚠️  LLM 返回空答案，添加错误提示重新尝试")
@@ -219,7 +223,7 @@ class AgentEngine:
                         "content": "⚠️ 请提供实质性的答案，而不是空白回复。"
                     })
                     continue  # 继续循环，重新调用 LLM
-                
+
                 self._remember_task_completion(user_input, final_ans)
                 self.save_session()
                 return final_ans
@@ -235,6 +239,9 @@ class AgentEngine:
                 if block["type"] == "tool_use":
                     t_id, t_name, t_input = block["id"], block["name"], block["input"]
                     tool_obj = self.tool_map[t_name]
+                    if t_name == "read_file":
+                        for reminder in read_ledger.record(t_input):
+                            deferred_memory_contexts.append(reminder)
                     pre_memory_context = self._build_pre_tool_memory_context(t_name, t_input)
                     if pre_memory_context:
                         deferred_memory_contexts.append(pre_memory_context)
@@ -338,6 +345,9 @@ class AgentEngine:
                     self.context.add_message({"role": "user", "content": tool_results_content})
 
                 # 延后写入记忆提示，避免 OpenAI assistant(tool_calls) 与 tool 响应之间夹入非 tool 消息。
+                checkpoint = read_only_guard.record_round([name for _, name, _ in tool_calls_info])
+                if checkpoint:
+                    deferred_memory_contexts.append(checkpoint)
                 for memory_context in deferred_memory_contexts:
                     self.context.add_message({"role": "user", "content": memory_context})
 
