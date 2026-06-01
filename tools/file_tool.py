@@ -7,8 +7,8 @@ class ReadArgs(BaseModel):
     path: str = Field(..., description="要读取的文件路径")
     start_line: int = Field(1, description="起始行号（从 1 开始）")
     end_line: int = Field(None, description="结束行号（可选，若不传则读到文件末尾）")
-    raw_mode: bool = Field(True, description="原始模式：输出无装饰符的内容，方便拷贝。默认启用以压缩会话大小。")
-    
+    raw_mode: bool = Field(False, description="原始模式：输出无装饰符的内容，方便拷贝。默认关闭；需要精确复制/编辑时可显式设为 true。")
+
 class FileTreeArgs(BaseModel):
     """递归列出文件的参数模型（无参数）"""
     pass
@@ -31,11 +31,11 @@ class ReadTool(BaseTool):
             e_idx = end_line if end_line is not None else total_lines
 
             selected_lines = lines[s_idx:e_idx]
-            
+
             # 原始模式：直接输出内容，不带装饰符
             if raw_mode:
                 return ''.join(selected_lines)
-            
+
             # 正常模式：带行号和装饰符
             output = []
             for i, line in enumerate(selected_lines):

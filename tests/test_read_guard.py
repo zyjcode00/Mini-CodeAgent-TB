@@ -5,6 +5,7 @@ from core.engine import AgentEngine
 from core.plan import PlanManager
 from core.read_guard import ReadOnlyStreakGuard, RuntimeReadLedger
 from tools.base import BaseTool
+from tools.file_tool import ReadArgs, ReadTool
 
 
 class ReadFileArgs(BaseModel):
@@ -18,7 +19,11 @@ class DummyReadFileTool(BaseTool):
     description = "dummy read file tool"
     args_schema = ReadFileArgs
 
+    def __init__(self):
+        self.calls = 0
+
     def run(self, **kwargs) -> str:
+        self.calls += 1
         return f"content:{kwargs.get('path')}:{kwargs.get('start_line')}-{kwargs.get('end_line')}"
 
 
@@ -26,9 +31,9 @@ class DummyPlanManager(PlanManager):
     pass
 
 
-def make_engine():
+def make_engine(tool=None):
     return AgentEngine(
-        tools=[DummyReadFileTool()],
+        tools=[tool or DummyReadFileTool()],
         model="gpt-test",
         plan_manager=DummyPlanManager(),
         base_url="http://example.invalid/v1",
@@ -58,26 +63,54 @@ def assert_valid_openai_tool_pairs(messages):
             assert msg.get("tool_call_id") in {tc["id"] for tc in prev_msg["tool_calls"]}
 
 
-def test_runtime_read_ledger_warns_on_duplicate_but_not_forward_pagination():
+def test_runtime_read_ledger_skips_duplicate_but_not_forward_pagination():
+    ledger = RuntimeReadLedger(duplicate_threshold=2)
+
+    first = ledger.before_read({"path": "core/engine.py", "start_line": 1, "end_line": 100})
+    duplicate = ledger.before_read({"path": "core/engine.py", "start_line": 1, "end_line": 100})
+
+    assert not first.should_skip
+    assert duplicate.should_skip
+    assert any("相同范围" in reminder for reminder in duplicate.reminders)
+    assert "相同范围" in duplicate.tool_response
+
+    # Normal forward pagination is allowed and should not produce reminders.
+    page_2 = ledger.before_read({"path": "core/engine.py", "start_line": 100, "end_line": 200})
+    page_3 = ledger.before_read({"path": "core/engine.py", "start_line": 200, "end_line": 300})
+    assert not page_2.should_skip
+    assert not page_3.should_skip
+
+
+def test_runtime_read_ledger_skips_contained_range_after_interval_merge():
+    ledger = RuntimeReadLedger(duplicate_threshold=2)
+
+    assert not ledger.before_read({"path": "core/engine.py", "start_line": 1, "end_line": 100}).should_skip
+    assert not ledger.before_read({"path": "core/engine.py", "start_line": 101, "end_line": 200}).should_skip
+
+    covered = ledger.before_read({"path": "core/engine.py", "start_line": 50, "end_line": 180})
+
+    assert covered.should_skip
+    assert any("已被先前读取" in reminder for reminder in covered.reminders)
+
+
+def test_runtime_read_ledger_normalizes_paths_for_deduplication():
+    ledger = RuntimeReadLedger(duplicate_threshold=2)
+
+    first = ledger.before_read({"path": "core/engine.py", "start_line": 1, "end_line": 20})
+    duplicate = ledger.before_read({"path": "./core/engine.py", "start_line": 1, "end_line": 20})
+
+    assert not first.should_skip
+    assert duplicate.should_skip
+    assert any("相同范围" in reminder for reminder in duplicate.reminders)
+
+
+def test_record_keeps_backward_compatible_reminder_api():
     ledger = RuntimeReadLedger(duplicate_threshold=2)
 
     assert ledger.record({"path": "core/engine.py", "start_line": 1, "end_line": 100}) == []
-    duplicate_reminders = ledger.record({"path": "core/engine.py", "start_line": 1, "end_line": 100})
+    reminders = ledger.record({"path": "core/engine.py", "start_line": 1, "end_line": 100})
 
-    assert any("相同范围" in reminder for reminder in duplicate_reminders)
-
-    # Normal forward pagination is allowed and should not produce reminders.
-    assert ledger.record({"path": "core/engine.py", "start_line": 100, "end_line": 200}) == []
-    assert ledger.record({"path": "core/engine.py", "start_line": 200, "end_line": 300}) == []
-
-
-def test_runtime_read_ledger_warns_on_contained_range_without_blocking():
-    ledger = RuntimeReadLedger(duplicate_threshold=2)
-
-    assert ledger.record({"path": "core/engine.py", "start_line": 1, "end_line": 300}) == []
-    reminders = ledger.record({"path": "core/engine.py", "start_line": 50, "end_line": 80})
-
-    assert any("已被先前读取" in reminder for reminder in reminders)
+    assert any("相同范围" in reminder for reminder in reminders)
 
 
 def test_read_only_streak_guard_checkpoint_resets_after_write_tool():
@@ -92,9 +125,39 @@ def test_read_only_streak_guard_checkpoint_resets_after_write_tool():
     assert guard.record_round(["read_file"]) is None
 
 
+def test_read_only_streak_guard_treats_memory_tools_as_read_only():
+    guard = ReadOnlyStreakGuard(checkpoint_threshold=3)
+
+    assert guard.record_round(["memory_recall"]) is None
+    assert guard.record_round(["memory_file_history", "memory_error_history"]) is None
+    checkpoint = guard.record_round(["memory_stats"])
+
+    assert checkpoint is not None
+    assert "只读工具防空转检查点" in checkpoint
+
+
+def test_read_only_streak_guard_uses_dynamic_thresholds():
+    default_guard = ReadOnlyStreakGuard.for_user_input("修复 bug")
+    docs_guard = ReadOnlyStreakGuard.for_user_input("更新方案文档")
+    architecture_guard = ReadOnlyStreakGuard.for_user_input("梳理项目架构")
+
+    assert default_guard.checkpoint_threshold == 3
+    assert docs_guard.checkpoint_threshold == 4
+    assert architecture_guard.checkpoint_threshold == 6
+
+
+def test_read_file_raw_mode_default_is_consistent_between_schema_and_run_signature():
+    schema_default = ReadArgs.model_fields["raw_mode"].default
+    runtime_default = ReadTool.run.__defaults__[-1]
+
+    assert schema_default is False
+    assert runtime_default is False
+
+
 @pytest.mark.asyncio
-async def test_engine_injects_read_guard_messages_after_tool_pairs(monkeypatch):
-    engine = make_engine()
+async def test_engine_short_circuits_duplicate_read_file_without_real_tool_call(monkeypatch):
+    read_tool = DummyReadFileTool()
+    engine = make_engine(read_tool)
 
     async def fake_compress_messages():
         return None
@@ -110,7 +173,7 @@ async def test_engine_injects_read_guard_messages_after_tool_pairs(monkeypatch):
 
     read_inputs = [
         {"path": "core/engine.py", "start_line": 1, "end_line": 100},
-        {"path": "core/engine.py", "start_line": 1, "end_line": 100},
+        {"path": "./core/engine.py", "start_line": 1, "end_line": 100},
         {"path": "core/engine.py", "start_line": 100, "end_line": 200},
     ]
     calls = {"count": 0}
@@ -143,7 +206,15 @@ async def test_engine_injects_read_guard_messages_after_tool_pairs(monkeypatch):
     result = await engine.execute_query("inspect")
 
     assert result == "done"
+    assert read_tool.calls == 2
     assert_valid_openai_tool_pairs(engine.context.messages)
+
+    tool_contents = [
+        str(m.get("content")) for m in engine.context.messages if m.get("role") == "tool"
+    ]
+    assert any("content:core/engine.py:1-100" in content for content in tool_contents)
+    assert any("相同范围" in content for content in tool_contents)
+    assert any("content:core/engine.py:100-200" in content for content in tool_contents)
 
     duplicate_messages = [
         m for m in engine.context.messages

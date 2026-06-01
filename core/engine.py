@@ -181,7 +181,7 @@ class AgentEngine:
         await self.compress_messages()
 
         read_ledger = RuntimeReadLedger()
-        read_only_guard = ReadOnlyStreakGuard()
+        read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
 
         step = 0
         max_steps = 80
@@ -240,8 +240,13 @@ class AgentEngine:
                     t_id, t_name, t_input = block["id"], block["name"], block["input"]
                     tool_obj = self.tool_map[t_name]
                     if t_name == "read_file":
-                        for reminder in read_ledger.record(t_input):
-                            deferred_memory_contexts.append(reminder)
+                        read_decision = read_ledger.before_read(t_input)
+                        if read_decision.reminders:
+                            deferred_memory_contexts.extend(read_decision.reminders)
+                        if read_decision.should_skip:
+                            tasks.append(asyncio.to_thread(lambda response=read_decision.tool_response: response))
+                            tool_calls_info.append((t_id, t_name, t_input))
+                            continue
                     pre_memory_context = self._build_pre_tool_memory_context(t_name, t_input)
                     if pre_memory_context:
                         deferred_memory_contexts.append(pre_memory_context)
