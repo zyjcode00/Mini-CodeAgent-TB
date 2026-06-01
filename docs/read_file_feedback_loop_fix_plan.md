@@ -28,7 +28,7 @@
 
 该结构本身是常见 agent loop，但当前缺少对“连续只读文件、没有任务推进”的显式检测。例如：
 
-- 连续 N 轮都只调用 `read_file` 时，没有强制要求模型总结发现并推进 Plan。
+- 多轮只调用 `read_file` 且没有阶段性总结/Plan 推进时，缺少显式检查点。
 - 多次读取同一个文件/相同行范围时，没有自动拦截或降级为提醒。
 - 工具结果被加入上下文后，下一轮模型仍可能认为“信息还不够”，继续读文件。
 
@@ -128,7 +128,7 @@
 
 优先级：最高。
 
-Codex 的建议是合理的，而且比简单的“连续 N 次 read_file 就禁止”更接近正确解法。这里的核心不是限制模型阅读能力，而是限制“无增量、无总结、无进展”的阅读循环。
+Codex 的建议是合理的，而且比简单的“按固定次数限制 read_file”更接近正确解法。这里的核心不是限制模型阅读能力，而是限制“无增量、无总结、无进展”的阅读循环。
 
 应明确区分两类行为：
 
@@ -281,7 +281,7 @@ read-only 工具可定义为：
 适用于连续 read-only 达到阈值：
 
 ```text
-你已连续 5 轮只进行阅读/检索。
+你已连续多轮只进行阅读/检索。
 请先输出阶段性判断：已获得什么、还缺什么、下一步是否应编辑/测试/mark_done。
 如继续读取，请给出明确目标和未覆盖行号。
 ```
@@ -313,7 +313,7 @@ read-only 工具可定义为：
 
 ## 对现有方案 A 的修正：从连续 read_file 计数改为防空转守卫
 
-原先“连续 3 轮 read_file / 连续 5 次 read_file”的设计过于粗糙，可能误伤正常架构阅读任务。建议改为：
+原先按固定次数触发的设计过于粗糙，可能误伤正常架构阅读任务。建议改为：
 
 - 不限制读取不同文件。
 - 不限制向后翻页。
@@ -322,41 +322,130 @@ read-only 工具可定义为：
 - 阈值由当前 Plan step 类型动态决定。
 - 守卫输出是“总结/决策要求”，不是“禁止继续调用工具”。
 
-## 建议方案 A：Agent Loop 增加“工具循环刹车”
+## 建议方案 A：AgentEngine 增加 Runtime Read Ledger 与防空转守卫
 
-优先级：高。
+优先级：最高，且作为第一批落地内容。
 
-在 `AgentEngine.execute_query()` 的循环中增加轻量状态跟踪：
+第一阶段建议只在 `AgentEngine.execute_query()` 所在的 agent loop 做运行时守卫，暂不改压缩、记忆和 `read_file` 工具默认行为，避免一次改动过多导致难以验证。
 
-- 记录最近 K 个 tool call。
-- 统计连续 tool-only 轮数。
-- 统计连续 `read_file` 次数。
-- 统计重复读取的 `(path, start_line, end_line, raw_mode)`。
+原因是：重复读取是否低价值，不只取决于 `read_file` 参数，还取决于当前任务、Plan step、连续 read-only 轮数、是否已有阶段性结论、是否刚发生压缩等上下文。`read_file` 工具本身不掌握这些状态，因此重复区间判断和阶段性检查点更适合放在 engine 层。
 
-建议策略：
+### 运行时状态
 
-1. 连续 3 轮只有 `read_file`，无 assistant 文本产出：向上下文追加系统/用户提醒，要求模型先总结已读内容并给出下一步，而不是继续读。
-2. 连续 5 次 `read_file`：强制进入“反思 turn”，本轮不再执行新工具，要求输出阶段性结论。
-3. 重复读取同一文件同一范围：返回短提示，例如“该范围刚刚读过，请基于已有内容推进；如必须重读，请说明原因并读取更小范围”。
-4. 如果当前有未完成 Plan：提醒模型必须围绕下一个未完成 task 产出或执行相关工具。
+在单次 `execute_query()` 运行周期内维护轻量 runtime ledger：
 
-伪代码示意：
+- `read_ledger`: path -> 已读区间、合并区间、次数、最近读取轮次。
+- `read_only_streak`: 连续只读/检索轮数。
+- `recent_tool_calls`: 最近 K 个工具调用。
+- `last_progress_turn`: 最近一次编辑、测试、mark_done 或 assistant 阶段性文本产出的轮次。
+- `current_plan_step_type`: 根据当前 Plan step 文本粗略判断任务类型，用于动态阈值。
 
-```python
-if tool_name == "read_file":
-    key = (path, start_line, end_line, raw_mode)
-    read_counts[key] += 1
-    consecutive_read_file_calls += 1
+read-only 工具包括：
 
-if consecutive_read_file_calls >= READ_FILE_SOFT_LIMIT:
-    context.add_message({
-        "role": "user",
-        "content": "你已经连续多次读取文件。请停止继续读取，先总结已读结论、未解决问题和下一步，并推进当前 Plan。"
-    })
-    continue
+- `read_file`
+- `search_code`
+- `list_all_symbols`
+- `find_symbol_definition`
+- `memory_recall`
+- `memory_file_history`
+- `memory_error_history`
+
+进展动作包括：
+
+- `edit_file` / `write_full_file`
+- `run_pytest` / 测试命令
+- `mark_task_done`
+- `commit_snapshot`
+- assistant 输出阶段性总结或最终回复
+
+### 重复读取处理方式
+
+当模型请求 `read_file` 时，engine 先基于 runtime ledger 判断区间关系：
+
+1. 完全重复：同一路径、同一区间已经读过。
+2. 被包含：新请求区间完全落在已读合并区间内。
+3. 部分重叠：新请求与已读区间部分重叠。
+4. 向后扩展：新请求覆盖未读的新行号。
+5. 新文件/新目的：正常读取。
+
+处理原则：
+
+- 对完全重复/被包含区间，不需要再次调用真实文件读取逻辑，可以把该 tool call 的 tool response 写成提醒。
+- 对部分重叠，可以允许读取，但在 tool response 中提示更优的未覆盖范围。
+- 对向后扩展、不同文件、不同区间，正常执行，不提醒或只更新 ledger。
+
+重复提醒示例：
+
+```text
+该范围已在本轮任务中读取过：core/engine.py L1-L260。
+你当前请求的 L1-L220 已被完全覆盖，属于低价值重复。
+请基于已读内容先总结并推进当前 Plan；如果必须重读，请说明新的读取目的和更精确范围。
 ```
 
-实现时要注意 OpenAI tool pair 完整性：提醒消息必须在 assistant tool_calls 对应 tool responses 之后追加，不能插入 tool call 和 tool response 中间。
+注意：为了保证 OpenAI tool call / tool response 配对完整，不能直接丢弃该 tool call，也不能在 assistant tool_calls 和 tool responses 中间插入普通消息。正确做法是：仍然为该 tool_call_id 生成一条 tool response，只是内容为上述提醒。
+
+### 连续 read-only 检查点
+
+连续 read-only 达到动态阈值时，也不禁止继续读取，而是在本轮所有 tool responses 完整写入后，追加一条内部提示，要求模型先阶段性总结。
+
+内部提示示例：
+
+```text
+你已连续多轮只进行阅读/检索，没有产生阶段性结论或推进 Plan。
+请先总结：
+1. 已读文件和关键发现；
+2. 当前是否足以推进下一个 Plan 步骤；
+3. 还缺什么信息；
+4. 如果仍需继续读取，下一批目标文件/行号是什么，以及为什么必要。
+除非需要未覆盖行号，否则不要重复读取 Read Ledger 中已覆盖的范围。
+```
+
+该提示是检查点，不是禁用工具。模型仍可继续读，但必须先给出理由、缺口和下一批目标。
+
+### 动态阈值
+
+不使用“按固定 read_file 次数触发”的硬规则，而根据当前任务类型设置 read-only 软阈值：
+
+| 当前任务类型 | read-only 软阈值 | 触发后的行为 |
+|---|---:|---|
+| 梳理架构 / 阅读项目 / 调研机制 | 8-12 轮 | 要求阶段性总结、列出已读文件和下一批目标 |
+| 定位复杂 bug | 5-8 轮 | 要求总结假设、证据、下一步验证点 |
+| 修复 bug / 实现功能 | 3-5 轮 | 要求说明为何还不能编辑/测试，或转向实际修改 |
+| 文档编写 / 总结方案 | 2-4 轮 | 要求基于已读信息产出文档或结论 |
+| 用户明确要求“只阅读不修改” | 8-12 轮 | 允许较多读取，但仍要求阶段性分析输出 |
+
+### 伪代码示意
+
+```python
+for tool_call in assistant_tool_calls:
+    if tool_call.name == "read_file":
+        request = parse_read_request(tool_call.arguments)
+        status = read_ledger.classify(request.path, request.start_line, request.end_line)
+
+        if status in {"duplicate", "contained"}:
+            tool_result = build_duplicate_read_reminder(request, read_ledger)
+        else:
+            tool_result = execute_read_file(tool_call)
+            read_ledger.record(request, purpose=current_plan_step)
+
+        context.add_tool_response(tool_call.id, tool_result)
+    else:
+        tool_result = execute_tool(tool_call)
+        context.add_tool_response(tool_call.id, tool_result)
+
+if read_only_streak >= dynamic_threshold(current_plan_step):
+    context.add_message({
+        "role": "user",
+        "content": build_read_only_checkpoint(read_ledger, current_plan_step),
+    })
+```
+
+实现重点：
+
+- 提醒必须发生在 tool responses 之后。
+- 守卫目标是防空转，不是限制正常阅读。
+- 第一阶段只维护运行时 ledger，不要求马上持久化到压缩或记忆。
+- 只有在压缩/恢复问题仍明显时，再进入 Phase 2 把 ledger 接入压缩摘要。
 
 ## 建议方案 B：`read_file` 工具增加重复读取与大输出保护
 
@@ -464,8 +553,8 @@ if observation.event_type == POST_TOOL_USE and observation.tool_name == "read_fi
 在系统提示或 developer prompt 中增加明确约束：
 
 ```text
-当你连续读取 2 个以上文件后，必须先用简短文字总结已获得的信息，并判断是否足以推进当前 Plan。
-禁止重复读取同一文件同一范围；如必须重复读取，必须说明新的读取目的。
+当你已经完成一批阅读后，应先用简短文字总结已获得的信息，并判断是否足以推进当前 Plan。
+不要重复读取同一文件同一范围；如必须重复读取，必须说明新的读取目的。
 当前 Plan 有未完成步骤时，优先完成下一个未完成步骤，不要进行无边界探索。
 如果你发现自己还想继续 read_file，请先列出：已读文件、缺口、下一次读取的必要性。
 ```
@@ -500,14 +589,14 @@ if observation.event_type == POST_TOOL_USE and observation.tool_name == "read_fi
 
 目标：最快降低死循环概率。
 
-- 在 agent loop 增加连续 `read_file` 计数。
+- 第一批只做 Engine 层 runtime ledger，不做固定次数限制。
 - 达到阈值后追加提醒，要求总结并推进。
 - 对重复读取同一范围给出提醒。
 - 在 prompt 中增加反循环规则。
 
 验证方式：
 
-- 构造一个 mock LLM 连续返回 `read_file`，确认第 N 次后被提醒。
+- 构造一个 mock LLM 持续返回重复或无增量的 `read_file` 请求，确认触发重复区间提醒或阶段性检查点。
 - 确认 OpenAI tool pair 仍完整。
 - 确认正常读取 1-2 个文件不受影响。
 
@@ -591,7 +680,7 @@ if observation.event_type == POST_TOOL_USE and observation.tool_name == "read_fi
 
 最推荐先做三件事：
 
-1. **Agent loop 连续 read_file guard**：最快阻断死循环。
+1. **AgentEngine runtime read ledger 与防空转 guard**：最快阻断重复/无增量阅读循环。
 2. **压缩摘要加入阅读 ledger**：解决重开/压缩后重复探索。
 3. **禁止 read_file 原始工具输出晋升长期记忆**：减少跨会话污染。
 
