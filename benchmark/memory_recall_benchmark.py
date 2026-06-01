@@ -18,7 +18,7 @@ import json
 import tempfile
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set
 
 from core.memory_items import MemoryItem, MemoryKind, MemoryStatus
 from core.memory_manager import MemoryManager
@@ -121,8 +121,100 @@ class BenchmarkReport:
     case_results: List[BenchmarkCaseResult]
 
     def to_dict(self) -> Dict[str, object]:
-        data = asdict(self)
-        return data
+        return asdict(self)
+
+
+def _case_result_from_dict(data: Dict[str, Any]) -> BenchmarkCaseResult:
+    """Deserialize a BenchmarkCaseResult from a JSON-compatible dict."""
+
+    return BenchmarkCaseResult(
+        case_id=str(data["case_id"]),
+        category=str(data["category"]),
+        query=str(data.get("query", "")),
+        expected_any=list(data.get("expected_any", [])),
+        expected_files=list(data.get("expected_files", [])),
+        expected_kinds=list(data.get("expected_kinds", [])),
+        forbidden=list(data.get("forbidden", [])),
+        top_k=int(data.get("top_k", 5)),
+        ranked_ids=list(data.get("ranked_ids", [])),
+        ranked_titles=list(data.get("ranked_titles", [])),
+        ranked_reasons=list(data.get("ranked_reasons", [])),
+        ranked_files=[list(files) for files in data.get("ranked_files", [])],
+        ranked_kinds=list(data.get("ranked_kinds", [])),
+        hit_rank=data.get("hit_rank"),
+        matched_expected_id=data.get("matched_expected_id"),
+        reciprocal_rank=float(data.get("reciprocal_rank", 0.0)),
+        forbidden_hits=list(data.get("forbidden_hits", [])),
+        expected_file_hits=list(data.get("expected_file_hits", [])),
+        expected_kind_hits=list(data.get("expected_kind_hits", [])),
+    )
+
+
+def report_from_dict(data: Dict[str, Any]) -> BenchmarkReport:
+    """Deserialize a BenchmarkReport from JSON-compatible data."""
+
+    return BenchmarkReport(
+        total_cases=int(data["total_cases"]),
+        hit_at_1=float(data["hit_at_1"]),
+        hit_at_3=float(data["hit_at_3"]),
+        hit_at_5=float(data["hit_at_5"]),
+        mrr=float(data["mrr"]),
+        forbidden_violation_rate=float(data["forbidden_violation_rate"]),
+        expected_file_hit_rate=float(data["expected_file_hit_rate"]),
+        expected_kind_hit_rate=float(data["expected_kind_hit_rate"]),
+        retrieval_signal_counts={str(key): int(value) for key, value in data.get("retrieval_signal_counts", {}).items()},
+        by_category={
+            str(category): {str(metric): float(value) for metric, value in metrics.items()}
+            for category, metrics in data.get("by_category", {}).items()
+        },
+        case_results=[_case_result_from_dict(result) for result in data.get("case_results", [])],
+    )
+
+
+def load_report_json(path: str | Path) -> BenchmarkReport:
+    """Load a BenchmarkReport from a JSON report file."""
+
+    return report_from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
+
+
+@dataclass(frozen=True)
+class BenchmarkMetricDelta:
+    """A numeric benchmark metric before/after comparison."""
+
+    name: str
+    baseline: float
+    current: float
+    delta: float
+
+
+@dataclass(frozen=True)
+class BenchmarkCaseChange:
+    """Case-level change between baseline and current benchmark reports."""
+
+    case_id: str
+    category: str
+    baseline_hit_rank: Optional[int]
+    current_hit_rank: Optional[int]
+    baseline_forbidden_hits: List[str]
+    current_forbidden_hits: List[str]
+    summary: str
+
+
+@dataclass(frozen=True)
+class BenchmarkComparisonReport:
+    """Structured comparison of a baseline report and current report."""
+
+    baseline_total_cases: int
+    current_total_cases: int
+    metric_deltas: List[BenchmarkMetricDelta]
+    improved_cases: List[BenchmarkCaseChange]
+    regressed_cases: List[BenchmarkCaseChange]
+    changed_cases: List[BenchmarkCaseChange]
+    added_cases: List[BenchmarkCaseResult]
+    removed_cases: List[BenchmarkCaseResult]
+
+    def to_dict(self) -> Dict[str, object]:
+        return asdict(self)
 
 
 def default_memory_specs() -> List[BenchmarkMemorySpec]:
@@ -660,21 +752,115 @@ def format_markdown_report(report: BenchmarkReport) -> str:
     return "\n".join(lines)
 
 
+def compare_reports(baseline: BenchmarkReport, current: BenchmarkReport) -> BenchmarkComparisonReport:
+    """Compare aggregate metrics and identify improved or regressed cases."""
+
+    metrics = [
+        ("hit@1", baseline.hit_at_1, current.hit_at_1),
+        ("hit@3", baseline.hit_at_3, current.hit_at_3),
+        ("hit@5", baseline.hit_at_5, current.hit_at_5),
+        ("mrr", baseline.mrr, current.mrr),
+        ("forbidden_violation_rate", baseline.forbidden_violation_rate, current.forbidden_violation_rate),
+        ("expected_file_hit_rate", baseline.expected_file_hit_rate, current.expected_file_hit_rate),
+        ("expected_kind_hit_rate", baseline.expected_kind_hit_rate, current.expected_kind_hit_rate),
+    ]
+    metric_deltas = [BenchmarkMetricDelta(name, old, new, new - old) for name, old, new in metrics]
+    baseline_cases = {result.case_id: result for result in baseline.case_results}
+    current_cases = {result.case_id: result for result in current.case_results}
+    improved: List[BenchmarkCaseChange] = []
+    regressed: List[BenchmarkCaseChange] = []
+    changed: List[BenchmarkCaseChange] = []
+
+    for case_id in sorted(baseline_cases.keys() & current_cases.keys()):
+        old = baseline_cases[case_id]
+        new = current_cases[case_id]
+        old_rank = old.hit_rank or float("inf")
+        new_rank = new.hit_rank or float("inf")
+        old_forbidden = bool(old.forbidden_hits)
+        new_forbidden = bool(new.forbidden_hits)
+        if old_rank == new_rank and old_forbidden == new_forbidden:
+            continue
+        if new_rank < old_rank or (old_forbidden and not new_forbidden):
+            summary = "improved"
+        elif new_rank > old_rank or (not old_forbidden and new_forbidden):
+            summary = "regressed"
+        else:
+            summary = "changed"
+        change = BenchmarkCaseChange(
+            case_id=case_id,
+            category=new.category,
+            baseline_hit_rank=old.hit_rank,
+            current_hit_rank=new.hit_rank,
+            baseline_forbidden_hits=list(old.forbidden_hits),
+            current_forbidden_hits=list(new.forbidden_hits),
+            summary=summary,
+        )
+        changed.append(change)
+        if summary == "improved":
+            improved.append(change)
+        elif summary == "regressed":
+            regressed.append(change)
+
+    return BenchmarkComparisonReport(
+        baseline_total_cases=baseline.total_cases,
+        current_total_cases=current.total_cases,
+        metric_deltas=metric_deltas,
+        improved_cases=improved,
+        regressed_cases=regressed,
+        changed_cases=changed,
+        added_cases=[current_cases[key] for key in sorted(current_cases.keys() - baseline_cases.keys())],
+        removed_cases=[baseline_cases[key] for key in sorted(baseline_cases.keys() - current_cases.keys())],
+    )
+
+
+def format_markdown_comparison(report: BenchmarkComparisonReport) -> str:
+    """Render a compact baseline/current comparison report."""
+
+    lines = ["# Memory Recall Benchmark Comparison", "", "## Summary", "",
+             f"- Baseline cases: {report.baseline_total_cases}", f"- Current cases: {report.current_total_cases}",
+             f"- Improved cases: {len(report.improved_cases)}", f"- Regressed cases: {len(report.regressed_cases)}",
+             f"- Added cases: {len(report.added_cases)}", f"- Removed cases: {len(report.removed_cases)}", "",
+             "## Metric Deltas", "", "| Metric | Baseline | Current | Delta |", "|---|---:|---:|---:|"]
+    for metric in report.metric_deltas:
+        lines.append(f"| {metric.name} | {metric.baseline:.3f} | {metric.current:.3f} | {metric.delta:+.3f} |")
+    lines.extend(["", "## Case Changes", ""])
+    if not report.changed_cases:
+        lines.append("No case-level rank or forbidden-hit changes.")
+    for change in report.changed_cases:
+        lines.append(f"- **{change.case_id}** ({change.category}): {change.summary}; rank {change.baseline_hit_rank} -> {change.current_hit_rank}")
+    return "\n".join(lines)
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Run the project-local memory recall benchmark.")
     parser.add_argument("--output-json", type=Path, default=None, help="Optional path for a JSON report.")
     parser.add_argument("--output-md", type=Path, default=None, help="Optional path for a markdown report.")
+    parser.add_argument("--compare-baseline", type=Path, default=None, help="Optional baseline JSON report to compare against.")
+    parser.add_argument("--output-compare-json", type=Path, default=None, help="Optional path for a JSON comparison report.")
+    parser.add_argument("--output-compare-md", type=Path, default=None, help="Optional path for a markdown comparison report.")
     args = parser.parse_args(argv)
 
     report = run_default_benchmark()
-    print(format_markdown_report(report))
+    markdown_report = format_markdown_report(report)
+    print(markdown_report)
 
     if args.output_json:
         args.output_json.parent.mkdir(parents=True, exist_ok=True)
         args.output_json.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
     if args.output_md:
         args.output_md.parent.mkdir(parents=True, exist_ok=True)
-        args.output_md.write_text(format_markdown_report(report), encoding="utf-8")
+        args.output_md.write_text(markdown_report, encoding="utf-8")
+
+    if args.compare_baseline:
+        comparison = compare_reports(load_report_json(args.compare_baseline), report)
+        comparison_markdown = format_markdown_comparison(comparison)
+        print("\n" + comparison_markdown)
+        if args.output_compare_json:
+            args.output_compare_json.parent.mkdir(parents=True, exist_ok=True)
+            args.output_compare_json.write_text(json.dumps(comparison.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+        if args.output_compare_md:
+            args.output_compare_md.parent.mkdir(parents=True, exist_ok=True)
+            args.output_compare_md.write_text(comparison_markdown, encoding="utf-8")
 
     return 0 if report.hit_at_5 >= 0.75 and report.forbidden_violation_rate == 0.0 else 1
 
