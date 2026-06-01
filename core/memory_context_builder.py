@@ -101,6 +101,8 @@ class MemoryContextBuilder:
             item = result.item
             if item.confidence < self.min_confidence:
                 continue
+            if item.is_low_quality_tool_trace():
+                continue
             signature = self._signature(item.title, item.content)
             if signature in seen:
                 continue

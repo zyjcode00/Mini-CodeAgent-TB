@@ -37,6 +37,11 @@ class MemoryMaintenance:
         item.metadata.setdefault("exact_content_hash", self.exact_hash(item))
         if "quality_score" not in item.metadata:
             item.quality_score = max(item.quality_score, item._default_quality_score())
+        if item.is_low_quality_tool_trace():
+            item.metadata["low_quality_tool_trace"] = True
+            item.quality_score = min(item.quality_score, 0.15)
+            item.importance = min(item.importance, 0.2)
+            item.confidence = min(item.confidence, 0.45)
 
         if item.status != MemoryStatus.ACTIVE.value:
             item.is_latest = False
@@ -48,6 +53,11 @@ class MemoryMaintenance:
             item.status = MemoryStatus.ARCHIVED.value
             item.is_latest = False
             return MaintenanceDecision("archive", item, reason="低置信度或已过期，直接归档")
+
+        if item.is_low_quality_tool_trace():
+            item.status = MemoryStatus.ARCHIVED.value
+            item.is_latest = False
+            return MaintenanceDecision("archive", item, reason="低质量原始工具轨迹，归档降噪")
 
         active_items = [candidate for candidate in existing_items if candidate.status == MemoryStatus.ACTIVE.value]
         duplicate = self.find_duplicate(item, active_items)

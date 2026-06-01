@@ -291,6 +291,42 @@ class MemoryItem:
             score -= 0.15
         return max(0.0, min(1.0, score))
 
+    def is_low_quality_tool_trace(self) -> bool:
+        """判断是否是应降噪的低质量工具轨迹记忆。
+
+        Phase 3 目标是减少跨会话重复探索：原始 read_file/search 等工具输出
+        如果只包含成功提示或大段源码/blob，通常不应作为长期结论被高优先级召回；
+        但包含完成结果、关键决策、解决方案等结论型信息的记忆必须保留。
+        """
+        if self.metadata.get("low_quality_tool_trace") is True:
+            return True
+
+        title_content = f"{self.title}\n{self.content}".lower()
+        tool_name = str(self.metadata.get("tool_name") or "").lower()
+        event_type = str(self.metadata.get("event_type") or "").lower()
+
+        tool_trace_title = any(marker in self.title.lower() for marker in ["工具执行成功", "工具执行失败", "tool"])
+        raw_tool_event = event_type in {"pre_tool_use", "post_tool_use", "tool_failure"}
+        noisy_tool = tool_name in {"read_file", "search_code", "list_files_recursive", "list_all_symbols", "find_symbol_definition"}
+        if not (noisy_tool or raw_tool_event or tool_trace_title):
+            return False
+
+        conclusion_markers = [
+            "完成结果", "关键决策", "解决方案", "修复", "已修复", "决策", "结论",
+            "tests_passed", "测试通过", "workflow", "architecture", "preference",
+        ]
+        if any(marker.lower() in title_content for marker in conclusion_markers):
+            return False
+        if self.kind in {MemoryKind.BUG.value, MemoryKind.WORKFLOW.value, MemoryKind.DECISION.value, MemoryKind.ARCHITECTURE.value}:
+            return False
+        if self.metadata.get("key_decisions") or self.metadata.get("solution"):
+            return False
+
+        raw_markers = ["[file]", "读取文件成功", "read_file returned", "raw source line", "| class ", "| def "]
+        long_raw_blob = len(self.content or "") > 800 and any(marker in title_content for marker in raw_markers)
+        generic_success = tool_trace_title and any(marker in title_content for marker in ["[file]", "读取文件", "success", "成功"])
+        return bool(long_raw_blob or generic_success or (noisy_tool and raw_tool_event))
+
     def mark_accessed(self, injected: bool = False) -> None:
         """记录一次召回/注入访问。"""
         now = _now_iso()
