@@ -81,3 +81,29 @@ def test_error_history_dynamic_rrf_weight_keeps_error_match_strong(tmp_path):
     assert results
     assert results[0].item.id == "mem_rrf_error"
     assert "error exact" in results[0].reason or "error partial" in results[0].reason
+
+
+def test_rrf_raw_signal_boost_breaks_near_tie_using_stronger_text_evidence(tmp_path):
+    manager = MemoryManager(long_term_storage_dir=str(tmp_path / "long_term"))
+    manager.save_memory_item(MemoryItem(
+        id="mem_rrf_weak_text",
+        kind=MemoryKind.OTHER.value,
+        title="alpha note",
+        content="alpha generic note",
+        concepts=["alpha"],
+        importance=0.5,
+    ))
+    manager.save_memory_item(MemoryItem(
+        id="mem_rrf_strong_text",
+        kind=MemoryKind.OTHER.value,
+        title="alpha beta gamma fix",
+        content="alpha beta gamma alpha beta gamma targeted retrieval fix",
+        concepts=["alpha", "beta", "gamma"],
+        importance=0.5,
+    ))
+
+    results = manager.hybrid_recall("alpha beta gamma", top_k=2)
+
+    assert results[0].item.id == "mem_rrf_strong_text"
+    assert "BM25强度加权" in results[0].reason
+    assert "Vector强度加权" in results[0].reason

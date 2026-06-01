@@ -14,6 +14,10 @@ from .memory_index import BM25MemoryDocument, BM25MemoryIndex
 
 
 RRF_K = 60
+RRF_RAW_BM25_BOOST = 0.0040
+RRF_RAW_VECTOR_BOOST = 0.0015
+RRF_TITLE_BM25_BOOST = 0.0030
+RRF_KIND_MATCH_BOOST = 0.0020
 RRF_DEFAULT_WEIGHTS: Dict[str, float] = {
     "bm25": 0.45,
     "vector": 0.30,
@@ -499,6 +503,15 @@ class MemoryRetriever:
             fused[hit.doc_id] = fused.get(hit.doc_id, 0.0) + weights.get(hit.source, 0.0) / (RRF_K + hit.rank)
             reasons_by_doc.setdefault(hit.doc_id, []).append(hit.reason)
 
+        self._apply_raw_signal_boosts(
+            fused,
+            bm25_by_doc,
+            vector_by_doc,
+            reasons_by_doc,
+            documents_by_id=doc_by_id,
+            query=query,
+        )
+
         if not query_terms and not normalized_file and not normalized_error:
             for doc in candidate_docs:
                 fused.setdefault(doc.id, 0.0)
@@ -719,6 +732,81 @@ class MemoryRetriever:
         if doc.summary:
             return doc.summary.task_goal
         return doc.id
+
+    def _apply_raw_signal_boosts(
+        self,
+        fused: Dict[str, float],
+        bm25_by_doc: Dict[str, Any],
+        vector_by_doc: Dict[str, Any],
+        reasons_by_doc: Dict[str, List[str]],
+        documents_by_id: Optional[Dict[str, MemoryDocument]] = None,
+        query: str = "",
+    ) -> None:
+        """Apply small raw-score tie breakers after RRF rank fusion.
+
+        RRF intentionally normalizes each retrieval source to ranks, which keeps
+        noisy high raw scores from dominating.  In benchmark weak cases, however,
+        two documents can have almost identical RRF scores while one has much
+        stronger BM25/vector evidence.  These bounded boosts preserve the RRF
+        consensus ordering but let clear raw-score winners break near ties.
+        """
+        if not fused:
+            return
+
+        max_bm25 = max((getattr(hit, "score", 0.0) for hit in bm25_by_doc.values()), default=0.0)
+        max_vector = max((getattr(hit, "score", 0.0) for hit in vector_by_doc.values()), default=0.0)
+        query_terms = self._tokenize(query.lower()) if query else []
+        expected_kind = self._infer_query_kind(query)
+
+        for doc_id in list(fused.keys()):
+            boost = 0.0
+            reason_parts: List[str] = []
+
+            bm25_hit = bm25_by_doc.get(doc_id)
+            bm25_score = getattr(bm25_hit, "score", 0.0) if bm25_hit else 0.0
+            if max_bm25 > 0 and bm25_score > 0:
+                bm25_boost = min(RRF_RAW_BM25_BOOST, RRF_RAW_BM25_BOOST * (bm25_score / max_bm25))
+                boost += bm25_boost
+                reason_parts.append(f"BM25强度加权 {bm25_boost:.4f}")
+
+            vector_hit = vector_by_doc.get(doc_id)
+            vector_score = getattr(vector_hit, "score", 0.0) if vector_hit else 0.0
+            if max_vector > 0 and vector_score > 0:
+                vector_boost = min(RRF_RAW_VECTOR_BOOST, RRF_RAW_VECTOR_BOOST * (vector_score / max_vector))
+                boost += vector_boost
+                reason_parts.append(f"Vector强度加权 {vector_boost:.4f}")
+
+            doc = documents_by_id.get(doc_id) if documents_by_id else None
+            if doc and query_terms:
+                title_terms = set(self._tokenize(self._document_title(doc).lower()))
+                title_overlap = len(set(query_terms) & title_terms)
+                if title_overlap:
+                    title_boost = min(RRF_TITLE_BM25_BOOST, RRF_TITLE_BM25_BOOST * title_overlap / max(len(set(query_terms)), 1))
+                    boost += title_boost
+                    reason_parts.append(f"标题匹配加权 {title_boost:.4f}")
+            if doc and expected_kind and doc.kind == expected_kind:
+                boost += RRF_KIND_MATCH_BOOST
+                reason_parts.append(f"意图类型加权 {RRF_KIND_MATCH_BOOST:.4f}")
+
+            if boost:
+                fused[doc_id] += boost
+                reasons_by_doc.setdefault(doc_id, []).append("; ".join(reason_parts))
+
+    def _infer_query_kind(self, query: str) -> Optional[str]:
+        q = (query or "").lower()
+        decision_terms = ["decision", "决策", "建议", "怎么看", "要不要", "是不是", "是否", "plan", "计划", "策略", "方案"]
+        bug_terms = ["bug", "error", "exception", "traceback", "失败", "错误", "报错"]
+        architecture_terms = ["architecture", "架构", "设计"]
+        workflow_terms = ["workflow", "流程", "规范", "步骤"]
+        if any(term in q for term in bug_terms):
+            return MemoryKind.BUG.value
+        if any(term in q for term in architecture_terms):
+            return MemoryKind.ARCHITECTURE.value
+        if any(term in q for term in workflow_terms):
+            return MemoryKind.WORKFLOW.value
+        if any(term in q for term in decision_terms):
+            return MemoryKind.DECISION.value
+        return None
 
     def _calculate_text_bm25_score(self, query_terms: List[str], text: str) -> float:
         doc_terms = self._tokenize(text)
