@@ -35,6 +35,20 @@ def test_memory_recall_benchmark_reports_category_breakdown(tmp_path):
         assert report.by_category[category]["cases"] >= 1
         assert "hit@5" in report.by_category[category]
         assert "mrr" in report.by_category[category]
+        assert "expected_file_hit_rate" in report.by_category[category]
+        assert "expected_kind_hit_rate" in report.by_category[category]
+
+
+def test_memory_recall_benchmark_reports_signal_and_expectation_metrics(tmp_path):
+    report = run_default_benchmark(storage_dir=tmp_path / "long_term")
+
+    assert 0.0 <= report.expected_file_hit_rate <= 1.0
+    assert 0.0 <= report.expected_kind_hit_rate <= 1.0
+    assert report.expected_file_hit_rate >= 0.75, report.to_dict()
+    assert report.expected_kind_hit_rate >= 0.75, report.to_dict()
+    assert {"bm25", "vector", "metadata", "file", "error"}.issubset(report.retrieval_signal_counts)
+    assert report.retrieval_signal_counts["bm25"] >= 1
+    assert report.retrieval_signal_counts["vector"] >= 1
 
 
 def test_memory_recall_benchmark_forbidden_archived_memory_not_returned(tmp_path):
@@ -57,5 +71,9 @@ def test_memory_recall_benchmark_markdown_and_json_are_serializable(tmp_path):
 
     assert "# Memory Recall Benchmark Report" in markdown
     assert "Hit@5" in markdown
+    assert "Expected file hit rate" in markdown
+    assert "## Retrieval Signals" in markdown
+    assert "File Hit" in markdown
     assert "phase5_rrf_done" in markdown
+    assert "retrieval_signal_counts" in encoded
     assert "case_results" in encoded
