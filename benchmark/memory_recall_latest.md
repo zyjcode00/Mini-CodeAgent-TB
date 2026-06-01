@@ -2,25 +2,36 @@
 
 ## Summary
 
-- Cases: 12
-- Hit@1: 91.67%
+- Cases: 15
+- Hit@1: 93.33%
 - Hit@3: 100.00%
 - Hit@5: 100.00%
-- MRR: 0.958
+- MRR: 0.967
 - Forbidden violation rate: 0.00%
+- Expected file hit rate: 100.00%
+- Expected kind hit rate: 100.00%
+
+## Retrieval Signals
+
+- bm25: 15
+- error: 4
+- file: 0
+- metadata: 15
+- vector: 15
 
 ## By Category
 
-| Category | Cases | Hit@1 | Hit@3 | Hit@5 | MRR | Forbidden |
-|---|---:|---:|---:|---:|---:|---:|
-| architecture | 2 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% |
-| chinese_query | 1 | 0.00% | 100.00% | 100.00% | 0.500 | 0.00% |
-| error_history | 3 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% |
-| file_history | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% |
-| lifecycle | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% |
-| phase_task | 2 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% |
-| preference | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% |
-| semantic_rewrite | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% |
+| Category | Cases | Hit@1 | Hit@3 | Hit@5 | MRR | Forbidden | File Hit | Kind Hit |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| architecture | 2 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
+| chinese_query | 1 | 0.00% | 100.00% | 100.00% | 0.500 | 0.00% | 100.00% | 100.00% |
+| error_history | 4 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
+| file_history | 2 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
+| lifecycle | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
+| phase_task | 2 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
+| preference | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
+| semantic_rewrite | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
+| workflow | 1 | 100.00% | 100.00% | 100.00% | 1.000 | 0.00% | 100.00% | 100.00% |
 
 ## Failures
 
@@ -58,7 +69,7 @@ No failed cases or forbidden hits.
 - Query: 长期记忆现在怎么过滤 archived superseded expired 旧记忆？
 - Expected any: bench_phase3_lifecycle_governance
 - Hit rank: 1
-- Ranked ids: bench_phase3_lifecycle_governance, bench_arch_retrieval_not_rewrite, bench_bug_openai_tool_pairing, bench_phase4_vector_index, bench_bug_module_not_found_pytest
+- Ranked ids: bench_phase3_lifecycle_governance, bench_arch_retrieval_not_rewrite, bench_bug_openai_tool_pairing, bench_phase4_vector_index, bench_file_resume_templates_readme
 
 ### architecture_not_rewrite
 
@@ -66,7 +77,7 @@ No failed cases or forbidden hits.
 - Query: 现在记忆检索还要推倒重写吗，下一步应该先做 Graph 还是质量测评？
 - Expected any: bench_arch_retrieval_not_rewrite
 - Hit rank: 1
-- Ranked ids: bench_arch_retrieval_not_rewrite, bench_phase3_lifecycle_governance, bench_phase2_index_persistence, bench_context_compression_strategy_doc, bench_bug_winerror5_index_json
+- Ranked ids: bench_arch_retrieval_not_rewrite, bench_phase3_lifecycle_governance, bench_phase2_index_persistence, bench_bug_winerror5_index_json, bench_preference_tdd_pytest_required
 
 ### winerror5_index_failure
 
@@ -82,7 +93,7 @@ No failed cases or forbidden hits.
 - Query: BadRequestError assistant tool_calls 后没有紧邻 tool response 是怎么修的？
 - Expected any: bench_bug_openai_tool_pairing
 - Hit rank: 1
-- Ranked ids: bench_bug_openai_tool_pairing, bench_bug_winerror5_index_json, bench_bug_module_not_found_pytest, bench_phase3_lifecycle_governance, bench_phase5_rrf_fusion
+- Ranked ids: bench_bug_openai_tool_pairing, bench_bug_winerror5_index_json, bench_workflow_git_push_main, bench_error_plan_branch_attribute, bench_bug_module_not_found_pytest
 
 ### module_not_found_core_pytest
 
@@ -90,7 +101,7 @@ No failed cases or forbidden hits.
 - Query: Traceback ModuleNotFoundError No module named core pytest 应该怎么办？
 - Expected any: bench_bug_module_not_found_pytest
 - Hit rank: 1
-- Ranked ids: bench_bug_module_not_found_pytest, bench_bug_winerror5_index_json, bench_preference_tdd_pytest_required, bench_phase3_lifecycle_governance, bench_phase5_rrf_fusion
+- Ranked ids: bench_bug_module_not_found_pytest, bench_error_plan_branch_attribute, bench_preference_tdd_pytest_required, bench_bug_winerror5_index_json, bench_workflow_git_push_main
 
 ### user_tdd_preference
 
@@ -98,7 +109,7 @@ No failed cases or forbidden hits.
 - Query: 用户对实现功能和测试有什么要求，是不是必须 pytest 通过才能说完成？
 - Expected any: bench_preference_tdd_pytest_required
 - Hit rank: 1
-- Ranked ids: bench_preference_tdd_pytest_required, bench_phase5_rrf_fusion, bench_bug_module_not_found_pytest, bench_phase3_lifecycle_governance, bench_phase2_index_persistence
+- Ranked ids: bench_preference_tdd_pytest_required, bench_workflow_git_push_main, bench_phase5_rrf_fusion, bench_bug_module_not_found_pytest, bench_phase3_lifecycle_governance
 
 ### context_compression_doc
 
@@ -106,7 +117,31 @@ No failed cases or forbidden hits.
 - Query: 上下文压缩系统重构文档里说 token budget 和结构化摘要怎么做？
 - Expected any: bench_context_compression_strategy_doc
 - Hit rank: 1
-- Ranked ids: bench_context_compression_strategy_doc, bench_phase5_rrf_fusion, bench_phase2_index_persistence, bench_phase3_lifecycle_governance, bench_arch_retrieval_not_rewrite
+- Ranked ids: bench_context_compression_strategy_doc, bench_file_resume_templates_readme, bench_phase5_rrf_fusion, bench_phase3_lifecycle_governance, bench_arch_retrieval_not_rewrite
+
+### git_push_main_workflow
+
+- Category: workflow
+- Query: 把当前修改提交并推送到 GitHub main 分支前，需要按什么流程检查？
+- Expected any: bench_workflow_git_push_main
+- Hit rank: 1
+- Ranked ids: bench_workflow_git_push_main, bench_bug_winerror5_index_json, bench_arch_retrieval_not_rewrite, bench_error_plan_branch_attribute, bench_file_resume_templates_readme
+
+### readme_resume_file_history
+
+- Category: file_history
+- Query: D:\LLM\mini-claude-code-cli\README.md 要在原规范基础上补充内容，相关简历模板文件是哪一个？
+- Expected any: bench_file_resume_templates_readme
+- Hit rank: 1
+- Ranked ids: bench_file_resume_templates_readme, bench_bug_winerror5_index_json, bench_workflow_git_push_main, bench_preference_tdd_pytest_required, bench_arch_retrieval_not_rewrite
+
+### agent_engine_plan_branch_attribute
+
+- Category: error_history
+- Query: 发生运行错误 AttributeError 'AgentEngine' object has no attribute 'current_plan_branch' 制定 plan 后报错怎么查？
+- Expected any: bench_error_plan_branch_attribute
+- Hit rank: 1
+- Ranked ids: bench_error_plan_branch_attribute, bench_bug_module_not_found_pytest, bench_bug_openai_tool_pairing, bench_bug_winerror5_index_json, bench_context_compression_strategy_doc
 
 ### semantic_rewrite_rrf
 
