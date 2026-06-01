@@ -15,6 +15,7 @@ import json
 import hashlib
 import time
 import re
+import asyncio  # ✅ 添加 asyncio 支持
 from datetime import datetime
 
 from core.memory_models import SessionSummary, FileChange, ErrorRecord, ToolUsage
@@ -301,6 +302,100 @@ class CompressionEngine:
         print(f"   [策略选择] 一般对话 → SLIDING_WINDOW")
         return CompressionStrategy.SLIDING_WINDOW
 
+    def _condense_messages_for_llm_summarization(
+        self,
+        messages: List[Dict[str, Any]],
+        max_content_length: int = 300
+    ) -> List[Dict[str, Any]]:
+        """
+        ✅ 新增：选择性精简消息，只精简工具输出，保留关键信息
+
+        策略：
+        1. 保留: 用户消息、错误信息、关键决策
+        2. 精简: 工具的原始输出（大段文件、完整列表等）
+        3. 不丢弃: 消息结构、工具名称、成功/失败标志
+
+        这样能保证：
+        - LLM 获得充分信息生成准确摘要
+        - prompt 大小大幅缩小（从 150KB → 20KB）
+
+        Args:
+            messages: 原始消息列表
+            max_content_length: 单条工具输出的最大长度
+
+        Returns:
+            精简后的消息列表
+        """
+        condensed = []
+
+        for msg in messages:
+            condensed_msg = dict(msg)  # 浅拷贝
+            role = msg.get("role", "")
+            content = msg.get("content", "")
+
+            # ============ 关键规则 1: 保留用户消息（完整） ============
+            if role == "user":
+                # 用户消息必须完整保留，这是关键指令
+                condensed.append(condensed_msg)
+                continue
+
+            # ============ 关键规则 2: 保留助手消息（完整） ============
+            if role == "assistant":
+                # 助手消息可能包含计划、关键决策、错误分析、压缩后的会话状态等
+                # 这些信息没有稳定的位置，截断头尾会丢失中段关键摘要。
+                # 本函数的目标是“只精简工具输出”，因此 assistant 内容必须完整保留。
+                condensed.append(condensed_msg)
+                continue
+
+            # ============ 关键规则 3: 智能精简工具消息 ============
+            if role == "tool":
+                # 工具消息：保留错误信息，精简成功的大段输出
+                if isinstance(content, str):
+                    # 检查是否是错误消息
+                    is_error = any(keyword in content for keyword in [
+                        "error", "Error", "ERROR", "exception", "Exception", "EXCEPTION",
+                        "failed", "Failed", "FAILED", "失败", "错误", "异常",
+                        "Traceback", "TypeError", "ValueError", "KeyError"
+                    ])
+
+                    if is_error:
+                        # 错误信息保留，但可以截断超长错误
+                        if len(content) > 1000:
+                            condensed_msg["content"] = (
+                                content[:500] +
+                                f"\n... (完整错误信息共 {len(content)} 字符) ...\n" +
+                                content[-300:]
+                            )
+                    else:
+                        # 成功输出：精简
+                        if len(content) > max_content_length:
+                            # 保留头部（通常是摘要）和尾部（通常是结果）
+                            head_len = max_content_length // 3
+                            tail_len = max_content_length - head_len - 20
+                            condensed_msg["content"] = (
+                                content[:head_len] +
+                                f"\n... (共 {len(content)} 字符，内容已精简) ...\n" +
+                                content[-tail_len:]
+                            )
+                        # else: 长度合理，保留原样
+
+                condensed.append(condensed_msg)
+                continue
+
+            # 其他角色（比如 system）保留原样
+            condensed.append(condensed_msg)
+
+        # 计算压缩效果
+        original_size = sum(len(str(m)) for m in messages)
+        condensed_size = sum(len(str(m)) for m in condensed)
+        reduction_ratio = (1 - condensed_size / original_size) if original_size > 0 else 0
+
+        # 只在有明显压缩时才打印
+        if reduction_ratio > 0.3:
+            print(f"   [消息精简] 移除冗余输出: {original_size//1024}KB → {condensed_size//1024}KB (节省 {reduction_ratio:.1%})")
+
+        return condensed
+
     # ========== 策略 1: LLM 摘要 ==========
 
     async def _compress_with_llm(
@@ -375,26 +470,35 @@ class CompressionEngine:
             print(f"   ⚠️  LLM 调用超限，降级到 SLIDING_WINDOW")
             return self._compress_with_sliding_window(messages, 0.3, min_keep)
 
+        # ✅ 预处理 to_summarize：移除大段工具输出，只保留关键信息
+        # 这样能大幅减小发送给 LLM 的 prompt 大小，避免超时
+        condensed_messages = self._condense_messages_for_llm_summarization(to_summarize)
+
         # 生成摘要
         prompt = SUMMARY_PROMPT_TEMPLATE_V2.format(
             existing_summary=existing_summary or "无",
-            messages_to_summarize=str(to_summarize)
+            messages_to_summarize=str(condensed_messages)  # ✅ 使用精简后的消息
         )
 
         try:
-            summary_text = await llm_summarizer_func(prompt)
+            # ✅ 改动 B：添加超时控制，60s 后明确回退
+            try:
+                summary_text = await asyncio.wait_for(
+                    llm_summarizer_func(prompt),
+                    timeout=60  # 更激进的超时
+                )
+            except asyncio.TimeoutError:
+                print(f"   ⚠️  压缩 LLM 调用超时 (60s)，使用快速回退策略")
+                print(f"   🔄 降级到 SLIDING_WINDOW 策略")
+                # 明确回退到滑动窗口，而不是保留失败状态
+                return self._compress_with_sliding_window(messages, 0.3, min_keep)
 
             # 🔥 Phase 2: 记录调用
             self._record_llm_call()
 
             if not summary_text:
-                return CompressionResult(
-                    success=False,
-                    strategy=CompressionStrategy.LLM_SUMMARY,
-                    compressed_messages=keep_messages,
-                    original_count=len(messages),
-                    compressed_count=len(keep_messages)
-                )
+                print(f"   ⚠️  LLM 返回空内容，降级到 SLIDING_WINDOW")
+                return self._compress_with_sliding_window(messages, 0.3, min_keep)
 
             # 解析结构化摘要
             summary = self._parse_structured_summary(
@@ -442,16 +546,16 @@ class CompressionEngine:
                 compressed_state=compressed_state
             )
 
+        except asyncio.TimeoutError:
+            # 这层 try-except 是备用（如果没在内层 catch）
+            print(f"   ⚠️  LLM 调用超时，使用 SLIDING_WINDOW 回退")
+            return self._compress_with_sliding_window(messages, 0.3, min_keep)
+
         except Exception as e:
-            print(f"   [错误] LLM 摘要失败: {str(e)}")
-            return CompressionResult(
-                success=False,
-                strategy=CompressionStrategy.LLM_SUMMARY,
-                compressed_messages=keep_messages,
-                original_count=len(messages),
-                compressed_count=len(keep_messages),
-                metadata={"error": str(e)}
-            )
+            print(f"   [❌] LLM 摘要失败: {str(e)}")
+            # 所有异常都降级到 SLIDING_WINDOW，而不是返回失败
+            print(f"   🔄 降级到 SLIDING_WINDOW 策略")
+            return self._compress_with_sliding_window(messages, 0.3, min_keep)
 
     # ========== 策略 2: 关键帧提取 ==========
 

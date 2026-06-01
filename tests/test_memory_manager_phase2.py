@@ -42,7 +42,7 @@ def test_long_term_memory_stores_rebuilds_and_searches_memory_items():
         results = manager.recall("MemoryManager recall", top_k=3, include_summaries=False)
         assert results[0].item.id == "mem-architecture"
         assert results[0].source == "long_term_items"
-        assert "匹配关键词" in results[0].reason
+        assert "BM25" in results[0].reason or "Vector" in results[0].reason
 
         # 模拟跨进程/跨会话重启后从 index.json 恢复索引
         restored = MemoryManager(long_term_storage_dir=temp_dir)

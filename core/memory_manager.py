@@ -211,7 +211,7 @@ class MemoryManager:
             return ""
         results = self.hybrid_recall(
             query=query,
-            top_k=max(top_k * 2, top_k),
+            top_k=top_k,  # ✅ 改动 A：不要乘以 2，保持参数一致性
             file_path=file_path,
             error_type=error_type,
             kinds=kinds,

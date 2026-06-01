@@ -7,7 +7,7 @@ class ReadArgs(BaseModel):
     path: str = Field(..., description="要读取的文件路径")
     start_line: int = Field(1, description="起始行号（从 1 开始）")
     end_line: int = Field(None, description="结束行号（可选，若不传则读到文件末尾）")
-    raw_mode: bool = Field(False, description="原始模式：输出无装饰符的内容，方便拷贝")
+    raw_mode: bool = Field(True, description="原始模式：输出无装饰符的内容，方便拷贝。默认启用以压缩会话大小。")
     
 class FileTreeArgs(BaseModel):
     """递归列出文件的参数模型（无参数）"""
@@ -18,7 +18,7 @@ class ReadTool(BaseTool):
     description = "读取文件内容。支持指定行范围，这在处理大文件时非常高效。建议先读取前 100 行了解结构。"
     args_schema = ReadArgs
 
-    def run(self, path: str, start_line: int = 1, end_line: int = None, raw_mode: bool = False) -> str:
+    def run(self, path: str, start_line: int = 1, end_line: int = None, raw_mode: bool = True) -> str:
         try:
             if not os.path.exists(path):
                 return f"错误: 找不到文件 {path}"

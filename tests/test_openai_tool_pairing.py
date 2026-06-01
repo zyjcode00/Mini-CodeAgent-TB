@@ -222,7 +222,7 @@ def test_engine_sanitizes_snapshot_before_openai_call(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_context_failed_compression_sanitizes_existing_messages():
+async def test_context_llm_fallback_sanitizes_existing_messages():
     from core.compression_engine import CompressionStrategy
     from core.context import ContextManager
 
@@ -247,6 +247,6 @@ async def test_context_failed_compression_sanitizes_existing_messages():
 
     success = await ctx.compress(timeout_like_summarizer, strategy=CompressionStrategy.LLM_SUMMARY)
 
-    assert success is False
+    assert success is True
     assert ctx.messages == [{"role": "user", "content": "hello"}]
     assert_valid_openai_tool_pairs(ctx.messages)
