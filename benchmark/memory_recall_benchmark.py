@@ -77,18 +77,33 @@ class BenchmarkCaseResult:
     category: str
     query: str
     expected_any: List[str]
+    expected_files: List[str]
+    expected_kinds: List[str]
     forbidden: List[str]
     top_k: int
     ranked_ids: List[str]
     ranked_titles: List[str]
     ranked_reasons: List[str]
+    ranked_files: List[List[str]]
+    ranked_kinds: List[str]
     hit_rank: Optional[int]
+    matched_expected_id: Optional[str]
     reciprocal_rank: float
     forbidden_hits: List[str]
+    expected_file_hits: List[str]
+    expected_kind_hits: List[str]
 
     @property
     def hit(self) -> bool:
         return self.hit_rank is not None
+
+    @property
+    def expected_files_satisfied(self) -> bool:
+        return not self.expected_files or bool(self.expected_file_hits)
+
+    @property
+    def expected_kinds_satisfied(self) -> bool:
+        return not self.expected_kinds or bool(self.expected_kind_hits)
 
 
 @dataclass
@@ -99,6 +114,9 @@ class BenchmarkReport:
     hit_at_5: float
     mrr: float
     forbidden_violation_rate: float
+    expected_file_hit_rate: float
+    expected_kind_hit_rate: float
+    retrieval_signal_counts: Dict[str, int]
     by_category: Dict[str, Dict[str, float]]
     case_results: List[BenchmarkCaseResult]
 
@@ -240,6 +258,43 @@ def default_memory_specs() -> List[BenchmarkMemorySpec]:
             importance=0.86,
         ),
         BenchmarkMemorySpec(
+            id="bench_workflow_git_push_main",
+            kind=MemoryKind.WORKFLOW.value,
+            title="提交并推送到 GitHub main 分支的工作流",
+            content=(
+                "提交前先检查 git status、运行必要 pytest，确认工作区修改范围；"
+                "然后创建规范 commit，最后 git push origin main 并确认远端 main 分支更新。"
+            ),
+            concepts=["git", "commit", "push", "main", "pytest", "workflow"],
+            files=["README.md", "tests/test_openai_tool_pairing.py"],
+            importance=0.88,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_file_resume_templates_readme",
+            kind=MemoryKind.TASK.value,
+            title="README 保持原规范并补充项目修改内容",
+            content=(
+                "更新 D:\\LLM\\mini-claude-code-cli\\README.md 时，应在原 README 结构基础上补充新增功能，"
+                "不要大幅删除原内容；相关简历模板记录在 docs/resume_templates_for_mini_claude_code_cli.md。"
+            ),
+            concepts=["README", "resume templates", "文档更新", "保持规范"],
+            files=["README.md", "docs/resume_templates_for_mini_claude_code_cli.md"],
+            importance=0.84,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_error_plan_branch_attribute",
+            kind=MemoryKind.BUG.value,
+            title="AgentEngine 缺少 current_plan_branch 会导致制定 plan 后报错",
+            content=(
+                "制定 plan 后如果出现 AttributeError: 'AgentEngine' object has no attribute 'current_plan_branch'，"
+                "应检查 AgentEngine 初始化计划分支状态，并保证 plan 相关属性在使用前已创建。"
+            ),
+            concepts=["AgentEngine", "current_plan_branch", "AttributeError", "plan"],
+            files=["core/engine.py", "tests/test_plan_branch.py"],
+            importance=0.89,
+            metadata={"error_type": "AttributeError"},
+        ),
+        BenchmarkMemorySpec(
             id="bench_old_keyword_retrieval_archived",
             kind=MemoryKind.DECISION.value,
             title="旧版简单关键词检索已经废弃",
@@ -329,6 +384,30 @@ def default_cases() -> List[BenchmarkCase]:
             query="上下文压缩系统重构文档里说 token budget 和结构化摘要怎么做？",
             expected_any=["bench_context_compression_strategy_doc"],
             expected_files=["docs/context_compression_strategy_architecture.md"],
+            expected_kinds=[MemoryKind.ARCHITECTURE.value],
+        ),
+        BenchmarkCase(
+            id="git_push_main_workflow",
+            category="workflow",
+            query="把当前修改提交并推送到 GitHub main 分支前，需要按什么流程检查？",
+            expected_any=["bench_workflow_git_push_main"],
+            expected_files=["README.md"],
+            expected_kinds=[MemoryKind.WORKFLOW.value],
+        ),
+        BenchmarkCase(
+            id="readme_resume_file_history",
+            category="file_history",
+            query="D:\\LLM\\mini-claude-code-cli\\README.md 要在原规范基础上补充内容，相关简历模板文件是哪一个？",
+            expected_any=["bench_file_resume_templates_readme"],
+            expected_files=["docs/resume_templates_for_mini_claude_code_cli.md"],
+        ),
+        BenchmarkCase(
+            id="agent_engine_plan_branch_attribute",
+            category="error_history",
+            query="发生运行错误 AttributeError 'AgentEngine' object has no attribute 'current_plan_branch' 制定 plan 后报错怎么查？",
+            expected_any=["bench_error_plan_branch_attribute"],
+            expected_files=["core/engine.py"],
+            expected_kinds=[MemoryKind.BUG.value],
         ),
         BenchmarkCase(
             id="semantic_rewrite_rrf",
@@ -368,13 +447,29 @@ def evaluate_cases(manager: MemoryManager, cases: Sequence[BenchmarkCase] | None
         ranked_ids = _ranked_ids(results)
         ranked_titles = [result.item.title for result in results]
         ranked_reasons = [result.reason for result in results]
+        ranked_files = [list(result.item.files) for result in results]
+        ranked_kinds = [result.item.kind for result in results]
 
         hit_rank: Optional[int] = None
+        matched_expected_id: Optional[str] = None
         for expected_id in case.expected_any:
             if expected_id in ranked_ids:
                 candidate_rank = ranked_ids.index(expected_id) + 1
                 if hit_rank is None or candidate_rank < hit_rank:
                     hit_rank = candidate_rank
+                    matched_expected_id = expected_id
+
+        expected_file_set = set(case.expected_files)
+        expected_kind_set = set(case.expected_kinds)
+        expected_file_hits = sorted(
+            {
+                file_path
+                for item_files in ranked_files
+                for file_path in item_files
+                if file_path in expected_file_set
+            }
+        )
+        expected_kind_hits = sorted({kind for kind in ranked_kinds if kind in expected_kind_set})
 
         forbidden_hits = [item_id for item_id in ranked_ids if item_id in set(case.forbidden)]
         case_results.append(
@@ -383,14 +478,21 @@ def evaluate_cases(manager: MemoryManager, cases: Sequence[BenchmarkCase] | None
                 category=case.category,
                 query=case.query,
                 expected_any=list(case.expected_any),
+                expected_files=list(case.expected_files),
+                expected_kinds=list(case.expected_kinds),
                 forbidden=list(case.forbidden),
                 top_k=case.top_k,
                 ranked_ids=ranked_ids,
                 ranked_titles=ranked_titles,
                 ranked_reasons=ranked_reasons,
+                ranked_files=ranked_files,
+                ranked_kinds=ranked_kinds,
                 hit_rank=hit_rank,
+                matched_expected_id=matched_expected_id,
                 reciprocal_rank=(1.0 / hit_rank) if hit_rank else 0.0,
                 forbidden_hits=forbidden_hits,
+                expected_file_hits=expected_file_hits,
+                expected_kind_hits=expected_kind_hits,
             )
         )
 
@@ -404,6 +506,9 @@ def _build_report(case_results: Sequence[BenchmarkCaseResult]) -> BenchmarkRepor
         return sum(1 for result in case_results if result.hit_rank is not None and result.hit_rank <= k) / total
 
     forbidden_violations = sum(1 for result in case_results if result.forbidden_hits)
+    expected_file_satisfied = sum(1 for result in case_results if result.expected_files_satisfied)
+    expected_kind_satisfied = sum(1 for result in case_results if result.expected_kinds_satisfied)
+    retrieval_signal_counts = _count_retrieval_signals(case_results)
     categories = sorted({result.category for result in case_results})
     by_category: Dict[str, Dict[str, float]] = {}
     for category in categories:
@@ -416,6 +521,8 @@ def _build_report(case_results: Sequence[BenchmarkCaseResult]) -> BenchmarkRepor
             "hit@5": sum(1 for result in category_results if result.hit_rank is not None and result.hit_rank <= 5) / category_total,
             "mrr": sum(result.reciprocal_rank for result in category_results) / category_total,
             "forbidden_violation_rate": sum(1 for result in category_results if result.forbidden_hits) / category_total,
+            "expected_file_hit_rate": sum(1 for result in category_results if result.expected_files_satisfied) / category_total,
+            "expected_kind_hit_rate": sum(1 for result in category_results if result.expected_kinds_satisfied) / category_total,
         }
 
     return BenchmarkReport(
@@ -425,9 +532,37 @@ def _build_report(case_results: Sequence[BenchmarkCaseResult]) -> BenchmarkRepor
         hit_at_5=hit_at(5),
         mrr=sum(result.reciprocal_rank for result in case_results) / total,
         forbidden_violation_rate=forbidden_violations / total,
+        expected_file_hit_rate=expected_file_satisfied / total,
+        expected_kind_hit_rate=expected_kind_satisfied / total,
+        retrieval_signal_counts=retrieval_signal_counts,
         by_category=by_category,
         case_results=list(case_results),
     )
+
+
+def _count_retrieval_signals(case_results: Sequence[BenchmarkCaseResult]) -> Dict[str, int]:
+    """Count retrieval signal mentions from result reason strings.
+
+    The retriever exposes human-readable reasons such as ``BM25 rank`` or
+    ``Vector rank``.  Counting these markers in benchmark output gives a small
+    observability signal for whether a regression is isolated to lexical,
+    semantic, metadata, or specialized history recall paths.
+    """
+
+    signal_markers = {
+        "bm25": "BM25 rank",
+        "vector": "Vector rank",
+        "metadata": "Metadata rank",
+        "file": "file",
+        "error": "error",
+    }
+    counts = {signal: 0 for signal in signal_markers}
+    for result in case_results:
+        reason_blob = "\n".join(result.ranked_reasons).lower()
+        for signal, marker in signal_markers.items():
+            if marker.lower() in reason_blob:
+                counts[signal] += 1
+    return counts
 
 
 def run_default_benchmark(storage_dir: str | Path | None = None) -> BenchmarkReport:
@@ -458,15 +593,25 @@ def format_markdown_report(report: BenchmarkReport) -> str:
         f"- Hit@5: {report.hit_at_5:.2%}",
         f"- MRR: {report.mrr:.3f}",
         f"- Forbidden violation rate: {report.forbidden_violation_rate:.2%}",
+        f"- Expected file hit rate: {report.expected_file_hit_rate:.2%}",
+        f"- Expected kind hit rate: {report.expected_kind_hit_rate:.2%}",
+        "",
+        "## Retrieval Signals",
+        "",
+    ]
+    for signal, count in sorted(report.retrieval_signal_counts.items()):
+        lines.append(f"- {signal}: {count}")
+
+    lines.extend([
         "",
         "## By Category",
         "",
-        "| Category | Cases | Hit@1 | Hit@3 | Hit@5 | MRR | Forbidden |",
-        "|---|---:|---:|---:|---:|---:|---:|",
-    ]
+        "| Category | Cases | Hit@1 | Hit@3 | Hit@5 | MRR | Forbidden | File Hit | Kind Hit |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ])
     for category, metrics in sorted(report.by_category.items()):
         lines.append(
-            "| {category} | {cases:.0f} | {h1:.2%} | {h3:.2%} | {h5:.2%} | {mrr:.3f} | {forbidden:.2%} |".format(
+            "| {category} | {cases:.0f} | {h1:.2%} | {h3:.2%} | {h5:.2%} | {mrr:.3f} | {forbidden:.2%} | {file_hit:.2%} | {kind_hit:.2%} |".format(
                 category=category,
                 cases=metrics["cases"],
                 h1=metrics["hit@1"],
@@ -474,6 +619,8 @@ def format_markdown_report(report: BenchmarkReport) -> str:
                 h5=metrics["hit@5"],
                 mrr=metrics["mrr"],
                 forbidden=metrics["forbidden_violation_rate"],
+                file_hit=metrics["expected_file_hit_rate"],
+                kind_hit=metrics["expected_kind_hit_rate"],
             )
         )
 
