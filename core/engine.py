@@ -214,7 +214,6 @@ class AgentEngine:
 
             if stop_reason != "tool_use":
                 final_ans = "".join([b["text"] for b in content_blocks if b["type"] == "text"])
-
                 # ✅ 新增：检查答案是否为空
                 if not final_ans.strip():
                     print(" ⚠️  LLM 返回空答案，添加错误提示重新尝试")
@@ -223,7 +222,6 @@ class AgentEngine:
                         "content": "⚠️ 请提供实质性的答案，而不是空白回复。"
                     })
                     continue  # 继续循环，重新调用 LLM
-
                 self._remember_task_completion(user_input, final_ans)
                 self.save_session()
                 return final_ans
