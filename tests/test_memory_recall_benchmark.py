@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from benchmark.memory_recall_benchmark import (
     BenchmarkReport,
     default_cases,
     evaluate_cases,
     format_markdown_report,
+    load_report_json,
+    main as benchmark_main,
     run_default_benchmark,
     seed_manager,
 )
@@ -83,3 +86,41 @@ def test_memory_recall_benchmark_markdown_and_json_are_serializable(tmp_path):
     assert "ranked_signal_counts" in encoded
     assert "diagnostic_flags" in encoded
     assert "case_results" in encoded
+
+
+def test_memory_recall_benchmark_baseline_is_loadable_and_records_current_quality_floor():
+    baseline_path = Path("benchmark/baselines/memory_recall_baseline.json")
+
+    assert baseline_path.exists(), "Phase A requires a checked-in benchmark baseline JSON file"
+    baseline = load_report_json(baseline_path)
+    current_case_ids = {case.id for case in default_cases()}
+    baseline_case_ids = {result.case_id for result in baseline.case_results}
+
+    assert baseline.total_cases == len(baseline.case_results)
+    assert baseline.total_cases >= 13
+    assert baseline_case_ids == current_case_ids
+    assert baseline.hit_at_5 >= 0.75
+    assert baseline.hit_at_3 >= 0.65
+    assert baseline.mrr >= 0.50
+    assert baseline.forbidden_violation_rate == 0.0
+    assert baseline.expected_file_hit_rate >= 0.75
+    assert baseline.expected_kind_hit_rate >= 0.75
+
+
+def test_memory_recall_benchmark_cli_generates_json_and_markdown_reports(tmp_path):
+    json_path = tmp_path / "memory_recall_latest.json"
+    markdown_path = tmp_path / "memory_recall_latest.md"
+
+    exit_code = benchmark_main(["--output-json", str(json_path), "--output-md", str(markdown_path)])
+
+    assert exit_code == 0
+    assert json_path.exists()
+    assert markdown_path.exists()
+
+    report = load_report_json(json_path)
+    markdown = markdown_path.read_text(encoding="utf-8")
+    assert report.total_cases == len(default_cases())
+    assert report.case_results
+    assert "# Memory Recall Benchmark Report" in markdown
+    assert "## Summary" in markdown
+    assert "## Case Details" in markdown
