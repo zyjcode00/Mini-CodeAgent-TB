@@ -22,7 +22,7 @@ def test_memory_recall_benchmark_metrics_pass_quality_gate(tmp_path):
     report = run_default_benchmark(storage_dir=tmp_path / "long_term")
 
     assert isinstance(report, BenchmarkReport)
-    assert report.total_cases >= 13
+    assert report.total_cases >= 25
     assert report.hit_at_5 >= 0.75, report.to_dict()
     assert report.hit_at_3 >= 0.65, report.to_dict()
     assert report.mrr >= 0.50, report.to_dict()
@@ -33,6 +33,7 @@ def test_memory_recall_benchmark_reports_category_breakdown(tmp_path):
     report = run_default_benchmark(storage_dir=tmp_path / "long_term")
 
     expected_categories = {case.category for case in default_cases()}
+    assert len(expected_categories) >= 8
     assert expected_categories.issubset(report.by_category.keys())
     for category in expected_categories:
         assert report.by_category[category]["cases"] >= 1
@@ -40,6 +41,25 @@ def test_memory_recall_benchmark_reports_category_breakdown(tmp_path):
         assert "mrr" in report.by_category[category]
         assert "expected_file_hit_rate" in report.by_category[category]
         assert "expected_kind_hit_rate" in report.by_category[category]
+
+
+
+def test_phase_d_default_cases_cover_required_query_types():
+    cases = default_cases()
+    case_by_id = {case.id: case for case in cases}
+    categories = {case.category for case in cases}
+    queries = "\n".join(case.query for case in cases)
+
+    assert len(cases) >= 25
+    assert len(categories) >= 8
+    assert {"error_history", "file_history", "preference", "workflow", "semantic_rewrite", "chinese_query"}.issubset(categories)
+    assert "read_file_feedback_loop_guard" in case_by_id
+    assert "git_conflict_marker_syntax_error" in case_by_id
+    assert "phase_d_dataset_expansion_goal" in case_by_id
+    assert "中文" in queries or "是不是" in queries
+    assert "Traceback" in queries or "SyntaxError" in queries
+    assert any(case.expected_files for case in cases)
+    assert any(case.expected_kinds for case in cases)
 
 
 def test_memory_recall_benchmark_reports_signal_and_expectation_metrics(tmp_path):

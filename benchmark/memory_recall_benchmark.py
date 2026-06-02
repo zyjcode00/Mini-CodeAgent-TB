@@ -434,6 +434,92 @@ def default_memory_specs() -> List[BenchmarkMemorySpec]:
             metadata={"error_type": "AttributeError"},
         ),
         BenchmarkMemorySpec(
+            id="bench_bug_read_file_feedback_loop",
+            kind=MemoryKind.BUG.value,
+            title="read_file 防空转守卫避免重复空读",
+            content=(
+                "当 agent 反复 read_file 同一文件范围或读取超出 EOF 的空范围时，容易形成无效反馈循环。"
+                "tools/file_tool.py 应提供防空转守卫，在 tests/test_read_guard.py 覆盖 repeated range 与 empty range 场景。"
+            ),
+            concepts=["read_file", "feedback loop", "empty range", "repeated range", "防空转"],
+            files=["tools/file_tool.py", "tests/test_read_guard.py", "docs/read_file_feedback_loop_fix_plan.md"],
+            importance=0.9,
+            metadata={"error_type": "FeedbackLoop"},
+        ),
+        BenchmarkMemorySpec(
+            id="bench_preference_file_edit_tool_choice",
+            kind=MemoryKind.PREFERENCE.value,
+            title="文件编辑工具按文件长度和匹配风险选择",
+            content=(
+                "项目规范要求：小文件优先 write_full_file，全量覆盖避免匹配失败；"
+                "大文件明确位置用 edit_file，复杂修改前用 read_file(raw_mode=True) 获取原始内容。"
+            ),
+            concepts=["write_full_file", "edit_file", "raw_mode", "文件编辑规范", "CLAUDE.md"],
+            files=["CLAUDE.md", "tools/file_tool.py"],
+            importance=0.87,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_workflow_plan_progress_marking",
+            kind=MemoryKind.WORKFLOW.value,
+            title="多步骤任务必须维护 plan 进度",
+            content=(
+                "复杂任务先调用 manage_plan 创建结构化任务清单；每完成一个步骤必须立即调用 mark_task_done。"
+                "如果当前 plan 有未完成项，用户说继续时应从下一个未完成步骤恢复，而不是覆盖计划。"
+            ),
+            concepts=["manage_plan", "mark_task_done", "continue", "任务清单", "workflow"],
+            files=["CLAUDE.md", "core/engine.py"],
+            importance=0.88,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_arch_compressed_session_state",
+            kind=MemoryKind.ARCHITECTURE.value,
+            title="Phase 3 引入结构化 CompressedSessionState",
+            content=(
+                "上下文压缩重构 Phase 3 实现结构化 CompressedSessionState，"
+                "压缩结果保留目标、已完成/未完成任务、文件变更、测试结果、错误和关键决策。"
+            ),
+            concepts=["Phase 3", "CompressedSessionState", "context compression", "结构化状态"],
+            files=["core/compression_engine.py", "tests/test_compressed_session_state.py"],
+            importance=0.9,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_bug_git_conflict_engine_syntax",
+            kind=MemoryKind.BUG.value,
+            title="core/engine.py 残留 Git 冲突标记会导致 SyntaxError",
+            content=(
+                "main.py 启动时报 SyntaxError 时，应检查 core/engine.py 是否残留 <<<<<<<、=======、>>>>>>> Git 冲突标记，"
+                "修复后运行语法或启动测试确认 AgentEngine 可导入。"
+            ),
+            concepts=["SyntaxError", "Git conflict", "core/engine.py", "main.py", "<<<<<<<"],
+            files=["core/engine.py", "main.py"],
+            importance=0.91,
+            metadata={"error_type": "SyntaxError"},
+        ),
+        BenchmarkMemorySpec(
+            id="bench_task_phase_d_dataset_expansion",
+            kind=MemoryKind.TASK.value,
+            title="Phase D 扩展 memory recall benchmark 数据集覆盖",
+            content=(
+                "memory recall benchmark Phase D 要把默认 case 扩展到至少 25 条、至少 8 个 category，"
+                "并覆盖 error/file/preference/workflow、语义改写和中文模糊 query。"
+            ),
+            concepts=["Phase D", "benchmark cases", "dataset expansion", "中文模糊 query", "coverage"],
+            files=["docs/memory_recall_benchmark_optimization_plan.md", "benchmark/memory_recall_benchmark.py"],
+            importance=0.92,
+        ),
+        BenchmarkMemorySpec(
+            id="bench_decision_no_repeat_completed_task",
+            kind=MemoryKind.DECISION.value,
+            title="已完成任务不要重复创建 plan",
+            content=(
+                "规划协议要求检查已完成任务记录；如果用户提出相似已完成任务，应告知已完成并询问是否重新执行，"
+                "不要直接重复创建 plan 或覆盖当前进度。"
+            ),
+            concepts=["completed task", "planning protocol", "不要重复", "manage_plan"],
+            files=["CLAUDE.md", "core/engine.py"],
+            importance=0.86,
+        ),
+        BenchmarkMemorySpec(
             id="bench_old_keyword_retrieval_archived",
             kind=MemoryKind.DECISION.value,
             title="旧版简单关键词检索已经废弃",
@@ -584,6 +670,67 @@ def default_cases() -> List[BenchmarkCase]:
             expected_any=["bench_file_history_specialized_recall"],
             expected_files=["core/memory_manager.py"],
             expected_kinds=[MemoryKind.ARCHITECTURE.value],
+        ),
+        BenchmarkCase(
+            id="read_file_feedback_loop_guard",
+            category="tool_guard",
+            query="read_file 一直重复读同一个范围或者 EOF 空范围导致 agent 空转，防护逻辑在哪个文件？",
+            expected_any=["bench_bug_read_file_feedback_loop"],
+            expected_files=["tools/file_tool.py"],
+            expected_kinds=[MemoryKind.BUG.value],
+        ),
+        BenchmarkCase(
+            id="file_edit_tool_choice_rule",
+            category="preference",
+            query="修改小文件和大文件时应该用 write_full_file 还是 edit_file，raw_mode 什么时候用？",
+            expected_any=["bench_preference_file_edit_tool_choice"],
+            expected_files=["CLAUDE.md"],
+            expected_kinds=[MemoryKind.PREFERENCE.value],
+        ),
+        BenchmarkCase(
+            id="plan_progress_resume_workflow",
+            category="workflow",
+            query="用户说继续时如果已有未完成 Plan，应该重新 manage_plan 还是执行下一个 mark_task_done 步骤？",
+            expected_any=["bench_workflow_plan_progress_marking"],
+            expected_kinds=[MemoryKind.WORKFLOW.value],
+        ),
+        BenchmarkCase(
+            id="compressed_session_state_phase3",
+            category="architecture",
+            query="Phase 3 上下文压缩为什么要用结构化 CompressedSessionState 保存任务、文件、测试和错误？",
+            expected_any=["bench_arch_compressed_session_state"],
+            expected_files=["tests/test_compressed_session_state.py"],
+            expected_kinds=[MemoryKind.ARCHITECTURE.value],
+        ),
+        BenchmarkCase(
+            id="git_conflict_marker_syntax_error",
+            category="error_history",
+            query="main.py 启动 SyntaxError，core/engine.py 里有 <<<<<<< ======= >>>>>>> 冲突标记怎么办？",
+            expected_any=["bench_bug_git_conflict_engine_syntax"],
+            expected_files=["core/engine.py"],
+            expected_kinds=[MemoryKind.BUG.value],
+        ),
+        BenchmarkCase(
+            id="phase_d_dataset_expansion_goal",
+            category="benchmark_coverage",
+            query="Phase D 的 memory recall benchmark 数据集扩展要求是不是至少 25 条 case 和 8 个分类？",
+            expected_any=["bench_task_phase_d_dataset_expansion"],
+            expected_files=["benchmark/memory_recall_benchmark.py"],
+            expected_kinds=[MemoryKind.TASK.value],
+        ),
+        BenchmarkCase(
+            id="completed_task_no_repeat_plan",
+            category="planning_protocol",
+            query="如果用户提出一个已经完成的相似任务，agent 应该直接重复创建计划吗？",
+            expected_any=["bench_decision_no_repeat_completed_task"],
+            expected_kinds=[MemoryKind.DECISION.value],
+        ),
+        BenchmarkCase(
+            id="chinese_fuzzy_tool_guard",
+            category="chinese_query",
+            query="读文件老是读不到内容还一直读同一段，这种空转守卫之前修过哪里？",
+            expected_any=["bench_bug_read_file_feedback_loop"],
+            expected_files=["tests/test_read_guard.py"],
         ),
     ]
 
