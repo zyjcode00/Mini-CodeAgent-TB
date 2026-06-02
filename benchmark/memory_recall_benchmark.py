@@ -93,6 +93,7 @@ class BenchmarkCaseResult:
     expected_file_hits: List[str]
     expected_kind_hits: List[str]
     ranked_signal_counts: Dict[str, int]
+    channel_ranks: Dict[str, Optional[int]]
     diagnostic_flags: List[str]
     diagnostic_summary: str
 
@@ -151,6 +152,10 @@ def _case_result_from_dict(data: Dict[str, Any]) -> BenchmarkCaseResult:
         expected_file_hits=list(data.get("expected_file_hits", [])),
         expected_kind_hits=list(data.get("expected_kind_hits", [])),
         ranked_signal_counts={str(key): int(value) for key, value in data.get("ranked_signal_counts", {}).items()},
+        channel_ranks={
+            str(key): (None if value is None else int(value))
+            for key, value in data.get("channel_ranks", {}).items()
+        },
         diagnostic_flags=list(data.get("diagnostic_flags", [])),
         diagnostic_summary=str(data.get("diagnostic_summary", "")),
     )
@@ -631,6 +636,7 @@ def evaluate_cases(manager: MemoryManager, cases: Sequence[BenchmarkCase] | None
 
         forbidden_hits = [item_id for item_id in ranked_ids if item_id in set(case.forbidden)]
         ranked_signal_counts = _count_reason_signals(ranked_reasons)
+        channel_ranks = _extract_channel_ranks(ranked_reasons)
         diagnostic_flags = _diagnose_case(
             case=case,
             hit_rank=hit_rank,
@@ -662,6 +668,7 @@ def evaluate_cases(manager: MemoryManager, cases: Sequence[BenchmarkCase] | None
                 expected_file_hits=expected_file_hits,
                 expected_kind_hits=expected_kind_hits,
                 ranked_signal_counts=ranked_signal_counts,
+                channel_ranks=channel_ranks,
                 diagnostic_flags=diagnostic_flags,
                 diagnostic_summary=diagnostic_summary,
             )
@@ -744,6 +751,18 @@ def _count_reason_signals(reasons: Sequence[str]) -> Dict[str, int]:
     for signal, marker in _signal_markers().items():
         counts[signal] = reason_blob.count(marker.lower())
     return counts
+
+
+def _extract_channel_ranks(reasons: Sequence[str]) -> Dict[str, Optional[int]]:
+    """Return the first top-k result position where each retrieval signal appears."""
+
+    channel_ranks: Dict[str, Optional[int]] = {signal: None for signal in _signal_markers()}
+    for rank, reason in enumerate(reasons, start=1):
+        lowered_reason = reason.lower()
+        for signal, marker in _signal_markers().items():
+            if channel_ranks[signal] is None and marker.lower() in lowered_reason:
+                channel_ranks[signal] = rank
+    return channel_ranks
 
 
 def _diagnose_case(
@@ -858,6 +877,7 @@ def format_markdown_report(report: BenchmarkReport) -> str:
                     f"- Expected file hits: {', '.join(result.expected_file_hits) if result.expected_file_hits else 'none'}",
                     f"- Expected kind hits: {', '.join(result.expected_kind_hits) if result.expected_kind_hits else 'none'}",
                     f"- Signal counts: {_format_signal_counts(result.ranked_signal_counts)}",
+                    f"- Channel ranks: {_format_channel_ranks(result.channel_ranks)}",
                     f"- Ranked ids: {', '.join(result.ranked_ids)}",
                     "",
                     "#### Ranked Reasons",
@@ -880,6 +900,7 @@ def format_markdown_report(report: BenchmarkReport) -> str:
                 f"- Hit rank: {result.hit_rank}",
                 f"- Diagnostic: {result.diagnostic_summary}",
                 f"- Signal counts: {_format_signal_counts(result.ranked_signal_counts)}",
+                f"- Channel ranks: {_format_channel_ranks(result.channel_ranks)}",
                 f"- Ranked ids: {', '.join(result.ranked_ids)}",
                 "",
                 "#### Ranked Reasons",
@@ -894,6 +915,15 @@ def _format_signal_counts(signal_counts: Dict[str, int]) -> str:
     """Render per-case retrieval signal counts in a stable order."""
 
     return ", ".join(f"{signal}={count}" for signal, count in sorted(signal_counts.items()))
+
+
+def _format_channel_ranks(channel_ranks: Dict[str, Optional[int]]) -> str:
+    """Render first-hit rank per retrieval signal in a stable order."""
+
+    return ", ".join(
+        f"{signal}={rank if rank is not None else 'none'}"
+        for signal, rank in sorted(channel_ranks.items())
+    )
 
 
 def _format_ranked_reasons(result: BenchmarkCaseResult) -> List[str]:

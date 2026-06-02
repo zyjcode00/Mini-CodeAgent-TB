@@ -82,8 +82,10 @@ def test_memory_recall_benchmark_markdown_and_json_are_serializable(tmp_path):
     assert "#### Ranked Reasons" in markdown
     assert "Signal counts:" in markdown
     assert "Diagnostic:" in markdown
+    assert "Channel ranks:" in markdown
     assert "benchmark_failure_diagnostics" in encoded
     assert "ranked_signal_counts" in encoded
+    assert "channel_ranks" in encoded
     assert "diagnostic_flags" in encoded
     assert "case_results" in encoded
 
