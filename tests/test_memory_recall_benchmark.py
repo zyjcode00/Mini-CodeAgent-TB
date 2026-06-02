@@ -124,3 +124,94 @@ def test_memory_recall_benchmark_cli_generates_json_and_markdown_reports(tmp_pat
     assert "# Memory Recall Benchmark Report" in markdown
     assert "## Summary" in markdown
     assert "## Case Details" in markdown
+
+
+def _write_inline_report(data: dict) -> Path:
+    path = Path(".pytest_cache") / "inline_memory_recall_report.json"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def test_memory_recall_benchmark_compare_report_detects_metric_and_case_deltas(tmp_path):
+    from benchmark.memory_recall_benchmark import compare_reports, format_markdown_comparison
+
+    baseline = run_default_benchmark(storage_dir=tmp_path / "baseline")
+    current_data = baseline.to_dict()
+    current_data["hit_at_1"] = max(0.0, baseline.hit_at_1 - 0.25)
+    current_data["mrr"] = max(0.0, baseline.mrr - 0.10)
+    current_data["case_results"][0]["hit_rank"] = None
+    current_data["case_results"][0]["diagnostic_flags"] = ["expected_any_not_in_top_k"]
+    current_data["case_results"][0]["diagnostic_summary"] = "expected_any_not_in_top_k"
+    current = load_report_json(_write_inline_report(current_data))
+
+    comparison = compare_reports(baseline, current)
+    markdown = format_markdown_comparison(comparison)
+
+    deltas = {metric.name: metric.delta for metric in comparison.metric_deltas}
+    assert deltas["hit@1"] < 0
+    assert deltas["mrr"] < 0
+    assert comparison.regressed_cases
+    assert current.case_results[0].case_id in markdown
+    assert "## Metric Deltas" in markdown
+    assert "regressed" in markdown
+
+
+def test_memory_recall_benchmark_compare_report_detects_added_failed_and_removed_cases(tmp_path):
+    from benchmark.memory_recall_benchmark import compare_reports, format_markdown_comparison
+
+    baseline = run_default_benchmark(storage_dir=tmp_path / "baseline")
+    current_data = baseline.to_dict()
+    removed_case = current_data["case_results"].pop()
+    added_case = dict(current_data["case_results"][0])
+    added_case.update(
+        {
+            "case_id": "new_failed_case",
+            "category": "regression_guard",
+            "query": "new case that should be reported as failed",
+            "hit_rank": None,
+            "ranked_ids": [],
+            "ranked_reasons": [],
+            "diagnostic_flags": ["expected_any_not_in_top_k"],
+            "diagnostic_summary": "expected_any_not_in_top_k",
+        }
+    )
+    current_data["case_results"].append(added_case)
+    current = load_report_json(_write_inline_report(current_data))
+
+    comparison = compare_reports(baseline, current)
+    markdown = format_markdown_comparison(comparison)
+
+    assert [case.case_id for case in comparison.added_cases] == ["new_failed_case"]
+    assert [case.case_id for case in comparison.removed_cases] == [removed_case["case_id"]]
+    assert "## Added Cases" in markdown
+    assert "new_failed_case" in markdown
+    assert "fail-or-weak" in markdown
+    assert "## Removed Cases" in markdown
+
+
+def test_memory_recall_benchmark_cli_supports_phase_b_compare_argument_names(tmp_path):
+    json_path = tmp_path / "memory_recall_latest.json"
+    markdown_path = tmp_path / "memory_recall_latest.md"
+    compare_markdown_path = tmp_path / "memory_recall_compare.md"
+
+    exit_code = benchmark_main(
+        [
+            "--baseline-json",
+            "benchmark/baselines/memory_recall_baseline.json",
+            "--output-json",
+            str(json_path),
+            "--output-md",
+            str(markdown_path),
+            "--compare-output-md",
+            str(compare_markdown_path),
+        ]
+    )
+
+    assert exit_code == 0
+    assert json_path.exists()
+    assert markdown_path.exists()
+    assert compare_markdown_path.exists()
+    compare_markdown = compare_markdown_path.read_text(encoding="utf-8")
+    assert "# Memory Recall Benchmark Comparison" in compare_markdown
+    assert "## Metric Deltas" in compare_markdown

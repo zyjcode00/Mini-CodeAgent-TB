@@ -983,6 +983,19 @@ def format_markdown_comparison(report: BenchmarkComparisonReport) -> str:
         lines.append("No case-level rank or forbidden-hit changes.")
     for change in report.changed_cases:
         lines.append(f"- **{change.case_id}** ({change.category}): {change.summary}; rank {change.baseline_hit_rank} -> {change.current_hit_rank}")
+
+    if report.added_cases:
+        lines.extend(["", "## Added Cases", ""])
+        for case in report.added_cases:
+            status = "fail-or-weak" if case.hit_rank is None or case.hit_rank > 5 or case.forbidden_hits else "pass"
+            diagnostic = f"; diagnostic: {case.diagnostic_summary}" if case.diagnostic_summary else ""
+            lines.append(f"- **{case.case_id}** ({case.category}, {status}): rank={case.hit_rank}{diagnostic}")
+
+    if report.removed_cases:
+        lines.extend(["", "## Removed Cases", ""])
+        for case in report.removed_cases:
+            lines.append(f"- **{case.case_id}** ({case.category}): previous rank={case.hit_rank}")
+
     return "\n".join(lines)
 
 
@@ -990,9 +1003,23 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Run the project-local memory recall benchmark.")
     parser.add_argument("--output-json", type=Path, default=None, help="Optional path for a JSON report.")
     parser.add_argument("--output-md", type=Path, default=None, help="Optional path for a markdown report.")
-    parser.add_argument("--compare-baseline", type=Path, default=None, help="Optional baseline JSON report to compare against.")
+    parser.add_argument(
+        "--compare-baseline",
+        "--baseline-json",
+        dest="compare_baseline",
+        type=Path,
+        default=None,
+        help="Optional baseline JSON report to compare against.",
+    )
     parser.add_argument("--output-compare-json", type=Path, default=None, help="Optional path for a JSON comparison report.")
-    parser.add_argument("--output-compare-md", type=Path, default=None, help="Optional path for a markdown comparison report.")
+    parser.add_argument(
+        "--output-compare-md",
+        "--compare-output-md",
+        dest="output_compare_md",
+        type=Path,
+        default=None,
+        help="Optional path for a markdown comparison report.",
+    )
     args = parser.parse_args(argv)
 
     report = run_default_benchmark()
