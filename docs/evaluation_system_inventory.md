@@ -1,0 +1,139 @@
+# Evaluation System Inventory
+
+> Phase 1 asset inventory for the local evaluation system.  
+> Scope: current repository files under `tests/`, `benchmark/`, `benchmark/baselines/`, and generated report locations.
+
+## Goals
+
+This document records the current evaluation assets so future code agents can:
+
+- Understand what each test group validates.
+- Locate benchmark scripts, baselines, latest outputs, and compare reports.
+- Run evaluation through a unified command entry point once Phase 1 adds it.
+- Avoid relying on external services for default validation.
+
+## Test assets: `tests/`
+
+### Context compression and conversation state
+
+| File | Purpose |
+| --- | --- |
+| `tests/test_compressed_session_state.py` | Validates compressed session-state handling and persistence behavior. |
+| `tests/test_compression_engine.py` | Validates compression engine strategies and fallback behavior. |
+| `tests/test_context_assembly_budget.py` | Validates context assembly budget allocation and truncation behavior. |
+| `tests/test_openai_tool_pairing.py` | Guards OpenAI tool-call/tool-response pairing constraints, especially across compression/fallback paths. |
+| `tests/test_turn_builder.py` | Validates turn/message construction behavior. |
+
+### Memory models, layers, lifecycle, persistence
+
+| File | Purpose |
+| --- | --- |
+| `tests/test_memory_items.py` | Validates memory item data structures and serialization. |
+| `tests/test_memory_layers.py` | Validates memory layer organization and behavior. |
+| `tests/test_memory_lifecycle.py` | Validates memory lifecycle operations such as save, update, promotion, or cleanup behavior. |
+| `tests/test_memory_manager.py` | Validates core memory manager behavior. |
+| `tests/test_memory_manager_phase2.py` | Regression coverage for Phase 2 memory manager behavior. |
+| `tests/test_memory_models.py` | Validates memory model schemas and conversions. |
+| `tests/test_memory_persistence.py` | Validates persistence of memory data. |
+| `tests/test_shared_memory_manager.py` | Validates shared/cross-session memory manager behavior. |
+
+### Memory retrieval, ranking, indexing, and quality
+
+| File | Purpose |
+| --- | --- |
+| `tests/test_memory_retrieval.py` | Validates memory retrieval APIs and ranking behavior. |
+| `tests/test_memory_recall_quality.py` | Validates qualitative recall expectations. |
+| `tests/test_memory_recall_benchmark.py` | Unit/regression coverage for the memory recall benchmark implementation. |
+| `tests/test_memory_rrf_fusion.py` | Validates RRF fusion and hybrid retrieval ranking behavior. |
+| `tests/test_memory_bm25_index.py` | Validates BM25 index construction and persistence behavior. |
+| `tests/test_memory_vector_index.py` | Validates vector index construction and retrieval behavior. |
+| `tests/test_memory_index_persistence.py` | Validates memory index file persistence and reload paths. |
+| `tests/test_memory_optimization.py` | Validates optimization-related memory behavior. |
+
+### Memory phase regression suites
+
+| File | Purpose |
+| --- | --- |
+| `tests/test_memory_phase3.py` | Regression coverage for memory Phase 3 features. |
+| `tests/test_memory_phase3_quality.py` | Quality-focused regression coverage for memory Phase 3. |
+| `tests/test_memory_phase4.py` | Regression coverage for memory Phase 4 features. |
+| `tests/test_memory_phase4_promotion.py` | Validates memory Phase 4 promotion behavior. |
+| `tests/test_memory_phase5.py` | Regression coverage for memory Phase 5 features. |
+
+### Tools and repository utilities
+
+| File | Purpose |
+| --- | --- |
+| `tests/test_read_guard.py` | Validates read guard behavior and repeated-read prevention/handling. |
+| `tests/test_symbol_tool.py` | Validates symbol discovery/definition tooling. |
+| `tests/__init__.py` | Marks the test directory as a Python package. |
+
+## Benchmark assets: `benchmark/`
+
+| File | Purpose |
+| --- | --- |
+| `benchmark/memory_recall_benchmark.py` | Main memory recall benchmark runner. It evaluates recall cases, writes latest JSON/Markdown outputs, and can generate a compare report against a baseline. |
+| `benchmark/memory_recall_compare.json` | JSON compare output from the latest benchmark comparison, when generated. |
+| `benchmark/memory_recall_compare.md` | Markdown compare report from the latest benchmark comparison, when generated. |
+
+## Baseline assets: `benchmark/baselines/`
+
+| File | Purpose |
+| --- | --- |
+| `benchmark/baselines/memory_recall_baseline.json` | Frozen JSON baseline for memory recall benchmark comparisons. |
+| `benchmark/baselines/memory_recall_baseline.md` | Human-readable Markdown baseline summary for memory recall benchmark comparisons. |
+
+## Latest and compare report locations
+
+The current roadmap recommends generating latest outputs at these paths:
+
+| Path | Purpose |
+| --- | --- |
+| `benchmark/memory_recall_latest.json` | Latest memory recall benchmark result JSON. This file may be generated by benchmark runs and may not exist until generated. |
+| `benchmark/memory_recall_latest.md` | Latest memory recall benchmark result Markdown report. This file may be generated by benchmark runs and may not exist until generated. |
+| `benchmark/memory_recall_compare.json` | Latest structured comparison result against the baseline, when generated. |
+| `benchmark/memory_recall_compare.md` | Latest human-readable comparison report against the baseline, when generated. |
+
+## Recommended direct commands
+
+### Full pytest suite
+
+```bash
+python -m pytest -q
+```
+
+### Memory benchmark unit tests
+
+```bash
+python -m pytest tests/test_memory_recall_benchmark.py -q
+```
+
+### Memory recall benchmark with baseline comparison
+
+```bash
+python -m benchmark.memory_recall_benchmark \
+  --baseline-json benchmark/baselines/memory_recall_baseline.json \
+  --output-json benchmark/memory_recall_latest.json \
+  --output-md benchmark/memory_recall_latest.md \
+  --compare-output-md benchmark/memory_recall_compare.md
+```
+
+## Planned unified evaluation entry point
+
+Phase 1 will add `scripts/run_evaluation.py` with at least these modes:
+
+| Mode | Expected behavior |
+| --- | --- |
+| `fast` | Run a focused core pytest subset suitable for quick local validation. |
+| `memory` | Run memory benchmark-related tests and the memory recall benchmark with baseline comparison. |
+| `all` | Run the full pytest suite and memory benchmark flow. |
+| `--dry-run` | Print the commands that would run without executing them, so command construction can be covered by pytest. |
+
+## Phase 1 acceptance mapping
+
+| Acceptance item | Inventory status |
+| --- | --- |
+| Document explains each test category | Covered in the `tests/` sections above. |
+| Benchmark, baseline, latest, and compare files are listed | Covered in benchmark/report sections above. |
+| Recommended commands are documented | Covered in direct commands and planned unified entry point sections. |
+| Default validation does not require external services | Current recommended commands are local Python/pytest/benchmark commands. |
