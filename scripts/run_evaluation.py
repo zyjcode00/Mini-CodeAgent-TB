@@ -1,11 +1,12 @@
 """Unified evaluation runner for the project.
 
-This script is the Phase 1 entrypoint for running project evaluations with a
+This script is the unified entrypoint for running project evaluations with a
 small set of stable modes:
 
 - fast: quick unit/regression checks for normal development.
 - memory: memory-recall benchmark related checks.
-- all: the full pytest suite plus memory benchmark checks.
+- baseline: benchmark baseline comparison / regression gate checks.
+- all: the full pytest suite plus memory benchmark and baseline checks.
 
 Use ``--dry-run`` to print the commands without executing them.
 """
@@ -53,11 +54,25 @@ MEMORY_COMMANDS: tuple[EvaluationCommand, ...] = (
     ),
 )
 
+BASELINE_COMMANDS: tuple[EvaluationCommand, ...] = (
+    EvaluationCommand(
+        name="memory-baseline-compare",
+        argv=(
+            sys.executable,
+            "benchmark/memory_recall_benchmark.py",
+            "--compare-baseline",
+            "benchmark/baselines/memory_recall_baseline.json",
+        ),
+        description="Compare current memory recall quality against the checked-in baseline.",
+    ),
+)
+
 
 COMMAND_GROUPS: dict[str, tuple[EvaluationCommand, ...]] = {
     "fast": FAST_COMMANDS,
     "memory": MEMORY_COMMANDS,
-    "all": FAST_COMMANDS + MEMORY_COMMANDS,
+    "baseline": BASELINE_COMMANDS,
+    "all": FAST_COMMANDS + MEMORY_COMMANDS + BASELINE_COMMANDS,
 }
 
 
@@ -70,7 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "mode",
         choices=sorted(COMMAND_GROUPS),
-        help="Evaluation suite to run: fast, memory, or all.",
+        help="Evaluation suite to run: fast, memory, baseline, or all.",
     )
     parser.add_argument(
         "--dry-run",

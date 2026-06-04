@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from benchmark.memory_recall_benchmark import (
@@ -16,6 +18,28 @@ from benchmark.memory_recall_benchmark import (
     seed_manager,
 )
 from core.memory_manager import MemoryManager
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_memory_recall_benchmark_script_runs_directly_for_baseline_compare() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(PROJECT_ROOT / "benchmark" / "memory_recall_benchmark.py"),
+            "--compare-baseline",
+            str(PROJECT_ROOT / "benchmark" / "baselines" / "memory_recall_baseline.json"),
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "# Memory Recall Benchmark Comparison" in result.stdout
+
 
 
 def test_memory_recall_benchmark_metrics_pass_quality_gate(tmp_path):

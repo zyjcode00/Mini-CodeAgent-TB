@@ -15,6 +15,7 @@
 - `benchmark/baselines/memory_recall_baseline.md`：baseline 的人类可读报告。
 - `benchmark/memory_recall_compare.md`：当前结果与 baseline 的对比报告。
 - `tests/test_memory_recall_benchmark.py`：benchmark 结构、指标和回归行为测试。
+- `scripts/run_evaluation.py`：统一评测入口，Phase 2 起支持 `baseline` 模式，并将 baseline comparison 纳入 `all`。
 
 评测用例当前共 **26 个**，覆盖以下类别：
 
@@ -182,7 +183,40 @@ benchmark/memory_recall_compare.md
    - 更新本文档的运行方式。
    - 确保 `scripts/run_evaluation.py --suite benchmark` 仍可使用，或说明替代命令。
 
-## 7. 建议的质量门禁
+## 7. 统一评测入口与 baseline 模式
+
+Phase 2 已将 memory recall baseline comparison 接入统一评测入口：
+
+```bash
+python scripts/run_evaluation.py baseline
+```
+
+该模式等价于运行：
+
+```bash
+python benchmark/memory_recall_benchmark.py --compare-baseline benchmark/baselines/memory_recall_baseline.json
+```
+
+`baseline` 模式用于把当前 memory recall benchmark 结果与已登记的 `benchmark/baselines/memory_recall_baseline.json` 做回归对比，并刷新/生成对比报告。`all` 模式现在会依次运行 fast、memory 与 baseline 检查：
+
+```bash
+python scripts/run_evaluation.py all
+```
+
+如果只想确认命令计划而不执行，可使用：
+
+```bash
+python scripts/run_evaluation.py baseline --dry-run
+```
+
+维护要求：
+
+- 修改 benchmark case、评分指标或召回排序逻辑后，需要运行 `python scripts/run_evaluation.py baseline` 检查相对基线变化。
+- 如果质量变化符合预期，应同步更新 baseline artifact 与本文档中的指标说明、当前数值或质量判读。
+- 如果 baseline 对比暴露退化，应优先分析 case 级别差异，再决定修复召回逻辑还是更新基线。
+- 旧的 `scripts/run_evaluation.py --suite benchmark` 形式不是当前入口；当前统一入口使用位置参数模式，例如 `python scripts/run_evaluation.py memory` 或 `python scripts/run_evaluation.py baseline`。
+
+## 8. 建议的质量门禁
 
 当前建议把以下条件作为 memory recall benchmark 的最低质量门禁：
 
@@ -198,7 +232,7 @@ benchmark/memory_recall_compare.md
 
 当前结果全部满足上述门禁。若后续用例显著增加，可根据 case 难度重新讨论门禁，但不能在未解释原因的情况下放宽门槛。
 
-## 8. 面向后续完善的方向
+## 9. 面向后续完善的方向
 
 当前 benchmark 已经可以防止明显回归，但还可以继续增强：
 

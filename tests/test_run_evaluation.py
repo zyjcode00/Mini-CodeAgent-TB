@@ -21,6 +21,7 @@ spec.loader.exec_module(run_evaluation)
 def test_get_commands_supports_expected_modes() -> None:
     fast = run_evaluation.get_commands("fast")
     memory = run_evaluation.get_commands("memory")
+    baseline = run_evaluation.get_commands("baseline")
     all_commands = run_evaluation.get_commands("all")
 
     assert [command.name for command in fast] == ["pytest-fast"]
@@ -28,7 +29,20 @@ def test_get_commands_supports_expected_modes() -> None:
         "memory-benchmark-tests",
         "memory-recall-benchmark",
     ]
-    assert all_commands == fast + memory
+    assert [command.name for command in baseline] == ["memory-baseline-compare"]
+    assert all_commands == fast + memory + baseline
+
+
+def test_baseline_command_compares_against_checked_in_baseline() -> None:
+    (command,) = run_evaluation.get_commands("baseline")
+
+    assert command.argv == (
+        sys.executable,
+        "benchmark/memory_recall_benchmark.py",
+        "--compare-baseline",
+        "benchmark/baselines/memory_recall_baseline.json",
+    )
+    assert "baseline" in command.description.lower()
 
 
 def test_get_commands_rejects_unknown_mode() -> None:
@@ -45,13 +59,13 @@ def test_dry_run_prints_plan_without_executing(monkeypatch: pytest.MonkeyPatch, 
 
     monkeypatch.setattr(run_evaluation.subprocess, "run", fake_run)
 
-    exit_code = run_evaluation.main(["memory", "--dry-run"])
+    exit_code = run_evaluation.main(["baseline", "--dry-run"])
 
     output = capsys.readouterr().out
     assert exit_code == 0
     assert calls == []
-    assert "memory-benchmark-tests" in output
-    assert "memory-recall-benchmark" in output
+    assert "memory-baseline-compare" in output
+    assert "--compare-baseline" in output
     assert "Dry run complete" in output
 
 
