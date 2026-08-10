@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from scripts import run_terminal_bench_agent as runner
 from scripts.run_terminal_bench_agent import (
     EXIT_ERROR,
     EXIT_SUCCESS,

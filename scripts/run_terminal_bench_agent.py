@@ -108,26 +108,65 @@ def build_prompt(task_text: str) -> str:
 
 
 def default_engine_factory(args: argparse.Namespace) -> SingleTaskEngine:
-    """Build the real project engine.
+    """Build the real project engine for non-interactive benchmark runs.
 
-    The concrete Engine API has evolved across this project. For Terminal-Bench
-    integration we require a narrow ``run_single_task`` method. If the currently
-    installed engine does not expose it yet, fail with a clear actionable error
-    instead of silently entering an interactive loop.
+    This mirrors the interactive entrypoint's construction path while keeping the
+    runner independent from the REPL loop:
+    - create a per-run ``PlanManager``
+    - create one shared ``MemoryManager`` for tools and context
+    - create default tools
+    - instantiate ``AgentEngine`` with environment-provided model/API settings
+
+    Required environment variables:
+    - ``MINI_CLAUDE_API_KEY`` or ``OPENAI_API_KEY`` or ``ANTHROPIC_API_KEY``
+    Optional environment variables:
+    - ``MINI_CLAUDE_BASE_URL`` (defaults to OpenAI-compatible endpoint)
+    - ``MINI_CLAUDE_MODEL`` (defaults to the interactive entrypoint default)
     """
 
     try:
-        from core.engine import AgentEngine  # type: ignore
-    except Exception as exc:  # pragma: no cover - depends on optional runtime config
-        raise RuntimeError(f"Unable to import core.engine.AgentEngine: {exc}") from exc
+        PlanManagerClass = globals().get("PlanManager")
+        MemoryManagerClass = globals().get("MemoryManager")
+        AgentEngineClass = globals().get("AgentEngine")
+        get_default_tools_func = globals().get("get_default_tools")
 
-    try:
-        engine = AgentEngine()  # type: ignore[call-arg]
-    except TypeError as exc:  # pragma: no cover - depends on concrete Engine signature
+        if PlanManagerClass is None:
+            from core.plan import PlanManager as PlanManagerClass
+        if MemoryManagerClass is None:
+            from core.memory_manager import MemoryManager as MemoryManagerClass
+        if AgentEngineClass is None:
+            from core.engine import AgentEngine as AgentEngineClass  # type: ignore
+        if get_default_tools_func is None:
+            from tools import get_default_tools as get_default_tools_func
+    except Exception as exc:  # pragma: no cover - depends on optional runtime config
+        raise RuntimeError(f"Unable to import project AgentEngine dependencies: {exc}") from exc
+
+    api_key = (
+        os.getenv("MINI_CLAUDE_API_KEY")
+        or os.getenv("OPENAI_API_KEY")
+        or os.getenv("ANTHROPIC_API_KEY")
+    )
+    if not api_key:
         raise RuntimeError(
-            "Unable to instantiate AgentEngine without arguments. "
-            "Pass an engine_factory in tests or add a project-specific builder."
-        ) from exc
+            "Missing API key for AgentEngine. Set MINI_CLAUDE_API_KEY, "
+            "OPENAI_API_KEY, or ANTHROPIC_API_KEY."
+        )
+
+    plan_manager = PlanManagerClass()
+    memory_manager = None if args.disable_memory else MemoryManagerClass(plan_manager=plan_manager)
+    tools = get_default_tools_func(plan_manager=plan_manager, memory_manager=memory_manager)
+
+    engine = AgentEngineClass(
+        tools=tools,
+        model=os.getenv("MINI_CLAUDE_MODEL", "gpt-5.5"),
+        plan_manager=plan_manager,
+        session_id=os.getenv("MINI_CLAUDE_SESSION", "terminal-bench"),
+        base_url=os.getenv("MINI_CLAUDE_BASE_URL", "https://api.openai.com/v1"),
+        api_key=api_key,
+        max_history=150,
+        min_keep=8,
+        memory_manager=memory_manager,
+    )
 
     if not hasattr(engine, "run_single_task"):
         raise RuntimeError(
