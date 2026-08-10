@@ -371,6 +371,38 @@ class AgentEngine:
 
         return "任务达到最大思考步数限制。"
 
+    async def run_single_task(self, prompt: str, max_turns: int = 40) -> dict:
+        """Run one non-interactive task for benchmark harnesses.
+
+        Terminal-Bench style runners need a stable, JSON-serialisable API that
+        invokes the real agent once instead of entering the interactive CLI. The
+        current engine completes a request inside ``execute_query``; ``max_turns``
+        is validated and returned for harness accounting.
+        """
+        if not isinstance(prompt, str) or not prompt.strip():
+            raise ValueError("prompt must be a non-empty string")
+        if not isinstance(max_turns, int) or max_turns <= 0:
+            raise ValueError("max_turns must be a positive integer")
+
+        result = {
+            "success": False,
+            "final_answer": "",
+            "turns": 0,
+            "max_turns": max_turns,
+            "error": None,
+        }
+        try:
+            answer = await self.execute_query(prompt.strip())
+            result.update({
+                "success": True,
+                "final_answer": answer or "",
+                "turns": 1,
+            })
+        except Exception as exc:
+            result["turns"] = 1
+            result["error"] = f"{type(exc).__name__}: {exc}"
+        return result
+
     def _is_simple_interaction(self, query: str) -> bool:
         """判断是否为简单交互（不需要大量记忆注入）。"""
         normalized = re.sub(r"[\s。！？!,.，、~～]+", "", query).lower()
