@@ -56,10 +56,16 @@ class AgentEngine:
         self.is_openai_compat = base_url is not None or "claude" not in model.lower()
 
         # --- 异步适配：使用 Async 客户端 ---
+        # 单元测试中经常只实例化 AgentEngine 来测试本地辅助方法，并不会真正调用 LLM。
+        # 新版 openai SDK 在没有凭据时会在构造函数直接抛错；这里提供一个惰性测试占位 key，
+        # 保持离线测试可运行。真正调用 API 时仍需要用户配置有效 key。
         if self.is_openai_compat:
-            self.client = openai.AsyncOpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"), base_url=base_url)
+            self.client = openai.AsyncOpenAI(
+                api_key=api_key or os.getenv("OPENAI_API_KEY") or "test-key",
+                base_url=base_url,
+            )
         else:
-            self.client = anthropic.AsyncAnthropic(api_key=api_key or os.getenv("ANTHROPIC_API_KEY"))
+            self.client = anthropic.AsyncAnthropic(api_key=api_key or os.getenv("ANTHROPIC_API_KEY") or "test-key")
 
         os.makedirs("sessions", exist_ok=True)
         self.load_session()

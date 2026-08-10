@@ -75,6 +75,7 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         self.extra_args = args
         self.extra_kwargs = kwargs
         self.last_result: Optional[MiniClaudeRunSummary] = None
+        self._current_session: Any = None
 
     @staticmethod
     def name() -> str:
@@ -99,12 +100,14 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         if not isinstance(instruction, str) or not instruction.strip():
             raise ValueError("instruction must be a non-empty string")
 
-        # ``session`` is accepted to match the Terminal-Bench interface.  The
-        # current engine does not consume it yet; keeping it here makes the next
-        # evolution path explicit without breaking the importable API.
-        del session
-
-        result = self._run_coroutine_sync(self._run_engine(instruction.strip()))
+        # Keep the Terminal-Bench session available while constructing the
+        # default engine so shell tools can execute inside the benchmark
+        # container through TerminalBenchSessionBackend.
+        self._current_session = session
+        try:
+            result = self._run_coroutine_sync(self._run_engine(instruction.strip()))
+        finally:
+            self._current_session = None
         self.last_result = self._normalize_result(result)
 
         if not self.last_result.success:
@@ -127,10 +130,20 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         from core.plan import PlanManager
         from main import get_agent_config
         from tools import get_default_tools
+        from tools.execution_backend import TerminalBenchSessionBackend
 
         plan_manager = PlanManager()
         memory_manager = MemoryManager(plan_manager=plan_manager)
-        tools_list = get_default_tools(plan_manager=plan_manager, memory_manager=memory_manager)
+        execution_backend = (
+            TerminalBenchSessionBackend(self._current_session)
+            if self._current_session is not None
+            else None
+        )
+        tools_list = get_default_tools(
+            plan_manager=plan_manager,
+            memory_manager=memory_manager,
+            execution_backend=execution_backend,
+        )
         config = get_agent_config()
 
         return AgentEngine(

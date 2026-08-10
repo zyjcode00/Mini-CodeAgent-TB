@@ -1,4 +1,3 @@
-# tools/__init__.py
 from .bash_tool import BashTool
 from .file_tool import ReadTool, FileEditTool, FileTreeTool, WriteFullFileTool
 from .plan_tool import UpdatePlanTool, MarkDoneTool
@@ -8,8 +7,15 @@ from .search_tool import SearchTool
 from .symbol_tool import ListSymbolsTool, FindSymbolTool
 from .git_tool import GitStatusTool, GitCommitTool, GitRollbackTool
 from .memory_tool import MemorySaveTool, MemoryRecallTool, MemoryFileHistoryTool, MemoryErrorHistoryTool, MemoryStatsTool
+from .execution_backend import ToolExecutionBackend
 
-def get_default_tools(plan_manager=None, memory_manager=None, memory_storage_dir="memory/long_term"):
+
+def get_default_tools(
+    plan_manager=None,
+    memory_manager=None,
+    memory_storage_dir="memory/long_term",
+    execution_backend: ToolExecutionBackend | None = None,
+):
     shared_memory_manager = memory_manager
     memory_save_tool = MemorySaveTool(memory_manager=shared_memory_manager, long_term_storage_dir=memory_storage_dir)
     shared_memory_manager = memory_save_tool.memory_manager
@@ -19,7 +25,7 @@ def get_default_tools(plan_manager=None, memory_manager=None, memory_storage_dir
     memory_stats_tool = MemoryStatsTool(memory_manager=shared_memory_manager)
 
     tools = [
-        BashTool(),
+        BashTool(backend=execution_backend),
         ReadTool(),
         FileEditTool(),
         WriteFullFileTool(),  # 新增：全量写入工具

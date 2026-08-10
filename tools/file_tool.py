@@ -72,7 +72,7 @@ class FileEditTool(BaseTool):
             if not os.path.exists(path):
                 return f"错误: 找不到文件 {path}"
 
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, 'r', encoding='utf-8', errors='replace') as f:
                 content = f.read()
 
             # 归一化处理
