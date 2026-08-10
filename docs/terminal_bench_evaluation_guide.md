@@ -301,7 +301,50 @@ runner 成功只说明 agent 进程完成，不等于 benchmark 任务通过。�
 4. harness 传入的 workspace 变量是否正确。
 5. 是否有权限或路径挂载问题。
 
-## 10. 当前结论
+## 10. 正式 harness 接入前检查清单
+
+在接入 Terminal-Bench 官方或自建 harness 前，建议先确认以下配置项，避免把 runner、Docker、任务变量和模型配置问题混在一起排查。
+
+### 10.1 Agent command 模板
+
+优先使用 `--task-file` 方式传入任务说明，并把 `--output-json` 写到 harness 可收集的 artifacts 目录或 workspace 内：
+
+```bash
+python /path/to/mini-claude-code-cli/scripts/run_terminal_bench_agent.py   --task-file "${TASK_FILE}"   --workspace "${WORKSPACE}"   --max-turns "${MAX_TURNS:-40}"   --timeout "${AGENT_TIMEOUT:-1800}"   --output-json "${ARTIFACT_DIR:-${WORKSPACE}}/agent_result.json"   --disable-memory   --disable-auto-commit
+```
+
+如果当前 harness 不提供 `TASK_FILE`，可以在 harness wrapper 中先把任务描述写入临时文件，再调用上述命令；也可以使用 `--task "${TASK}"`，但需要注意 shell quoting 和多行文本转义。
+
+### 10.2 必填变量映射
+
+| 变量 | 来源 | 传给 runner 的参数 | 检查点 |
+|---|---|---|---|
+| 任务说明文件 | Terminal-Bench task instruction / prompt file | `--task-file` | 文件在容器内可读，内容非空 |
+| 任务工作目录 | Terminal-Bench task workspace / repo path | `--workspace` | 目录存在且可读写 |
+| 结果目录 | harness artifacts 目录或 workspace | `--output-json` | 父目录存在且 harness 会保留该文件 |
+| 最大轮数 | harness 配置或默认值 | `--max-turns` | 建议先用 20-40 做样例验证 |
+| 超时时间 | harness 配置或默认值 | `--timeout` | 应小于外层 harness/container 超时 |
+| 模型凭据 | secret/env 注入 | 环境变量 | 至少设置 `MINI_CLAUDE_API_KEY` 或兼容 fallback |
+
+### 10.3 首次正式验证步骤
+
+1. 选择 1 个最小样例任务，确认 workspace 中 visible tests 可手动运行。
+2. 在同一个 workspace 内手动执行 agent command，确认 `agent_result.json` 能生成。
+3. 检查 JSON 中的 `workspace` 是否等于 harness 传入目录，避免 cwd 错位。
+4. 再由 Terminal-Bench harness 调用同一条命令，比较手动运行与 harness 运行的环境变量、挂载路径和退出码。
+5. 扩展到 1-3 个官方或本地样例任务，记录失败类型：任务未完成、测试失败、路径错误、超时、API/网络错误或 artifact 未收集。
+
+### 10.4 推荐验收标准
+
+正式 harness 接入可视为跑通的最低标准：
+
+- harness 能以非交互方式启动 `scripts/run_terminal_bench_agent.py`；
+- runner 进程能在外层超时前退出；
+- workspace 内的文件变更由 Terminal-Bench scorer / hidden tests 正常检测；
+- `agent_result.json` 被保留下来，失败时包含 `error` 字段；
+- 至少 1 个 toy task 或官方样例任务在完整 harness 链路中通过。
+
+## 11. 当前结论
 
 当前 Mini Claude Code CLI 已完成 Terminal-Bench 最小适配：
 
