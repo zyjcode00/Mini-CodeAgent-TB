@@ -89,12 +89,20 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
 
         return {"model": self.model, "max_turns": self.max_turns}
 
-    def perform_task(self, instruction: str, session: Any = None) -> None:
+    def perform_task(
+        self,
+        instruction: str,
+        session: Any = None,
+        logging_dir: Any = None,
+        **_: Any,
+    ) -> None:
         """Execute one Terminal-Bench task instruction.
 
         Terminal-Bench expects this method to be synchronous.  The mini engine is
         async, so this method safely runs the coroutine whether or not an event
-        loop already exists in the current thread.
+        loop already exists in the current thread.  ``logging_dir`` and unknown
+        keyword arguments are accepted for compatibility with Terminal-Bench
+        harness versions that pass additional execution context.
         """
 
         if not isinstance(instruction, str) or not instruction.strip():

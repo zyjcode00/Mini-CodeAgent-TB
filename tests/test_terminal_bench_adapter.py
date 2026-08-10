@@ -100,6 +100,21 @@ def test_perform_task_raises_when_engine_reports_failure():
     )
 
 
+def test_perform_task_accepts_terminal_bench_logging_dir_and_extra_kwargs():
+    engine = RecordingEngine()
+    agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=2, engine_factory=lambda: engine)
+
+    agent.perform_task(
+        "solve with harness context",
+        session=object(),
+        logging_dir="logs/demo",
+        unexpected_harness_kwarg="ignored",
+    )
+
+    assert engine.calls == [{"prompt": "solve with harness context", "max_turns": 2}]
+    assert agent.last_result.success is True
+
+
 @pytest.mark.asyncio
 async def test_perform_task_can_be_called_from_running_event_loop():
     engine = RecordingEngine()
