@@ -10,6 +10,8 @@ SessionSummary 中拆出来：
 from __future__ import annotations
 
 import json
+
+from core.safe_json import safe_json_dumps
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -141,7 +143,7 @@ class RawObservation:
         )
 
     def to_json(self, indent: int = 2) -> str:
-        return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
+        return safe_json_dumps(self.to_dict(), ensure_ascii=False, indent=indent)
 
     @classmethod
     def from_json(cls, json_str: str) -> "RawObservation":
@@ -261,7 +263,7 @@ class MemoryItem:
         )
 
     def to_json(self, indent: int = 2) -> str:
-        return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
+        return safe_json_dumps(self.to_dict(), ensure_ascii=False, indent=indent)
 
     @classmethod
     def from_json(cls, json_str: str) -> "MemoryItem":

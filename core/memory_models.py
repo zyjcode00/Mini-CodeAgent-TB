@@ -10,10 +10,11 @@
 - 关键决策
 """
 
+import json
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-import json
+from core.safe_json import safe_json_dumps
 
 
 TASK_STATUS_COMPLETED = "completed"
@@ -267,7 +268,7 @@ class SessionSummary:
 
     def to_json(self, indent: int = 2) -> str:
         """序列化为 JSON 字符串"""
-        return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
+        return safe_json_dumps(self.to_dict(), ensure_ascii=False, indent=indent)
 
     @classmethod
     def from_json(cls, json_str: str) -> "SessionSummary":

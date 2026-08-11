@@ -9,6 +9,7 @@ being rebuilt from every memory JSON file on each recall.
 from __future__ import annotations
 
 import json
+from core.safe_json import safe_json_dumps
 import math
 import os
 import re
@@ -194,7 +195,7 @@ class BM25MemoryIndex:
     def save(self, path: str | Path) -> None:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(self.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+        path.write_text(safe_json_dumps(self.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
 
     @classmethod
     def load(cls, path: str | Path) -> "BM25MemoryIndex":
@@ -496,7 +497,7 @@ class IndexPersistence:
             "updated_at": self.updated_at,
             "indexes": {"bm25": index.to_dict()},
         }
-        serialized = json.dumps(payload, ensure_ascii=False, indent=2)
+        serialized = safe_json_dumps(payload, ensure_ascii=False, indent=2)
         if self.path.exists():
             try:
                 if self.path.read_text(encoding="utf-8") == serialized:
@@ -620,7 +621,7 @@ class VectorIndexPersistence:
             "updated_at": self.updated_at,
             "indexes": {"vector": index.to_dict()},
         }
-        serialized = json.dumps(payload, ensure_ascii=False, indent=2)
+        serialized = safe_json_dumps(payload, ensure_ascii=False, indent=2)
         if self.path.exists():
             try:
                 if self.path.read_text(encoding="utf-8") == serialized:

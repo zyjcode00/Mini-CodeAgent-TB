@@ -14,7 +14,7 @@ MemoryManager 访问记忆能力，减少分散编排逻辑。
 
 from __future__ import annotations
 
-import json
+from core.safe_json import safe_json_dump
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -460,13 +460,13 @@ class MemoryManager:
         stats_file = output_path / "memory_statistics.json"
 
         with open(episodic_file, "w", encoding="utf-8") as f:
-            json.dump([s.to_dict() for s in self.episodic_memory.get_all()], f, ensure_ascii=False, indent=2)
+            safe_json_dump([s.to_dict() for s in self.episodic_memory.get_all()], f, ensure_ascii=False, indent=2)
 
         with open(memory_items_file, "w", encoding="utf-8") as f:
-            json.dump([item.to_dict() for item in self.long_term_memory.get_all_items()], f, ensure_ascii=False, indent=2)
+            safe_json_dump([item.to_dict() for item in self.long_term_memory.get_all_items()], f, ensure_ascii=False, indent=2)
 
         with open(stats_file, "w", encoding="utf-8") as f:
-            json.dump(self.get_statistics(), f, ensure_ascii=False, indent=2)
+            safe_json_dump(self.get_statistics(), f, ensure_ascii=False, indent=2)
 
         return {
             "episodic_memory": str(episodic_file),

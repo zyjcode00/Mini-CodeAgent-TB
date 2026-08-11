@@ -12,6 +12,7 @@ from typing import List, Dict, Any, Optional, Callable
 from enum import Enum
 from dataclasses import dataclass, field
 import json
+from core.safe_json import safe_json_dumps
 import hashlib
 import time
 import re
@@ -720,7 +721,7 @@ class CompressionEngine:
             哈希值字符串
         """
         # 简化方案：只对消息内容进行哈希
-        content = json.dumps([
+        content = safe_json_dumps([
             {
                 "role": msg.get("role"),
                 "content": str(msg.get("content", ""))[:500]  # 只取前500字符
@@ -1368,7 +1369,7 @@ class CompressionEngine:
         result = []
         seen = set()
         for item in values:
-            marker = item.get(key) or json.dumps(item, ensure_ascii=False, sort_keys=True)
+            marker = item.get(key) or safe_json_dumps(item, ensure_ascii=False, sort_keys=True)
             if marker in seen:
                 continue
             seen.add(marker)

@@ -212,3 +212,40 @@ def test_agent_engine_initializes_current_plan_branch_and_starts_plan_branch(tmp
     assert result == "done"
     assert calls == ["abc123"]
     assert engine.current_plan_branch == "abc123"
+
+
+def test_agent_engine_skips_repeated_plan_branch_creation_after_failure(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    engine = AgentEngine(
+        tools=[_DummyTool()],
+        model="fake-model",
+        plan_manager=_FakePlanManager(plan_id="plan-non-git"),
+        base_url="http://example.invalid",
+        api_key="x",
+        session_id="plan_branch_failure_regression",
+    )
+
+    calls = []
+
+    def fake_start_plan_branch(plan_id):
+        calls.append(plan_id)
+        return False, "current directory is not a git repository"
+
+    async def fake_compress_messages():
+        return None
+
+    async def fake_call_llm(relevant_history="", user_input=""):
+        return [{"type": "text", "text": "done"}], "end_turn"
+
+    monkeypatch.setattr("core.engine.start_plan_branch", fake_start_plan_branch)
+    monkeypatch.setattr(engine, "compress_messages", fake_compress_messages)
+    monkeypatch.setattr(engine, "_call_llm", fake_call_llm)
+
+    first = asyncio.run(engine.execute_query("制定一个 plan"))
+    second = asyncio.run(engine.execute_query("继续执行 plan"))
+
+    assert first == "done"
+    assert second == "done"
+    assert calls == ["plan-non-git"]
+    assert engine.current_plan_branch is None
+    assert engine.skipped_plan_branch_id == "plan-non-git"

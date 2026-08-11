@@ -13,6 +13,7 @@ from core.context_assembler import ContextAssembler, ContextBudget
 from core.memory_items import MemoryKind, ObservationType, RawObservation
 from core.memory_manager import MemoryManager
 from core.read_guard import ReadOnlyStreakGuard, RuntimeReadLedger
+from core.safe_json import replace_lone_surrogates, safe_json_dump
 
 # Git 自动化保险导入
 from tools.git_tool import create_snapshot, rollback_to, has_uncommitted_changes, start_task_branch, finalize_task, start_plan_branch, finalize_plan
@@ -46,6 +47,7 @@ class AgentEngine:
         self.edit_failures = {}  # {"file_path": failure_count}
         self.last_snapshot_plan_step = None  # 记录上次快照时的计划步骤
         self.current_plan_branch = None  # 当前 Plan 影子分支对应的 plan_id；必须先初始化，execute_query 会读取
+        self.skipped_plan_branch_id = None  # 当前进程中已跳过影子分支创建的 plan_id；避免非 Git 仓库反复报错
         # Phase 5: Prompt 记忆注入预算配置
         self.memory_token_budget = 1500
         self.memory_recall_top_k = 8
@@ -199,14 +201,16 @@ class AgentEngine:
             # ========== 影子分支逻辑：Plan 开始时创建分支 ==========
             # 检查是否有 Plan 且当前不在影子分支上
             plan_id = self.plan_manager.get_plan_id()
-            if plan_id and not self.current_plan_branch:
+            if plan_id and not self.current_plan_branch and self.skipped_plan_branch_id != plan_id:
                 print(f" [🌿] 检测到 Plan，创建影子分支 agent/plan-{plan_id}...")
                 success, msg = start_plan_branch(plan_id)
                 if success:
                     print(f" [✅] {msg}")
                     self.current_plan_branch = plan_id
+                    self.skipped_plan_branch_id = None
                 else:
-                    print(f" [⚠️] 创建影子分支失败: {msg}")
+                    print(f" [⚠️] 创建影子分支失败，本次 Plan 将跳过影子分支: {msg}")
+                    self.skipped_plan_branch_id = plan_id
             # =======================================================
 
             # 这里必须 await！
@@ -311,24 +315,30 @@ class AgentEngine:
                     if t_name == "mark_task_done" and "✅" in str(res):
                         # 检查 Plan 是否全部完成
                         if self.plan_manager.is_plan_complete():
-                            print(f" [📸] 检测到 Plan 全部完成，正在归档影子分支...")
+                            if self.current_plan_branch:
+                                print(f" [📸] 检测到 Plan 全部完成，正在归档影子分支...")
 
-                            # 获取 Plan 描述
-                            plan_desc = self.plan_manager.current_goal
+                                # 获取 Plan 描述
+                                plan_desc = self.plan_manager.current_goal
 
-                            success, msg = finalize_plan(self.current_plan_branch, plan_desc)
-                            if success:
-                                print(f" [✅] {msg}")
-                                self.current_plan_branch = None  # 重置影子分支状态
-                                # 🔥 新增：清除已完成的 Plan，避免重复执行
-                                self.plan_manager.clear_plan()
+                                success, msg = finalize_plan(self.current_plan_branch, plan_desc)
+                                if success:
+                                    print(f" [✅] {msg}")
+                                    self.current_plan_branch = None  # 重置影子分支状态
+                                    self.skipped_plan_branch_id = None
+                                    # 🔥 新增：清除已完成的 Plan，避免重复执行
+                                    self.plan_manager.clear_plan()
+                                else:
+                                    print(f" [⚠️] 归档失败: {msg}")
+                                    # 归档失败时，仍创建普通快照作为后备
+                                    success2, msg2 = create_snapshot("🎯 [Fallback] Plan completed")
+                                    if success2:
+                                        print(f" [✅] 已创建后备快照: {msg2}")
+                                    # 即使归档失败，也要清除 Plan（避免重复执行）
+                                    self.plan_manager.clear_plan()
                             else:
-                                print(f" [⚠️] 归档失败: {msg}")
-                                # 归档失败时，仍创建普通快照作为后备
-                                success2, msg2 = create_snapshot("🎯 [Fallback] Plan completed")
-                                if success2:
-                                    print(f" [✅] 已创建后备快照: {msg2}")
-                                # 即使归档失败，也要清除 Plan（避免重复执行）
+                                print(" [ℹ️] Plan 完成，但未使用影子分支，跳过影子分支归档")
+                                self.skipped_plan_branch_id = None
                                 self.plan_manager.clear_plan()
                         else:
                             # Plan 未完成，创建普通快照
@@ -650,6 +660,11 @@ class AgentEngine:
 
 
 
+    @staticmethod
+    def _replace_lone_surrogates(value: Any) -> Any:
+        """Backward-compatible wrapper for core.safe_json.replace_lone_surrogates."""
+        return replace_lone_surrogates(value)
+
     def save_session(self):
         """利用 context 模块的序列化能力进行保存，同时保存 plan 状态和三层记忆"""
         # 🔥🔥🔥 核心修复：保存前强制同步所有相关摘要的状态
@@ -694,8 +709,9 @@ class AgentEngine:
             # 🔥 新增：保存三层记忆数据（Phase 2/3）
             "memories": self.context.export_memories()
         }
+        data = replace_lone_surrogates(data)
         with open(self.session_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            safe_json_dump(data, f, ensure_ascii=False, indent=2)
         # print(f" [💾] 会话已存档: {self.session_id}")
 
     def load_session(self):

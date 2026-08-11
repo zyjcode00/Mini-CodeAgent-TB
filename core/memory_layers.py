@@ -5,6 +5,7 @@
 """
 
 import json
+from core.safe_json import safe_json_dump, safe_json_dumps
 import os
 import tempfile
 import time
@@ -264,7 +265,7 @@ class LongTermMemory:
         payload = self._serialize_index()
 
         try:
-            serialized = json.dumps(payload, ensure_ascii=False, indent=2)
+            serialized = safe_json_dumps(payload, ensure_ascii=False, indent=2)
             if index_file.exists():
                 try:
                     if index_file.read_text(encoding='utf-8') == serialized:
@@ -501,7 +502,7 @@ class LongTermMemory:
         # 保存到磁盘
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(summary.to_dict(), f, ensure_ascii=False, indent=2)
+                safe_json_dump(summary.to_dict(), f, ensure_ascii=False, indent=2)
 
             # 更新索引
             self.index[summary.session_id] = file_path
@@ -544,7 +545,7 @@ class LongTermMemory:
 
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(item.to_dict(), f, ensure_ascii=False, indent=2)
+                safe_json_dump(item.to_dict(), f, ensure_ascii=False, indent=2)
 
             old_file = self.item_index.get(item.id)
             if old_file and old_file != file_path and old_file.exists():
