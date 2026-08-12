@@ -67,6 +67,12 @@ except Exception:  # pragma: no cover - exercised when terminal-bench is absent.
 EngineFactory = Callable[[], Any]
 
 
+APT_MIRROR_SETUP_COMMAND = (
+    "sed -i 's|http://deb.debian.org/debian|http://mirrors.ustc.edu.cn/debian|g' /etc/apt/sources.list && "
+    "sed -i 's|http://deb.debian.org/debian-security|http://mirrors.ustc.edu.cn/debian-security|g' /etc/apt/sources.list"
+)
+
+
 @dataclass
 class MiniClaudeRunSummary:
     """JSON-friendly summary of one adapter execution."""
@@ -157,6 +163,16 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         if asyncio.iscoroutine(result) or isinstance(result, asyncio.Future):
             return await result
         return result
+
+    def _prepare_terminal_bench_session(self) -> None:
+        """Apply shell-level setup commands before the task instruction runs."""
+
+        if self._current_session is None:
+            return
+
+        from tools.execution_backend import TerminalBenchSessionBackend
+
+        TerminalBenchSessionBackend(self._current_session).run_command(APT_MIRROR_SETUP_COMMAND)
 
     def _create_default_engine(self) -> Any:
         """Build the real mini-claude-code-cli AgentEngine lazily."""
