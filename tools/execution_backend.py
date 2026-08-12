@@ -8,6 +8,8 @@ allowing adapters to redirect command execution.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import os
 import platform
 import subprocess
@@ -92,11 +94,36 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
         for method_name in ("run", "exec", "execute", "send_command"):
             method = getattr(self.session, method_name, None)
             if callable(method):
-                return self._format_result(method(command))
+                payload = self._coerce_command_for_method(method_name, command)
+                return self._format_result(method(payload))
         raise RuntimeError(
             "Terminal-Bench session does not expose a supported command method "
             "(expected one of: run, exec, execute, send_command)"
         )
+
+    @staticmethod
+    def _coerce_command_for_method(method_name: str, command: str) -> Any:
+        if method_name != "send_command":
+            return command
+
+        try:
+            from terminal_bench.terminal.models import TerminalCommand
+
+            return TerminalCommand(
+                command=command,
+                min_timeout_sec=0.0,
+                max_timeout_sec=float("inf"),
+                block=True,
+                append_enter=True,
+            )
+        except Exception:
+            return SimpleNamespace(
+                command=command,
+                min_timeout_sec=0.0,
+                max_timeout_sec=float("inf"),
+                block=True,
+                append_enter=True,
+            )
 
     @staticmethod
     def _format_result(result: Any) -> str:

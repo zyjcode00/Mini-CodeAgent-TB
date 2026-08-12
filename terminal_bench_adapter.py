@@ -16,8 +16,36 @@ mini-claude-code-cli loadable by Terminal-Bench and executes the task once, but 
 full production-quality integration may still need Terminal-Bench-session-aware
 shell/file tools so all actions happen inside the benchmark container.
 """
-
 from __future__ import annotations
+'''
+TB Harness 原生适配器
+tb run --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent
+
+uv run tb run \
+  --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
+  --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
+  --agent-kwarg max_turns=10 \
+  --task-id hello-world \
+  --output-path ./eval_runs_test
+
+uv run tb run \
+  --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
+  --dataset-path ./terminal-bench/original-tasks \
+  --agent-kwarg max_turns=10 \
+  --task-id hello-world \
+  --task-id sudoku-solver \
+  --task-id chess-best-move \
+  --output-path ./eval_runs_test
+
+
+工作机制：
+
+1. TB 启动 → import `MiniClaudeCodeAgent`
+2. 遍历每条任务，创建隔离沙箱 session
+3. 调用 `agent.perform_task(instruction, session)`
+4. Agent 内部通过 `TerminalBenchSessionBackend` 在**TB 沙箱内执行命令**
+5. TB 内置 judge 校验沙箱状态，自动统计准确率
+'''
 
 import asyncio
 import os
