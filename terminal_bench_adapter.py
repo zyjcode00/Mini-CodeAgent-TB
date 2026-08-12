@@ -82,15 +82,16 @@ class MiniClaudeRunSummary:
 APT_MIRROR_SETUP_COMMAND = r"""set -e
 
 APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
-PYPI_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
+APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 
 if [ -f /etc/apt/sources.list ]; then
     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
     sed -i \
         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
-        -e "s|http://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
-        -e "s|https://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
+        -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
         /etc/apt/sources.list
 fi
 
@@ -99,16 +100,14 @@ if [ -f /etc/apt/sources.list.d/debian.sources ]; then
     sed -i \
         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
-        -e "s|http://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
-        -e "s|https://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
+        -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
         /etc/apt/sources.list.d/debian.sources
 fi
 
 mkdir -p /root/.config/uv
 cat > /root/.config/uv/uv.toml <<EOF
-[[index]]
-url = "${PYPI_INDEX}"
-default = true
+index-url = "${UV_INDEX_URL}"
 EOF
 
 apt-get update || true
