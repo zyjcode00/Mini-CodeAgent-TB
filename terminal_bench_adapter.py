@@ -67,10 +67,35 @@ except Exception:  # pragma: no cover - exercised when terminal-bench is absent.
 EngineFactory = Callable[[], Any]
 
 
-APT_MIRROR_SETUP_COMMAND = (
-    "sed -i 's|http://deb.debian.org/debian|http://mirrors.ustc.edu.cn/debian|g' /etc/apt/sources.list && "
-    "sed -i 's|http://deb.debian.org/debian-security|http://mirrors.ustc.edu.cn/debian-security|g' /etc/apt/sources.list"
-)
+APT_MIRROR_SETUP_COMMAND = r'''
+set -e
+APT_DEBIAN_MIRROR="http://mirrors.ustc.edu.cn/debian"
+APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+
+if [ -f /etc/apt/sources.list ]; then
+    sed -i.bak \
+        -e "s|http://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        -e "s|https://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        -e "s|http://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
+        -e "s|https://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
+        /etc/apt/sources.list
+fi
+
+if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+    sed -i.bak \
+        -e "s|http://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        -e "s|https://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        -e "s|http://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
+        -e "s|https://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
+        /etc/apt/sources.list.d/debian.sources
+fi
+
+mkdir -p /root/.config/uv
+cat > /root/.config/uv/uv.toml <<EOF
+index-url = "${UV_INDEX_URL}"
+EOF
+'''.strip()
 
 
 @dataclass
