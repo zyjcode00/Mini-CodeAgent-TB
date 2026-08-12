@@ -30,11 +30,11 @@ uv run tb run \
 
 uv run tb run \
   --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
-  --dataset-path ./terminal-bench/original-tasks \
+  --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
   --agent-kwarg max_turns=10 \
   --task-id hello-world \
-  --task-id sudoku-solver \
-  --task-id chess-best-move \
+  --task-id fix-git \
+  --task-id mailman \
   --output-path ./eval_runs_test
 
 
@@ -65,37 +65,6 @@ except Exception:  # pragma: no cover - exercised when terminal-bench is absent.
 
 
 EngineFactory = Callable[[], Any]
-
-
-APT_MIRROR_SETUP_COMMAND = r'''
-set -e
-APT_DEBIAN_MIRROR="http://mirrors.ustc.edu.cn/debian"
-APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
-UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
-
-if [ -f /etc/apt/sources.list ]; then
-    sed -i.bak \
-        -e "s|http://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
-        -e "s|https://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
-        -e "s|http://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
-        -e "s|https://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
-        /etc/apt/sources.list
-fi
-
-if [ -f /etc/apt/sources.list.d/debian.sources ]; then
-    sed -i.bak \
-        -e "s|http://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
-        -e "s|https://deb.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
-        -e "s|http://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
-        -e "s|https://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
-        /etc/apt/sources.list.d/debian.sources
-fi
-
-mkdir -p /root/.config/uv
-cat > /root/.config/uv/uv.toml <<EOF
-index-url = "${UV_INDEX_URL}"
-EOF
-'''.strip()
 
 
 @dataclass
@@ -172,7 +141,6 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         # container through TerminalBenchSessionBackend.
         self._current_session = session
         try:
-            self._prepare_terminal_bench_session()
             result = self._run_coroutine_sync(self._run_engine(instruction.strip()))
         finally:
             self._current_session = None
@@ -189,16 +157,6 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         if asyncio.iscoroutine(result) or isinstance(result, asyncio.Future):
             return await result
         return result
-
-    def _prepare_terminal_bench_session(self) -> None:
-        """Apply shell-level setup commands before the task instruction runs."""
-
-        if self._current_session is None:
-            return
-
-        from tools.execution_backend import TerminalBenchSessionBackend
-
-        TerminalBenchSessionBackend(self._current_session).run_command(APT_MIRROR_SETUP_COMMAND)
 
     def _create_default_engine(self) -> Any:
         """Build the real mini-claude-code-cli AgentEngine lazily."""
