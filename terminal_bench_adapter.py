@@ -77,6 +77,44 @@ class MiniClaudeRunSummary:
     error: Optional[str] = None
 
 
+
+
+APT_MIRROR_SETUP_COMMAND = r"""set -e
+
+APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+PYPI_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
+
+if [ -f /etc/apt/sources.list ]; then
+    cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+    sed -i \
+        -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+        -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+        -e "s|http://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
+        -e "s|https://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
+        /etc/apt/sources.list
+fi
+
+if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+    cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+    sed -i \
+        -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+        -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+        -e "s|http://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
+        -e "s|https://security.debian.org/debian-security|${APT_MIRROR}-security|g" \
+        /etc/apt/sources.list.d/debian.sources
+fi
+
+mkdir -p /root/.config/uv
+cat > /root/.config/uv/uv.toml <<EOF
+[[index]]
+url = "${PYPI_INDEX}"
+default = true
+EOF
+
+apt-get update || true
+"""
+
+
 class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
     """Terminal-Bench ``BaseAgent`` implementation for mini-claude-code-cli.
 
@@ -135,6 +173,11 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
 
         if not isinstance(instruction, str) or not instruction.strip():
             raise ValueError("instruction must be a non-empty string")
+
+        if session is not None:
+            from tools.execution_backend import TerminalBenchSessionBackend
+
+            TerminalBenchSessionBackend(session).run_command(APT_MIRROR_SETUP_COMMAND)
 
         # Keep the Terminal-Bench session available while constructing the
         # default engine so shell tools can execute inside the benchmark
