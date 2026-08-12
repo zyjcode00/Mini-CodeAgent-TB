@@ -106,6 +106,8 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
         if method_name != "send_command":
             return command
 
+        command = TerminalBenchSessionBackend._make_multiline_command_tmux_safe(command)
+
         try:
             from terminal_bench.terminal.models import TerminalCommand
 
@@ -124,6 +126,22 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
                 block=True,
                 append_enter=True,
             )
+
+    @staticmethod
+    def _make_multiline_command_tmux_safe(command: str) -> str:
+        """Keep Terminal-Bench's tmux wait suffix away from heredoc delimiters.
+
+        Terminal-Bench's tmux-backed ``send_command`` implementation appends its
+        synchronization command to the final command line.  For heredocs, the
+        closing delimiter must be alone on its line, so appending ``; tmux wait``
+        directly after the delimiter makes the shell keep reading stdin.  Adding
+        a harmless standalone command after any multiline command ensures the
+        suffix is appended to that command instead of to a heredoc delimiter.
+        """
+
+        if "\n" not in command:
+            return command
+        return f"{command.rstrip()}\ntrue"
 
     @staticmethod
     def _format_result(result: Any) -> str:
