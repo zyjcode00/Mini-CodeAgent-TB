@@ -152,3 +152,17 @@ def test_perform_task_runs_terminal_bench_setup_before_engine():
 
     assert engine.calls == [{"prompt": "solve inside loop", "max_turns": 3}]
     assert agent.last_result.success is True
+
+
+def test_apt_mirror_setup_command_handles_debian_12_sources_and_uv_config():
+    command = adapter.APT_MIRROR_SETUP_COMMAND
+
+    assert command.startswith("set -e")
+    assert "/etc/apt/sources.list" in command
+    assert "/etc/apt/sources.list.d/debian.sources" in command
+    assert "http://mirrors.ustc.edu.cn/debian" in command
+    assert "http://mirrors.ustc.edu.cn/debian-security" in command
+    assert "mkdir -p /root/.config/uv" in command
+    assert "cat > /root/.config/uv/uv.toml" in command
+    assert 'index-url = "${UV_INDEX_URL}"' in command
+    assert "https://pypi.tuna.tsinghua.edu.cn/simple" in command
