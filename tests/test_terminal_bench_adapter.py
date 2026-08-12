@@ -60,7 +60,11 @@ def test_perform_task_calls_async_engine_and_stores_summary():
     engine = RecordingEngine()
     agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=7, engine_factory=lambda: engine)
 
-    agent.perform_task("  solve this task  ", session=object())
+    class NoopSession:
+        def run(self, command):
+            return ""
+
+    agent.perform_task("  solve this task  ", session=NoopSession())
 
     assert engine.calls == [{"prompt": "solve this task", "max_turns": 7}]
     assert agent.last_result == adapter.MiniClaudeRunSummary(
@@ -100,23 +104,47 @@ def test_perform_task_raises_when_engine_reports_failure():
     )
 
 
-def test_perform_task_accepts_terminal_bench_logging_dir_and_extra_kwargs():
-    engine = RecordingEngine()
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=2, engine_factory=lambda: engine)
+def test_perform_task_runs_terminal_bench_setup_before_engine():
+    session = type("Session", (), {"commands": []})()
 
-    agent.perform_task(
-        "solve with harness context",
-        session=object(),
-        logging_dir="logs/demo",
-        unexpected_harness_kwarg="ignored",
-    )
+    class OrderingEngine:
+        def __init__(self):
+            self.calls = []
 
-    assert engine.calls == [{"prompt": "solve with harness context", "max_turns": 2}]
-    assert agent.last_result.success is True
+        async def run_single_task(self, prompt, max_turns=40):
+            self.calls.append({"prompt": prompt, "max_turns": max_turns, "commands_before_run": list(session.commands)})
+            return {"success": True, "stop_reason": "completed", "output": "done"}
 
+    class FakeTerminalBenchSessionBackend:
+        def __init__(self, session_obj):
+            self.session_obj = session_obj
 
-@pytest.mark.asyncio
-async def test_perform_task_can_be_called_from_running_event_loop():
+        def run_command(self, command):
+            self.session_obj.commands.append(command)
+            return "setup ok"
+
+    engine = OrderingEngine()
+    agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=4, engine_factory=lambda: engine)
+
+    original_backend = adapter.__dict__.get("TerminalBenchSessionBackend")
+    try:
+        import tools.execution_backend as execution_backend
+
+        original_execution_backend = execution_backend.TerminalBenchSessionBackend
+        execution_backend.TerminalBenchSessionBackend = FakeTerminalBenchSessionBackend
+        try:
+            agent.perform_task(" solve ", session=session)
+        finally:
+            execution_backend.TerminalBenchSessionBackend = original_execution_backend
+    finally:
+        if original_backend is not None:
+            adapter.TerminalBenchSessionBackend = original_backend
+
+    assert session.commands == [adapter.APT_MIRROR_SETUP_COMMAND]
+    assert engine.calls == [
+        {"prompt": "solve", "max_turns": 4, "commands_before_run": [adapter.APT_MIRROR_SETUP_COMMAND]}
+    ]
+
     engine = RecordingEngine()
     agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=3, engine_factory=lambda: engine)
 

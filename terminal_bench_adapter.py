@@ -147,6 +147,7 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         # container through TerminalBenchSessionBackend.
         self._current_session = session
         try:
+            self._prepare_terminal_bench_session()
             result = self._run_coroutine_sync(self._run_engine(instruction.strip()))
         finally:
             self._current_session = None
