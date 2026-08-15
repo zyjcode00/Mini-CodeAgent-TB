@@ -24,6 +24,16 @@ class CapturingTerminalBenchSession:
         return {"stdout": "ok\n", "exit_code": 0}
 
 
+class ShutdownTerminalBenchSession:
+    def run(self, command):
+        raise RuntimeError("cannot schedule new futures after shutdown")
+
+
+class BrokenTerminalBenchSession:
+    def run(self, command):
+        raise ValueError("command protocol is invalid")
+
+
 def test_terminal_bench_send_command_receives_terminal_command_like_object():
     session = FakeTerminalBenchSession()
     backend = TerminalBenchSessionBackend(session)
@@ -49,3 +59,23 @@ PY"""
     assert "\nPY\n" in sent
     assert "\nPY;" not in sent
     assert sent.endswith("\ntrue")
+
+
+def test_shutdown_session_returns_diagnostic_result_instead_of_raising():
+    backend = TerminalBenchSessionBackend(ShutdownTerminalBenchSession())
+
+    result = backend.run_command("echo hello")
+
+    assert "cannot schedule new futures after shutdown" in result
+    assert "Terminal-Bench session is unavailable" in result
+
+
+def test_non_shutdown_session_errors_are_still_raised():
+    backend = TerminalBenchSessionBackend(BrokenTerminalBenchSession())
+
+    try:
+        backend.run_command("echo hello")
+    except ValueError as error:
+        assert str(error) == "command protocol is invalid"
+    else:
+        raise AssertionError("non-shutdown session errors must not be swallowed")
