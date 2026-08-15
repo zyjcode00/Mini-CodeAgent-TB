@@ -95,7 +95,16 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
             method = getattr(self.session, method_name, None)
             if callable(method):
                 payload = self._coerce_command_for_method(method_name, command)
-                return self._format_result(method(payload))
+                try:
+                    result = method(payload)
+                except RuntimeError as error:
+                    if "cannot schedule new futures after shutdown" not in str(error):
+                        raise
+                    return (
+                        "❌ Terminal-Bench session is unavailable: "
+                        f"{error}"
+                    )
+                return self._format_result(result)
         raise RuntimeError(
             "Terminal-Bench session does not expose a supported command method "
             "(expected one of: run, exec, execute, send_command)"
