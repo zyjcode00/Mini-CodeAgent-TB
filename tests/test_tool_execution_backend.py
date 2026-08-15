@@ -82,3 +82,36 @@ def test_terminal_bench_adapter_default_engine_uses_session_backend(monkeypatch)
     result = bash_tool.run("pwd")
     assert session.commands == ["pwd"]
     assert "session saw: pwd" in result
+
+
+def _find_tool(tools, name):
+    return next(tool for tool in tools if getattr(tool, "name", None) == name)
+
+
+def test_terminal_bench_backend_routes_file_tools_to_session(tmp_path, monkeypatch):
+    class FileSession(FakeSession):
+        def run(self, command: str):
+            self.commands.append(command)
+            if "cat --" in command:
+                return {"stdout": "container README\nsecond line\n", "stderr": "", "exit_code": 0}
+            if "find" in command:
+                return {"stdout": "./\n./README.md\n", "stderr": "", "exit_code": 0}
+            return {"stdout": "", "stderr": "", "exit_code": 0}
+
+    local_file = tmp_path / "README.md"
+    local_file.write_text("host README\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    session = FileSession()
+    backend = TerminalBenchSessionBackend(session)
+    tools = get_default_tools(execution_backend=backend)
+
+    read_result = _find_tool(tools, "read_file").run("README.md", raw_mode=True)
+    tree_result = _find_tool(tools, "list_files_recursive").run()
+
+    assert read_result == "container README\nsecond line\n"
+    assert "container README" in read_result
+    assert "host README" not in read_result
+    assert "README.md" in tree_result
+    assert any("cat --" in command for command in session.commands)
+    assert any("find" in command for command in session.commands)
