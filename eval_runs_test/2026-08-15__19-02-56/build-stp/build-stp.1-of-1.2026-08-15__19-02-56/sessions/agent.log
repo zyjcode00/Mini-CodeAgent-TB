@@ -1,0 +1,123 @@
+[?2004hroot@3ff2ecffe907:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@3ff2ecffe907:/app# clear
+[?2004l[H[J[3J[?2004hroot@3ff2ecffe907:/app# set -e
+[?2004l[?2004hroot@3ff2ecffe907:/app# 
+[?2004l[?2004hroot@3ff2ecffe907:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@3ff2ecffe907:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@3ff2ecffe907:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+[?2004l[?2004hroot@3ff2ecffe907:/app# 
+[?2004l[?2004hroot@3ff2ecffe907:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@3ff2ecffe907:/app# 
+[?2004l[?2004hroot@3ff2ecffe907:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@3ff2ecffe907:/app# 
+[?2004l[?2004hroot@3ff2ecffe907:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@3ff2ecffe907:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@3ff2ecffe907:/app# 
+[?2004l[?2004hroot@3ff2ecffe907:/app# apt-get update || true
+[?2004l0% [Working]0% [Connecting to archive.ubuntu.com] [Connecting to security.ubuntu.com (185.125.190.82)]                                                                                          Hit:1 http://security.ubuntu.com/ubuntu noble-security InRelease
+                                                                                          0% [Connecting to archive.ubuntu.com (91.189.91.82)]                                                    0% [Waiting for headers]                        Hit:2 http://archive.ubuntu.com/ubuntu noble InRelease
+                        0% [Working]0% [Waiting for headers]                        Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+0% [3 InRelease 8192 B/126 kB 6%]0% [3 InRelease 56.6 kB/126 kB 45%]                                   0% [Working]0% [Waiting for headers]                        Hit:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease
+                        0% [Working]22% [Waiting for headers]                         Get:5 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2141 kB]
+22% [5 Packages 2679 B/2141 kB 0%]27% [5 Packages 260 kB/2141 kB 12%]41% [5 Packages 925 kB/2141 kB 43%]57% [5 Packages 1664 kB/2141 kB 78%]                                    67% [Waiting for headers]                         Get:6 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1478 kB]
+69% [6 Packages 59.6 kB/1478 kB 4%]69% [5 Packages store 0 B] [6 Packages 59.6 kB/1478 kB 4%]                                                          78% [6 Packages 457 kB/1478 kB 31%]                                   99% [Working]99% [6 Packages store 0 B]                          100% [Working]              Fetched 3746 kB in 4s (833 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 62%Reading package lists... 62%Reading package lists... 62%Reading package lists... 62%Reading package lists... 63%Reading package lists... 63%Reading package lists... 68%Reading package lists... 68%Reading package lists... 76%Reading package lists... 76%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 87%Reading package lists... 87%Reading package lists... 93%Reading package lists... 93%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@3ff2ecffe907:/app# true; tmux wait -S done
+[?2004l[?2004hroot@3ff2ecffe907:/app# set -euxo pipefail
+[?2004l[?2004hroot@3ff2ecffe907:/app# pwd
+[?2004l+ pwd
+/app
+[?2004hroot@3ff2ecffe907:/app# ls -la /
+[?2004l+ ls --color=auto -la /
+total 76
+drwxr-xr-x   1 root   root   4096 Aug 15 11:03 [0m[01;34m.[0m
+drwxr-xr-x   1 root   root   4096 Aug 15 11:03 [01;34m..[0m
+-rwxr-xr-x   1 root   root      0 Aug 15 11:03 [01;32m.dockerenv[0m
+drwxr-xr-x   2 ubuntu ubuntu 4096 Aug 15 11:02 [01;34magent-logs[0m
+drwxr-xr-x   1 root   root   4096 Aug 15 05:29 [01;34mapp[0m
+lrwxrwxrwx   1 root   root      7 Apr 22  2024 [01;36mbin[0m -> [01;34musr/bin[0m
+drwxr-xr-x   2 root   root   4096 Apr 22  2024 [01;34mboot[0m
+drwxr-xr-x   5 root   root    340 Aug 15 11:03 [01;34mdev[0m
+drwxr-xr-x   1 root   root   4096 Aug 15 11:03 [01;34metc[0m
+drwxr-xr-x   3 root   root   4096 Apr  4  2025 [01;34mhome[0m
+lrwxrwxrwx   1 root   root      7 Apr 22  2024 [01;36mlib[0m -> [01;34musr/lib[0m
+lrwxrwxrwx   1 root   root      9 Apr 22  2024 [01;36mlib64[0m -> [01;34musr/lib64[0m
+drwxr-xr-x   2 ubuntu ubuntu 4096 Aug 15 11:03 [01;34mlogs[0m
+drwxr-xr-x   2 root   root   4096 Apr  4  2025 [01;34mmedia[0m
+drwxr-xr-x   2 root   root   4096 Apr  4  2025 [01;34mmnt[0m
+drwxr-xr-x   2 root   root   4096 Apr  4  2025 [01;34mopt[0m
+dr-xr-xr-x 388 root   root      0 Aug 15 11:03 [01;34mproc[0m
+drwx------   1 root   root   4096 Aug 15 11:03 [01;34mroot[0m
+drwxr-xr-x   1 root   root   4096 Aug 15 05:29 [01;34mrun[0m
+lrwxrwxrwx   1 root   root      8 Apr 22  2024 [01;36msbin[0m -> [01;34musr/sbin[0m
+drwxr-xr-x   2 root   root   4096 Apr  4  2025 [01;34msrv[0m
+dr-xr-xr-x  13 root   root      0 Aug 12 08:57 [01;34msys[0m
+drwxrwxrwt   1 root   root   4096 Aug 15 11:03 [30;42mtmp[0m
+drwxr-xr-x   1 root   root   4096 Apr  4  2025 [01;34musr[0m
+drwxr-xr-x   1 root   root   4096 Apr  4  2025 [01;34mvar[0m
+[?2004hroot@3ff2ecffe907:/app# ls -la /app || true
+[?2004l+ ls --color=auto -la /app
+total 12
+drwxr-xr-x  1 root root 4096 Aug 15 05:29 [0m[01;34m.[0m
+drwxr-xr-x  1 root root 4096 Aug 15 11:03 [01;34m..[0m
+drwxr-xr-x 15 root root 4096 Aug 15 05:31 [01;34mstp[0m
+[?2004hroot@3ff2ecffe907:/app# ls -la /app/stp || true
+[?2004l+ ls --color=auto -la /app/stp
+total 160
+drwxr-xr-x 15 root root  4096 Aug 15 05:31 [0m[01;34m.[0m
+drwxr-xr-x  1 root root  4096 Aug 15 05:29 [01;34m..[0m
+-rw-r--r--  1 root root   486 Aug 15 05:31 .clang-format
+-rw-r--r--  1 root root   280 Aug 15 05:31 .dockerignore
+drwxr-xr-x  8 root root  4096 Aug 15 05:31 [01;34m.git[0m
+-rw-r--r--  1 root root    83 Aug 15 05:31 .gitignore
+-rw-r--r--  1 root root   195 Aug 15 05:31 .gitmodules
+-rw-r--r--  1 root root  2663 Aug 15 05:31 .travis.yml
+-rw-r--r--  1 root root  1398 Aug 15 05:31 AUTHORS
+-rw-r--r--  1 root root 29787 Aug 15 05:31 CMakeLists.txt
+-rw-r--r--  1 root root  1885 Aug 15 05:31 Dockerfile
+-rw-r--r--  1 root root  1828 Aug 15 05:31 LICENSE
+-rw-r--r--  1 root root  9964 Aug 15 05:31 LICENSE_COMPONENTS
+-rw-r--r--  1 root root  7876 Aug 15 05:31 README.markdown
+-rw-r--r--  1 root root   900 Aug 15 05:31 STPConfig.cmake.in
+-rw-r--r--  1 root root   412 Aug 15 05:31 STPConfigVersion.cmake.in
+-rw-r--r--  1 root root  5277 Aug 15 05:31 appveyor.yml
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 [01;34mbindings[0m
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 [01;34mcmake[0m
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 [01;34mdocs[0m
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 [01;34mexamples[0m
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 [01;34minclude[0m
+drwxr-xr-x 15 root root  4096 Aug 15 05:31 [01;34mlib[0m
+drwxr-xr-x  2 root root  4096 Aug 15 05:31 [01;34mpapers[0m
+drwxr-xr-x  7 root root  4096 Aug 15 05:31 [01;34mscripts[0m
+drwxr-xr-x  5 root root  4096 Aug 15 05:31 [01;34mtests[0m
+drwxr-xr-x  9 root root  4096 Aug 15 05:31 [01;34mtools[0m
+drwxr-xr-x  4 root root  4096 Aug 15 05:31 [01;34mutils[0m
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 [01;34mwindows[0m
+[?2004hroot@3ff2ecffe907:/app# true; tmux wait -S done
+[?2004l+ true
++ tmux wait -S done
+[?2004hroot@3ff2ecffe907:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@3ff2ecffe907:/app# 
