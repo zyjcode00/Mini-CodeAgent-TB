@@ -1,0 +1,383 @@
+root@dacd96701d61:/app# set -e
+root@dacd96701d61:/app#
+root@dacd96701d61:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@dacd96701d61:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@dacd96701d61:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@dacd96701d61:/app#
+root@dacd96701d61:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@dacd96701d61:/app#
+root@dacd96701d61:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@dacd96701d61:/app#
+root@dacd96701d61:/app# mkdir -p /root/.config/uv
+root@dacd96701d61:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@dacd96701d61:/app#
+root@dacd96701d61:/app# apt-get update || true
+Hit:1 http://archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://security.ubuntu.com/ubuntu noble-security InRelease
+Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Hit:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2141 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1478 kB]
+Fetched 3746 kB in 38s (97.3 kB/s)
+Reading package lists... Done
+root@dacd96701d61:/app# true; tmux wait -S done
+root@dacd96701d61:/app# pwd; ls -la /app/stp; find /app/stp -maxdepth 2 -type f \( -iname 'README*' -o -iname 'INSTALL*' -o -iname 'CMakeLists.txt' -o -iname 'M
+akefile' -o -iname 'configure*' \) -print; tmux wait -S done
+/app
+total 160
+drwxr-xr-x 15 root root  4096 Aug 15 05:31 .
+drwxr-xr-x  1 root root  4096 Aug 15 05:29 ..
+-rw-r--r--  1 root root   486 Aug 15 05:31 .clang-format
+-rw-r--r--  1 root root   280 Aug 15 05:31 .dockerignore
+drwxr-xr-x  8 root root  4096 Aug 15 05:31 .git
+-rw-r--r--  1 root root    83 Aug 15 05:31 .gitignore
+-rw-r--r--  1 root root   195 Aug 15 05:31 .gitmodules
+-rw-r--r--  1 root root  2663 Aug 15 05:31 .travis.yml
+-rw-r--r--  1 root root  1398 Aug 15 05:31 AUTHORS
+-rw-r--r--  1 root root 29787 Aug 15 05:31 CMakeLists.txt
+-rw-r--r--  1 root root  1885 Aug 15 05:31 Dockerfile
+-rw-r--r--  1 root root  1828 Aug 15 05:31 LICENSE
+-rw-r--r--  1 root root  9964 Aug 15 05:31 LICENSE_COMPONENTS
+-rw-r--r--  1 root root  7876 Aug 15 05:31 README.markdown
+-rw-r--r--  1 root root   900 Aug 15 05:31 STPConfig.cmake.in
+-rw-r--r--  1 root root   412 Aug 15 05:31 STPConfigVersion.cmake.in
+-rw-r--r--  1 root root  5277 Aug 15 05:31 appveyor.yml
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 bindings
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 cmake
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 docs
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 examples
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 include
+drwxr-xr-x 15 root root  4096 Aug 15 05:31 lib
+drwxr-xr-x  2 root root  4096 Aug 15 05:31 papers
+drwxr-xr-x  7 root root  4096 Aug 15 05:31 scripts
+drwxr-xr-x  5 root root  4096 Aug 15 05:31 tests
+drwxr-xr-x  9 root root  4096 Aug 15 05:31 tools
+drwxr-xr-x  4 root root  4096 Aug 15 05:31 utils
+drwxr-xr-x  3 root root  4096 Aug 15 05:31 windows
+/app/stp/cmake/README
+/app/stp/tools/CMakeLists.txt
+/app/stp/tests/CMakeLists.txt
+/app/stp/bindings/CMakeLists.txt
+/app/stp/CMakeLists.txt
+/app/stp/lib/CMakeLists.txt
+/app/stp/docs/Makefile
+/app/stp/README.markdown
+/app/stp/windows/CMakeLists.txt
+root@dacd96701d61:/app# pwd; ls -la /app; find /app/stp -maxdepth 2 -type f | sed 's#^#/##' | head -200; tmux wait -S done
+/app
+total 12
+drwxr-xr-x  1 root root 4096 Aug 15 05:29 .
+drwxr-xr-x  1 root root 4096 Aug 15 14:13 ..
+drwxr-xr-x 15 root root 4096 Aug 15 05:31 stp
+//app/stp/cmake/COPYING-CMAKE-SCRIPTS
+//app/stp/cmake/README
+//app/stp/STPConfig.cmake.in
+//app/stp/tools/CMakeLists.txt
+//app/stp/AUTHORS
+//app/stp/.clang-format
+//app/stp/appveyor.yml
+//app/stp/Dockerfile
+//app/stp/tests/lit-unit-tests-common.site.cfg.in
+//app/stp/tests/lit-unit-tests-common.cfg
+//app/stp/tests/CMakeLists.txt
+//app/stp/bindings/CMakeLists.txt
+//app/stp/CMakeLists.txt
+//app/stp/STPConfigVersion.cmake.in
+//app/stp/.gitignore
+//app/stp/utils/coverty_model.c
+//app/stp/utils/clang-format.sh
+//app/stp/scripts/make-starexec.sh
+//app/stp/scripts/travis-cmake.sh
+//app/stp/scripts/stp-bisect.sh
+//app/stp/scripts/appveyor.ps1
+//app/stp/.gitmodules
+//app/stp/.travis.yml
+//app/stp/papers/EXE-STP.pdf
+//app/stp/papers/vijayganesh-stp-paper.pdf
+//app/stp/papers/EXE-STP-TISSEC-Journal-2007.pdf
+//app/stp/lib/CMakeLists.txt
+//app/stp/.dockerignore
+//app/stp/docs/cvc-input-language.rst
+//app/stp/docs/code-guide.rst
+//app/stp/docs/index.rst
+//app/stp/docs/cnf-output-format.rst
+//app/stp/docs/Makefile
+//app/stp/docs/.envrc
+//app/stp/docs/make.bat
+//app/stp/docs/testing.rst
+//app/stp/docs/conf.py
+//app/stp/docs/requirements.txt
+//app/stp/docs/smt-input-language.rst
+//app/stp/README.markdown
+//app/stp/windows/CMakeLists.txt
+//app/stp/.git/ORIG_HEAD
+//app/stp/.git/packed-refs
+//app/stp/.git/index
+//app/stp/.git/HEAD
+//app/stp/.git/description
+//app/stp/.git/config
+//app/stp/LICENSE_COMPONENTS
+//app/stp/LICENSE
+root@dacd96701d61:/app# cd /app/stp && pwd && find . -maxdepth 2 -type f | sort | head -200; tmux wait -S done
+/app/stp
+cd /app/stp && find . -maxdepth 2 \( -name 'README*' -o -name 'INSTALL*' -o -name 'Makefile' -o -name 'CMakeLists.txt' -o -name 'configure' -o -name 'configure.
+ac' -o -name 'meson.build' -o -name '*.mk' \) -type f | sort; tmux wait -S done
+./.clang-format
+./.dockerignore
+./.git/HEAD
+./.git/ORIG_HEAD
+./.git/config
+./.git/description
+./.git/index
+./.git/packed-refs
+./.gitignore
+./.gitmodules
+./.travis.yml
+./AUTHORS
+./CMakeLists.txt
+./Dockerfile
+./LICENSE
+./LICENSE_COMPONENTS
+./README.markdown
+./STPConfig.cmake.in
+./STPConfigVersion.cmake.in
+./appveyor.yml
+./bindings/CMakeLists.txt
+./cmake/COPYING-CMAKE-SCRIPTS
+./cmake/README
+./docs/.envrc
+./docs/Makefile
+./docs/cnf-output-format.rst
+./docs/code-guide.rst
+./docs/conf.py
+./docs/cvc-input-language.rst
+./docs/index.rst
+./docs/make.bat
+./docs/requirements.txt
+./docs/smt-input-language.rst
+./docs/testing.rst
+./lib/CMakeLists.txt
+./papers/EXE-STP-TISSEC-Journal-2007.pdf
+./papers/EXE-STP.pdf
+./papers/vijayganesh-stp-paper.pdf
+./scripts/appveyor.ps1
+./scripts/make-starexec.sh
+./scripts/stp-bisect.sh
+./scripts/travis-cmake.sh
+./tests/CMakeLists.txt
+./tests/lit-unit-tests-common.cfg
+./tests/lit-unit-tests-common.site.cfg.in
+./tools/CMakeLists.txt
+./utils/clang-format.sh
+./utils/coverty_model.c
+./windows/CMakeLists.txt
+root@dacd96701d61:/app/stp# cd /app/stp && find . -maxdepth 2 \( -name 'README*' -o -name 'INSTALL*' -o -name 'Makefile' -o -name 'CMakeLists.txt' -o -name 'con
+figure' -o -name 'configure.ac' -o -name 'meson.build' -o -name '*.mk' \) -type f | sort; tmux wait -S done
+./CMakeLists.txt
+./README.markdown
+./bindings/CMakeLists.txt
+./cmake/README
+./docs/Makefile
+./lib/CMakeLists.txt
+./tests/CMakeLists.txt
+./tools/CMakeLists.txt
+./windows/CMakeLists.txt
+root@dacd96701d61:/app/stp# set -euxo pipefail
+root@dacd96701d61:/app/stp# pwd
++ pwd
+/app/stp
+root@dacd96701d61:/app/stp# ls -la /app || true
++ ls --color=auto -la /app
+total 12
+drwxr-xr-x  1 root root 4096 Aug 15 05:29 .
+drwxr-xr-x  1 root root 4096 Aug 15 14:13 ..
+drwxr-xr-x 15 root root 4096 Aug 15 05:31 stp
+root@dacd96701d61:/app/stp# find /app/stp -maxdepth 2 -type f | sed 's#^#/##' | head -200
++ sed 's#^#/##'
++ head -200
++ find /app/stp -maxdepth 2 -type f
+//app/stp/cmake/COPYING-CMAKE-SCRIPTS
+//app/stp/cmake/README
+//app/stp/STPConfig.cmake.in
+//app/stp/tools/CMakeLists.txt
+//app/stp/AUTHORS
+//app/stp/.clang-format
+//app/stp/appveyor.yml
+//app/stp/Dockerfile
+//app/stp/tests/lit-unit-tests-common.site.cfg.in
+//app/stp/tests/lit-unit-tests-common.cfg
+//app/stp/tests/CMakeLists.txt
+//app/stp/bindings/CMakeLists.txt
+//app/stp/CMakeLists.txt
+//app/stp/STPConfigVersion.cmake.in
+//app/stp/.gitignore
+//app/stp/utils/coverty_model.c
+//app/stp/utils/clang-format.sh
+//app/stp/scripts/make-starexec.sh
+//app/stp/scripts/travis-cmake.sh
+//app/stp/scripts/stp-bisect.sh
+//app/stp/scripts/appveyor.ps1
+//app/stp/.gitmodules
+//app/stp/.travis.yml
+//app/stp/papers/EXE-STP.pdf
+//app/stp/papers/vijayganesh-stp-paper.pdf
+//app/stp/papers/EXE-STP-TISSEC-Journal-2007.pdf
+//app/stp/lib/CMakeLists.txt
+//app/stp/.dockerignore
+//app/stp/docs/cvc-input-language.rst
+//app/stp/docs/code-guide.rst
+//app/stp/docs/index.rst
+//app/stp/docs/cnf-output-format.rst
+//app/stp/docs/Makefile
+//app/stp/docs/.envrc
+//app/stp/docs/make.bat
+//app/stp/docs/testing.rst
+//app/stp/docs/conf.py
+//app/stp/docs/requirements.txt
+//app/stp/docs/smt-input-language.rst
+//app/stp/README.markdown
+//app/stp/windows/CMakeLists.txt
+//app/stp/.git/ORIG_HEAD
+//app/stp/.git/packed-refs
+//app/stp/.git/index
+//app/stp/.git/HEAD
+//app/stp/.git/description
+//app/stp/.git/config
+//app/stp/LICENSE_COMPONENTS
+//app/stp/LICENSE
+root@dacd96701d61:/app/stp# find /app/stp -maxdepth 2 -type d | sed 's#^#/##' | head -100
++ sed 's#^#/##'
++ head -100
++ find /app/stp -maxdepth 2 -type d
+//app/stp
+//app/stp/examples
+//app/stp/examples/simple
+//app/stp/cmake
+//app/stp/cmake/modules
+//app/stp/tools
+//app/stp/tools/stp_constantbitprop
+//app/stp/tools/time_constantbitprop
+//app/stp/tools/stp_simple
+//app/stp/tools/stp
+//app/stp/tools/test_constantbitprop
+//app/stp/tools/measure
+//app/stp/tools/rewrite_rule_gen
+//app/stp/tests
+//app/stp/tests/query-files
+//app/stp/tests/generated-tests
+//app/stp/tests/api
+//app/stp/bindings
+//app/stp/bindings/python
+//app/stp/utils
+//app/stp/utils/gtest
+//app/stp/utils/OutputCheck
+//app/stp/include
+//app/stp/include/stp
+//app/stp/scripts
+//app/stp/scripts/lit-convert
+//app/stp/scripts/fuzz
+//app/stp/scripts/suse
+//app/stp/scripts/build
+//app/stp/scripts/starexec
+//app/stp/papers
+//app/stp/lib
+//app/stp/lib/ToSat
+//app/stp/lib/STPManager
+//app/stp/lib/Simplifier
+//app/stp/lib/Parser
+//app/stp/lib/extlib-abc
+//app/stp/lib/Interface
+//app/stp/lib/Sat
+//app/stp/lib/Printer
+//app/stp/lib/AST
+//app/stp/lib/Util
+//app/stp/lib/AbsRefineCounterExample
+//app/stp/lib/extlib-constbv
+//app/stp/lib/Globals
+//app/stp/docs
+//app/stp/docs/old
+//app/stp/windows
+//app/stp/windows/winports
+//app/stp/.git
+//app/stp/.git/hooks
+//app/stp/.git/objects
+//app/stp/.git/branches
+//app/stp/.git/logs
+//app/stp/.git/refs
+//app/stp/.git/info
+root@dacd96701d61:/app/stp# true; tmux wait -S done
++ true
++ tmux wait -S done
+root@dacd96701d61:/app/stp# set -euxo pipefail
++ set -euxo pipefail
+root@dacd96701d61:/app/stp# pwd
++ pwd
+/app/stp
+root@dacd96701d61:/app/stp# ls -la /app || true
++ ls --color=auto -la /app
+total 12
+drwxr-xr-x  1 root root 4096 Aug 15 05:29 .
+drwxr-xr-x  1 root root 4096 Aug 15 14:13 ..
+drwxr-xr-x 15 root root 4096 Aug 15 05:31 stp
+root@dacd96701d61:/app/stp# find /app -maxdepth 2 -mindepth 1 -printf '%y %p\n' 2>/dev/null | head -200
++ head -200
++ find /app -maxdepth 2 -mindepth 1 -printf '%y %p\n'
+d /app/stp
+d /app/stp/examples
+d /app/stp/cmake
+f /app/stp/STPConfig.cmake.in
+d /app/stp/tools
+f /app/stp/AUTHORS
+f /app/stp/.clang-format
+f /app/stp/appveyor.yml
+f /app/stp/Dockerfile
+d /app/stp/tests
+d /app/stp/bindings
+f /app/stp/CMakeLists.txt
+f /app/stp/STPConfigVersion.cmake.in
+f /app/stp/.gitignore
+d /app/stp/utils
+d /app/stp/include
+d /app/stp/scripts
+f /app/stp/.gitmodules
+f /app/stp/.travis.yml
+d /app/stp/papers
+d /app/stp/lib
+f /app/stp/.dockerignore
+d /app/stp/docs
+f /app/stp/README.markdown
+d /app/stp/windows
+d /app/stp/.git
+f /app/stp/LICENSE_COMPONENTS
+f /app/stp/LICENSE
+root@dacd96701d61:/app/stp# command -v cmake || true
++ command -v cmake
++ true
+root@dacd96701d61:/app/stp# command -v make || true
++ command -v make
++ true
+root@dacd96701d61:/app/stp# command -v ninja || true
++ command -v ninja
++ true
+root@dacd96701d61:/app/stp# true; tmux wait -S done
++ true
++ tmux wait -S done
+root@dacd96701d61:/app/stp#
