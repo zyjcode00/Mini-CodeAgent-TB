@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 import anthropic
 import openai
 import asyncio
+import threading
 from tools.base import BaseTool
 from core.prompts import get_system_prompt
 from core.context import ContextManager  # <--- 导入新管家
@@ -14,6 +15,21 @@ from core.memory_items import MemoryKind, ObservationType, RawObservation
 from core.memory_manager import MemoryManager
 from core.read_guard import ReadOnlyStreakGuard, RuntimeReadLedger
 from core.safe_json import replace_lone_surrogates, safe_json_dump
+
+
+def _set_future_result(future: asyncio.Future, result: str) -> None:
+    if not future.done():
+        future.set_result(result)
+
+
+def _set_future_exception(future: asyncio.Future, exc: Exception) -> None:
+    if not future.done():
+        future.set_exception(exc)
+
+
+async def _immediate_tool_response(response: str) -> str:
+    return response
+
 
 # Git 自动化保险导入
 from tools.git_tool import create_snapshot, rollback_to, has_uncommitted_changes, start_task_branch, finalize_task, start_plan_branch, finalize_plan
@@ -56,6 +72,7 @@ class AgentEngine:
         )
         self.llm_request_max_bytes = int(os.getenv("LLM_REQUEST_MAX_BYTES", str(2 * 1024 * 1024)))
         self.llm_request_retry_bytes = int(os.getenv("LLM_REQUEST_RETRY_BYTES", str(768 * 1024)))
+        self.tool_timeout_seconds = float(os.getenv("AGENT_TOOL_TIMEOUT_SECONDS", "120"))
 
         self.is_openai_compat = base_url is not None or "claude" not in model.lower()
 
@@ -74,6 +91,41 @@ class AgentEngine:
         os.makedirs("sessions", exist_ok=True)
         self.load_session()
 
+
+    async def _run_tool_with_timeout(self, tool_obj: BaseTool, tool_input: Dict[str, Any]) -> str:
+        """Run a synchronous tool with a bounded wait time.
+
+        Tool calls intentionally do not use asyncio's default executor here.  A
+        stuck tool running in the default executor can keep asyncio.run() waiting
+        during shutdown, which shows up in Terminal-Bench as a 300s executor
+        thread-join RuntimeWarning.  A daemon thread lets the agent regain
+        control and report a clear timeout instead of hanging shutdown.
+        """
+
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+
+        def runner() -> None:
+            try:
+                result = tool_obj.run(**tool_input)
+            except Exception as exc:  # pragma: no cover - exercised through future
+                loop.call_soon_threadsafe(_set_future_exception, future, exc)
+            else:
+                loop.call_soon_threadsafe(_set_future_result, future, result)
+
+        thread = threading.Thread(
+            target=runner,
+            name=f"agent-tool-{tool_obj.name}",
+            daemon=True,
+        )
+        thread.start()
+
+        try:
+            return await asyncio.wait_for(future, timeout=self.tool_timeout_seconds)
+        except asyncio.TimeoutError as exc:
+            raise TimeoutError(
+                f"Tool '{tool_obj.name}' exceeded timeout of {self.tool_timeout_seconds:g}s"
+            ) from exc
 
 
     @staticmethod
@@ -343,14 +395,14 @@ class AgentEngine:
                         if read_decision.reminders:
                             deferred_memory_contexts.extend(read_decision.reminders)
                         if read_decision.should_skip:
-                            tasks.append(asyncio.to_thread(lambda response=read_decision.tool_response: response))
+                            tasks.append(_immediate_tool_response(read_decision.tool_response))
                             tool_calls_info.append((t_id, t_name, t_input))
                             continue
                     pre_memory_context = self._build_pre_tool_memory_context(t_name, t_input)
                     if pre_memory_context:
                         deferred_memory_contexts.append(pre_memory_context)
                     # 包装同步工具到线程中运行，避免阻塞
-                    tasks.append(asyncio.to_thread(tool_obj.run, **t_input))
+                    tasks.append(self._run_tool_with_timeout(tool_obj, t_input))
                     tool_calls_info.append((t_id, t_name, t_input))  # 保存输入参数
 
             if tasks:
