@@ -31,6 +31,12 @@ uv run tb run \
 uv run tb run \
   --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
   --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
+  --task-id build-stp \
+  --output-path ./eval_runs_test
+
+uv run tb run \
+  --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
+  --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
   --agent-kwarg max_turns=10 \
   --task-id hello-world \
   --task-id fix-git \
