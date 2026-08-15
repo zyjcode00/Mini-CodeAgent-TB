@@ -1,6 +1,8 @@
 import os
+import shlex
 from pydantic import BaseModel, Field
 from .base import BaseTool
+from .execution_backend import ToolExecutionBackend
 
 
 class ReadArgs(BaseModel):
@@ -13,12 +15,31 @@ class FileTreeArgs(BaseModel):
     """递归列出文件的参数模型（无参数）"""
     pass
 
+
+def _extract_stdout(result: str) -> str:
+    """Extract stdout from ToolExecutionBackend's human-readable result."""
+
+    if result.startswith("STDOUT:\n"):
+        body = result[len("STDOUT:\n"):]
+        for marker in ("\nSTDERR:\n", "\nEXIT_CODE:"):
+            if marker in body:
+                body = body.split(marker, 1)[0]
+        return body
+    return result
+
+
 class ReadTool(BaseTool):
     name = "read_file"
     description = "读取文件内容。支持指定行范围，这在处理大文件时非常高效。建议先读取前 100 行了解结构。"
     args_schema = ReadArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend
+
     def run(self, path: str, start_line: int = 1, end_line: int = None, raw_mode: bool = False) -> str:
+        if self.backend is not None:
+            return self._run_via_backend(path, start_line=start_line, end_line=end_line, raw_mode=raw_mode)
+
         try:
             if not os.path.exists(path):
                 return f"错误: 找不到文件 {path}"
@@ -26,25 +47,69 @@ class ReadTool(BaseTool):
             with open(path, 'r', encoding='utf-8', errors='replace') as f:
                 lines = f.readlines()
 
-            total_lines = len(lines)
-            s_idx = max(0, start_line - 1)
-            e_idx = end_line if end_line is not None else total_lines
-
-            selected_lines = lines[s_idx:e_idx]
-
-            # 原始模式：直接输出内容，不带装饰符
-            if raw_mode:
-                return ''.join(selected_lines)
-
-            # 正常模式：带行号和装饰符
-            output = []
-            for i, line in enumerate(selected_lines):
-                output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
-
-            header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
-            return header + "\n".join(output) + "\n--- 读取完毕 ---"
+            return self._format_lines(path, lines, start_line=start_line, end_line=end_line, raw_mode=raw_mode)
         except Exception as e:
             return f"读取失败: {str(e)}"
+
+    def _run_via_backend(self, path: str, start_line: int = 1, end_line: int = None, raw_mode: bool = False) -> str:
+        quoted_path = shlex.quote(path)
+        if raw_mode and start_line == 1 and end_line is None:
+            result = self.backend.run_command(
+                f"if [ -f {quoted_path} ]; then cat -- {quoted_path}; else echo '错误: 找不到文件 {path}'; fi"
+            )
+            return _extract_stdout(result)
+
+        end_arg = "None" if end_line is None else str(int(end_line))
+        command = f"""python3 - <<'PY' -- {quoted_path} {int(start_line)} {end_arg} {str(bool(raw_mode)).lower()}
+import sys
+path = sys.argv[1]
+start_line = int(sys.argv[2])
+end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+raw_mode = sys.argv[4].lower() == 'true'
+try:
+    with open(path, 'r', encoding='utf-8', errors='replace') as f:
+        lines = f.readlines()
+except FileNotFoundError:
+    print(f"错误: 找不到文件 {{path}}")
+    raise SystemExit(0)
+except Exception as exc:
+    print(f"读取失败: {{exc}}")
+    raise SystemExit(0)
+
+total_lines = len(lines)
+s_idx = max(0, start_line - 1)
+e_idx = end_line if end_line is not None else total_lines
+selected_lines = lines[s_idx:e_idx]
+if raw_mode:
+    sys.stdout.write(''.join(selected_lines))
+else:
+    output = []
+    for i, line in enumerate(selected_lines):
+        output.append(f"{{s_idx + i + 1:4d}} | {{line.rstrip()}}")
+    header = f"--- 文件: {{path}} (第 {{start_line}} 至 {{min(e_idx, total_lines)}} 行，共 {{total_lines}} 行) ---\\n"
+    sys.stdout.write(header + "\\n".join(output) + "\\n--- 读取完毕 ---")
+PY"""
+        return _extract_stdout(self.backend.run_command(command))
+
+    @staticmethod
+    def _format_lines(path: str, lines: list[str], start_line: int = 1, end_line: int = None, raw_mode: bool = False) -> str:
+        total_lines = len(lines)
+        s_idx = max(0, start_line - 1)
+        e_idx = end_line if end_line is not None else total_lines
+
+        selected_lines = lines[s_idx:e_idx]
+
+        # 原始模式：直接输出内容，不带装饰符
+        if raw_mode:
+            return ''.join(selected_lines)
+
+        # 正常模式：带行号和装饰符
+        output = []
+        for i, line in enumerate(selected_lines):
+            output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+
+        header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+        return header + "\n".join(output) + "\n--- 读取完毕 ---"
 
 
 class EditArgs(BaseModel):
@@ -57,6 +122,9 @@ class FileEditTool(BaseTool):
     description = "精准修改文件内容。通过搜索 old_str 并替换为 new_str 实现。比重写整个文件更安全、更省 Token。"
     args_schema = EditArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend
+
     @staticmethod
     def _normalize_text(text: str) -> str:
         """归一化文本：统一换行符 + 移除行尾空格"""
@@ -68,6 +136,9 @@ class FileEditTool(BaseTool):
         return "\n".join(lines)
 
     def run(self, path: str, old_str: str, new_str: str, **kwargs) -> str:
+        if self.backend is not None:
+            return self._run_via_backend(path, old_str, new_str)
+
         try:
             if not os.path.exists(path):
                 return f"错误: 找不到文件 {path}"
@@ -75,30 +146,70 @@ class FileEditTool(BaseTool):
             with open(path, 'r', encoding='utf-8', errors='replace') as f:
                 content = f.read()
 
-            # 归一化处理
-            content = self._normalize_text(content)
-            old_str = self._normalize_text(old_str)
-            new_str = self._normalize_text(new_str)
-
-            # 唯一性检查
-            count = content.count(old_str)
-            if count == 0:
-                error_msg = "错误: 在文件中找不到 old_str。\n"
-                error_msg += "建议：\n"
-                error_msg += "1. 使用 read_file(raw_mode=True) 获取原始内容\n"
-                error_msg += "2. 检查是否有多余的空格或换行符\n"
-                error_msg += "3. 如果文件较大，考虑使用 write_full_file 全量覆盖"
-                return error_msg
-            if count > 1:
-                return f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。"
-
-            new_content = content.replace(old_str, new_str)
-            with open(path, 'w', encoding='utf-8', newline='\n') as f:
-                f.write(new_content)
-
-            return f"成功: 已更新 {path}。修改已持久化。"
+            return self._replace_and_write(path, content, old_str, new_str)
         except Exception as e:
             return f"修改失败: {str(e)}"
+
+    def _run_via_backend(self, path: str, old_str: str, new_str: str) -> str:
+        command = f"""python3 - <<'PY' -- {shlex.quote(path)}
+import sys
+path = sys.argv[1]
+old_str = {old_str!r}
+new_str = {new_str!r}
+
+def normalize_text(text: str) -> str:
+    text = text.replace('\\r\\n', '\\n').replace('\\r', '\\n')
+    return '\\n'.join(line.rstrip() for line in text.split('\\n'))
+
+try:
+    with open(path, 'r', encoding='utf-8', errors='replace') as f:
+        content = f.read()
+except FileNotFoundError:
+    print(f"错误: 找不到文件 {{path}}")
+    raise SystemExit(0)
+except Exception as exc:
+    print(f"修改失败: {{exc}}")
+    raise SystemExit(0)
+
+content = normalize_text(content)
+old_str = normalize_text(old_str)
+new_str = normalize_text(new_str)
+count = content.count(old_str)
+if count == 0:
+    print("错误: 在文件中找不到 old_str。\\n建议：\\n1. 使用 read_file(raw_mode=True) 获取原始内容\\n2. 检查是否有多余的空格或换行符\\n3. 如果文件较大，考虑使用 write_full_file 全量覆盖")
+    raise SystemExit(0)
+if count > 1:
+    print(f"错误: 匹配到 {{count}} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+    raise SystemExit(0)
+with open(path, 'w', encoding='utf-8', newline='\\n') as f:
+    f.write(content.replace(old_str, new_str))
+print(f"成功: 已更新 {{path}}。修改已持久化。")
+PY"""
+        return _extract_stdout(self.backend.run_command(command))
+
+    def _replace_and_write(self, path: str, content: str, old_str: str, new_str: str) -> str:
+        # 归一化处理
+        content = self._normalize_text(content)
+        old_str = self._normalize_text(old_str)
+        new_str = self._normalize_text(new_str)
+
+        # 唯一性检查
+        count = content.count(old_str)
+        if count == 0:
+            error_msg = "错误: 在文件中找不到 old_str。\n"
+            error_msg += "建议：\n"
+            error_msg += "1. 使用 read_file(raw_mode=True) 获取原始内容\n"
+            error_msg += "2. 检查是否有多余的空格或换行符\n"
+            error_msg += "3. 如果文件较大，考虑使用 write_full_file 全量覆盖"
+            return error_msg
+        if count > 1:
+            return f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。"
+
+        new_content = content.replace(old_str, new_str)
+        with open(path, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(new_content)
+
+        return f"成功: 已更新 {path}。修改已持久化。"
 
 
 class WriteFullFileArgs(BaseModel):
@@ -110,7 +221,28 @@ class WriteFullFileTool(BaseTool):
     description = "全量写入文件内容。用于创建新文件或完全覆盖现有文件。适合复杂修改场景，避免局部匹配失败。"
     args_schema = WriteFullFileArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend
+
     def run(self, path: str, content: str, **kwargs) -> str:
+        if self.backend is not None:
+            command = f"""python3 - <<'PY' -- {shlex.quote(path)}
+import os
+import sys
+path = sys.argv[1]
+content = {content!r}
+dir_path = os.path.dirname(path)
+if dir_path:
+    os.makedirs(dir_path, exist_ok=True)
+try:
+    with open(path, 'w', encoding='utf-8', newline='\\n') as f:
+        f.write(content)
+    print(f"成功: 已写入 {{path}}")
+except Exception as exc:
+    print(f"写入失败: {{exc}}")
+PY"""
+            return _extract_stdout(self.backend.run_command(command))
+
         try:
             # 确保目录存在
             dir_path = os.path.dirname(path)
@@ -130,7 +262,14 @@ class FileTreeTool(BaseTool):
     description = "递归列出当前项目的所有文件结构。在进入新项目或寻找特定文件时，请优先使用此工具。"
     args_schema = FileTreeArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend
+
     def run(self, **kwargs) -> str:
+        if self.backend is not None:
+            command = "find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort"
+            return _extract_stdout(self.backend.run_command(command))
+
         try:
             tree = []
             exclude_dirs = {'.git', '__pycache__', '.venv', 'node_modules'}

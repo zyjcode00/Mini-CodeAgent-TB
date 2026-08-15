@@ -26,10 +26,10 @@ def get_default_tools(
 
     tools = [
         BashTool(backend=execution_backend),
-        ReadTool(),
-        FileEditTool(),
-        WriteFullFileTool(),  # 新增：全量写入工具
-        FileTreeTool(),
+        ReadTool(backend=execution_backend),
+        FileEditTool(backend=execution_backend),
+        WriteFullFileTool(backend=execution_backend),  # 新增：全量写入工具
+        FileTreeTool(backend=execution_backend),
         SearchTool(),  # 新增：代码搜索工具
         ListSymbolsTool(),  # 新增：符号索引工具
         FindSymbolTool(),  # 新增：符号查找工具
