@@ -104,12 +104,41 @@ def load_task(args: argparse.Namespace) -> str:
 def build_prompt(task_text: str) -> str:
     return (
         "你正在 Terminal-Bench 任务工作目录中运行。\n"
-        "请阅读任务说明，使用 shell、文件编辑、测试运行等工具完成任务。\n"
+        "请把任务当作一个可验收的工程任务，持续使用 shell、文件编辑和测试工具推进，直到工作区达到可验证完成态。\n"
+        "执行流程必须分阶段：先检查任务与仓库状态，再实施修改；每次关键修改后运行针对性测试或构建；最后检查题目要求的文件、命令或可执行产物确实存在且可用。\n"
+        "不要仅凭代码看起来正确、计划完成或口头说明完成就停止。若测试/构建失败，读取完整错误并修复后重试；若接近步数上限，优先完成最小可验证修复并运行验收命令。\n"
         "所有修改必须发生在当前 workspace 内。\n"
-        "完成后请停止，不要等待用户继续输入。\n\n"
+        "只有在完成验收后才返回；最终回复请简要列出实际执行的验收命令及其结果。\n\n"
         "任务说明：\n"
         f"{task_text}"
     )
+
+
+_NON_TERMINAL_STOP_REASONS = frozenset(
+    {
+        "timeout",
+        "agent_timeout",
+        "max_turns",
+        "max_steps",
+        "cancelled",
+        "aborted",
+        "exception",
+        "error",
+    }
+)
+
+
+def apply_completion_guard(result: AgentRunResult) -> AgentRunResult:
+    """Prevent runner success when the engine stopped without an accepted state.
+
+    The task harness remains the source of truth for task correctness. This guard
+    only prevents known incomplete engine states from being reported as success.
+    """
+    reason = result.stop_reason.strip().lower()
+    if result.success and reason in _NON_TERMINAL_STOP_REASONS:
+        result.success = False
+        result.error = result.error or f"Agent stopped before completion ({result.stop_reason})."
+    return result
 
 
 def default_engine_factory(args: argparse.Namespace) -> SingleTaskEngine:
@@ -271,6 +300,7 @@ async def main_async(
             run_engine(engine, prompt, max_turns=args.max_turns),
             timeout=args.timeout,
         )
+        result = apply_completion_guard(result)
         exit_code = EXIT_SUCCESS if result.success else EXIT_ERROR
     except asyncio.TimeoutError:
         result = AgentRunResult(

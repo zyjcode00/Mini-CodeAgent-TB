@@ -218,3 +218,38 @@ def test_timeout_closes_engine(tmp_path):
 
     assert exit_code == EXIT_TIMEOUT
     assert engine.closed is True
+
+
+def test_non_terminal_stop_reason_cannot_report_success(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    output_json = tmp_path / "guarded.json"
+
+    class GuardedEngine:
+        async def run_single_task(self, prompt, max_turns=40):
+            return {
+                "success": True,
+                "stop_reason": "agent_timeout",
+                "turns": 6,
+                "message": "stopped early",
+            }
+
+    exit_code = asyncio.run(
+        main_async(
+            [
+                "--task",
+                "complete the work",
+                "--workspace",
+                str(workspace),
+                "--output-json",
+                str(output_json),
+            ],
+            engine_factory=lambda args: GuardedEngine(),
+        )
+    )
+
+    assert exit_code == EXIT_ERROR
+    data = json.loads(output_json.read_text(encoding="utf-8"))
+    assert data["success"] is False
+    assert data["stop_reason"] == "agent_timeout"
+    assert "Agent stopped before completion" in data["error"]
