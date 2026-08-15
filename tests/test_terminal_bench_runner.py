@@ -46,6 +46,14 @@ class SlowEngine:
         return {"success": True, "stop_reason": "completed"}
 
 
+class ClosableSlowEngine(SlowEngine):
+    def __init__(self):
+        self.closed = False
+
+    def close(self):
+        self.closed = True
+
+
 def test_runner_accepts_inline_task_switches_cwd_and_writes_json(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -187,3 +195,26 @@ def test_timeout_returns_124_and_writes_json(tmp_path):
     assert data["success"] is False
     assert data["stop_reason"] == "timeout"
     assert "Timed out" in data["error"]
+
+
+def test_timeout_closes_engine(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    engine = ClosableSlowEngine()
+
+    exit_code = asyncio.run(
+        main_async(
+            [
+                "--task",
+                "slow task",
+                "--workspace",
+                str(workspace),
+                "--timeout",
+                "0.01",
+            ],
+            engine_factory=lambda args: engine,
+        )
+    )
+
+    assert exit_code == EXIT_TIMEOUT
+    assert engine.closed is True

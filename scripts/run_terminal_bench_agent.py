@@ -214,6 +214,17 @@ async def run_engine(engine: SingleTaskEngine, prompt: str, max_turns: int) -> A
     return normalize_result(await maybe_await(raw_result))
 
 
+async def close_engine(engine: Optional[SingleTaskEngine]) -> None:
+    if engine is None:
+        return
+
+    close = getattr(engine, "close", None) or getattr(engine, "shutdown", None)
+    if close is None:
+        return
+
+    await maybe_await(close())
+
+
 def write_output_json(path: Optional[str], result: AgentRunResult) -> None:
     if not path:
         return
@@ -246,6 +257,7 @@ async def main_async(
 
     old_cwd = Path.cwd()
     result: AgentRunResult
+    engine: Optional[SingleTaskEngine] = None
     exit_code = EXIT_ERROR
 
     try:
@@ -276,6 +288,13 @@ async def main_async(
         print(result.error, file=sys.stderr)
         exit_code = EXIT_ERROR
     finally:
+        try:
+            await close_engine(engine)
+        except Exception as cleanup_exc:
+            print(
+                f"Warning: failed to close engine: {type(cleanup_exc).__name__}: {cleanup_exc}",
+                file=sys.stderr,
+            )
         os.chdir(old_cwd)
 
     result.workspace = str(workspace)
