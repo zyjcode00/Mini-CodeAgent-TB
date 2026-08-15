@@ -250,3 +250,108 @@ async def test_context_llm_fallback_sanitizes_existing_messages():
     assert success is True
     assert ctx.messages == [{"role": "user", "content": "hello"}]
     assert_valid_openai_tool_pairs(ctx.messages)
+
+
+@pytest.mark.asyncio
+async def test_openai_call_retries_once_with_smaller_context_on_413(monkeypatch):
+    engine = make_engine()
+    engine.llm_request_max_bytes = 10**9
+    engine.llm_request_retry_bytes = 1200
+    engine.context.messages = [
+        {"role": "user", "content": "old " * 5000},
+        {"role": "assistant", "content": "old answer " * 5000},
+        {"role": "user", "content": "current task"},
+    ]
+
+    class TooLargeError(Exception):
+        status_code = 413
+
+    calls = []
+
+    async def fake_create(**kwargs):
+        calls.append(kwargs["messages"])
+        if len(calls) == 1:
+            raise TooLargeError("413 Request Entity Too Large")
+
+        class Message:
+            content = "ok after retry"
+            tool_calls = None
+
+        class Choice:
+            message = Message()
+
+        class Response:
+            choices = [Choice()]
+
+        return Response()
+
+    monkeypatch.setattr(engine.client.chat.completions, "create", fake_create)
+
+    content_blocks, stop_reason = await engine._call_llm(
+        relevant_history="memory " * 3000,
+        user_input="current task",
+    )
+
+    assert stop_reason == "end_turn"
+    assert content_blocks == [{"type": "text", "text": "ok after retry"}]
+    assert len(calls) == 2
+    assert len(str(calls[1])) < len(str(calls[0]))
+    assert calls[1][0]["role"] == "system"
+    assert calls[1][-1]["role"] == "user"
+    assert "current task" in calls[1][-1]["content"]
+
+
+def test_engine_detects_413_errors_by_status_or_message():
+    engine = make_engine()
+
+    class StatusError(Exception):
+        status_code = 413
+
+    assert engine._is_request_too_large_error(StatusError("payload too large"))
+    assert engine._is_request_too_large_error(Exception("<title>413 Request Entity Too Large</title>"))
+    assert not engine._is_request_too_large_error(Exception("500 internal server error"))
+
+
+def test_fit_openai_request_budget_reduces_context_without_breaking_tool_pairs():
+    engine = make_engine()
+    messages = [
+        {"role": "user", "content": "old " * 2000},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_keep",
+                    "type": "function",
+                    "function": {"name": "echo", "arguments": '{"value":"ok"}'},
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_keep", "name": "echo", "content": "ok"},
+        {"role": "user", "content": "current important request"},
+    ]
+    oa_tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "echo",
+                "description": "echo tool",
+                "parameters": {"type": "object", "properties": {"value": {"type": "string"}}},
+            },
+        }
+    ]
+
+    assembled, request_bytes = engine._fit_openai_request_budget(
+        base_system_prompt="system " * 1000,
+        memory_context="memory " * 2000,
+        compressed_state="summary " * 2000,
+        messages=messages,
+        oa_tools=oa_tools,
+        provider="openai",
+        target_bytes=2500,
+    )
+
+    assert request_bytes > 0
+    assert assembled.messages[-1]["role"] == "user"
+    assert "current important request" in assembled.messages[-1]["content"]
+    assert_valid_openai_tool_pairs(assembled.messages)
