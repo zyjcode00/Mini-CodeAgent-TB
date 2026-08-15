@@ -54,6 +54,8 @@ class AgentEngine:
         self.context_assembler = ContextAssembler(
             ContextBudget(memory=self.memory_token_budget)
         )
+        self.llm_request_max_bytes = int(os.getenv("LLM_REQUEST_MAX_BYTES", str(2 * 1024 * 1024)))
+        self.llm_request_retry_bytes = int(os.getenv("LLM_REQUEST_RETRY_BYTES", str(768 * 1024)))
 
         self.is_openai_compat = base_url is not None or "claude" not in model.lower()
 
@@ -72,6 +74,58 @@ class AgentEngine:
         os.makedirs("sessions", exist_ok=True)
         self.load_session()
 
+
+
+    @staticmethod
+    def _is_request_too_large_error(exc: Exception) -> bool:
+        status_code = getattr(exc, "status_code", None)
+        if status_code == 413:
+            return True
+        text = str(exc).lower()
+        return "413" in text and "request entity too large" in text
+
+    def _fit_openai_request_budget(
+        self,
+        *,
+        base_system_prompt: str,
+        memory_context: str,
+        compressed_state: str,
+        messages: List[Dict[str, Any]],
+        oa_tools: List[Dict[str, Any]],
+        provider: str,
+        target_bytes: int,
+    ):
+        budget = ContextBudget(memory=self.memory_token_budget)
+        assembled = self.context_assembler.assemble(
+            base_system_prompt=base_system_prompt,
+            memory_context=memory_context,
+            compressed_state=compressed_state,
+            messages=messages,
+            provider=provider,
+            budget=budget,
+        )
+        request_bytes = assembled.estimate_openai_request_bytes(model=self.model, tools=oa_tools)
+        if request_bytes <= target_bytes:
+            return assembled, request_bytes
+
+        for ratio in (0.7, 0.5, 0.35, 0.2, 0.1):
+            reduced = self.context_assembler.assemble(
+                base_system_prompt=base_system_prompt,
+                memory_context=memory_context,
+                compressed_state=compressed_state,
+                messages=messages,
+                provider=provider,
+                budget=budget.scaled(ratio),
+            )
+            reduced_bytes = reduced.estimate_openai_request_bytes(model=self.model, tools=oa_tools)
+            if reduced_bytes < request_bytes:
+                assembled, request_bytes = reduced, reduced_bytes
+            if request_bytes <= target_bytes:
+                break
+
+        if request_bytes > target_bytes:
+            print(f" [⚠️] LLM 请求仍偏大: {request_bytes} bytes > {target_bytes} bytes，保留最小完整上下文继续尝试")
+        return assembled, request_bytes
 
 
     async def _call_llm(self, relevant_history: str = "", user_input: str = ""):
@@ -113,26 +167,53 @@ class AgentEngine:
         # get_system_prompt 仍负责生成兼容旧行为的基础 system prompt；主动召回的
         # relevant_history 作为 memory layer 交给 assembler，避免直接无预算拼接。
         messages_snapshot = await self.context.get_messages_snapshot()
-        assembled_context = self.context_assembler.assemble(
-            base_system_prompt=system_ptr,
-            memory_context=relevant_history,
-            compressed_state=self.context.history_summary,
-            messages=messages_snapshot,
-            provider="openai" if self.is_openai_compat else "anthropic",
-            budget=ContextBudget(memory=self.memory_token_budget),
-        )
-        system_ptr = assembled_context.system_prompt
-        messages_snapshot = assembled_context.messages
+        provider = "openai" if self.is_openai_compat else "anthropic"
 
         if self.is_openai_compat:
             oa_tools = [{"type": "function", "function": {"name": t["name"], "description": t["description"], "parameters": t["input_schema"]}} for t in self.tool_specs]
-
-            # 使用 await 调用异步客户端
-            resp = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "system", "content": system_ptr}] + messages_snapshot,
-                tools=oa_tools if oa_tools else None
+            assembled_context, request_bytes = self._fit_openai_request_budget(
+                base_system_prompt=system_ptr,
+                memory_context=relevant_history,
+                compressed_state=self.context.history_summary,
+                messages=messages_snapshot,
+                oa_tools=oa_tools,
+                provider=provider,
+                target_bytes=self.llm_request_max_bytes,
             )
+            print(
+                f" [📦] OpenAI 请求估算: {request_bytes} bytes, "
+                f"messages={len(assembled_context.messages)}, dropped={assembled_context.dropped_message_count}"
+            )
+
+            try:
+                # 使用 await 调用异步客户端
+                resp = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=assembled_context.openai_messages,
+                    tools=oa_tools if oa_tools else None
+                )
+            except Exception as exc:
+                if not self._is_request_too_large_error(exc):
+                    raise
+                print(" [⚠️] API 返回 413 Request Entity Too Large，降级到最小上下文后重试一次")
+                retry_context, request_bytes = self._fit_openai_request_budget(
+                    base_system_prompt=system_ptr,
+                    memory_context="",
+                    compressed_state="",
+                    messages=messages_snapshot,
+                    oa_tools=oa_tools,
+                    provider=provider,
+                    target_bytes=self.llm_request_retry_bytes,
+                )
+                print(
+                    f" [📦] 413 重试请求估算: {request_bytes} bytes, "
+                    f"messages={len(retry_context.messages)}, dropped={retry_context.dropped_message_count}"
+                )
+                resp = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=retry_context.openai_messages,
+                    tools=oa_tools if oa_tools else None
+                )
 
             msg = resp.choices[0].message
             # 🔥 修复：转换为字典格式，避免后续 .get() 报错
@@ -170,6 +251,16 @@ class AgentEngine:
             return content_blocks, "tool_use" if msg.tool_calls else "end_turn"
 
         else:
+            assembled_context = self.context_assembler.assemble(
+                base_system_prompt=system_ptr,
+                memory_context=relevant_history,
+                compressed_state=self.context.history_summary,
+                messages=messages_snapshot,
+                provider=provider,
+                budget=ContextBudget(memory=self.memory_token_budget),
+            )
+            system_ptr = assembled_context.system_prompt
+            messages_snapshot = assembled_context.messages
             # Anthropic 异步调用
             # 🔥🔥🔥 Phase 4: 使用快照确保并发安全
             resp = await self.client.messages.create(

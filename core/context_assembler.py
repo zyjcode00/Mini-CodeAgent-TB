@@ -9,6 +9,7 @@ without breaking OpenAI-style assistant/tool pairs.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
@@ -27,6 +28,20 @@ class ContextBudget:
     recent_turns: int = 12000
     current_user: int = 2000
     emergency_buffer_ratio: float = 0.12
+
+    def scaled(self, ratio: float) -> "ContextBudget":
+        """Return a smaller budget while preserving required current input."""
+        ratio = max(0.05, min(1.0, ratio))
+        return ContextBudget(
+            total=max(1, int(self.total * ratio)),
+            system=max(1, int(self.system * ratio)),
+            plan=max(1, int(self.plan * ratio)),
+            memory=max(0, int(self.memory * ratio)),
+            compressed_state=max(0, int(self.compressed_state * ratio)),
+            recent_turns=max(0, int(self.recent_turns * ratio)),
+            current_user=self.current_user,
+            emergency_buffer_ratio=self.emergency_buffer_ratio,
+        )
 
     @property
     def available_total(self) -> int:
@@ -49,6 +64,13 @@ class AssembledContext:
     def openai_messages(self) -> List[Dict[str, Any]]:
         """Return a complete OpenAI-compatible message list."""
         return [{"role": "system", "content": self.system_prompt}] + self.messages
+
+    def estimate_openai_request_bytes(self, *, model: str, tools: Optional[Sequence[Dict[str, Any]]] = None) -> int:
+        """Approximate serialized OpenAI chat request size in bytes."""
+        payload: Dict[str, Any] = {"model": model, "messages": self.openai_messages}
+        if tools:
+            payload["tools"] = list(tools)
+        return len(json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8"))
 
 
 class ContextAssembler:
