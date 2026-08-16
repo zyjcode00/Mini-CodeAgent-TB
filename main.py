@@ -91,7 +91,8 @@ async def main():
     parser = argparse.ArgumentParser(description="Mini-Claude Agent 控制台")
     parser.add_argument("--session", type=str, default="default", help="指定会话 ID")
     # parser.add_argument("--model", type=str, default="glm-5.2", help="指定使用的模型")
-    parser.add_argument("--model", type=str, default="gpt-5.5", help="指定使用的模型")
+    # parser.add_argument("--model", type=str, default="gpt-5.5", help="指定使用的模型")
+    parser.add_argument("--model", type=str, default="gpt-5.6-sol", help="指定使用的模型")
     args = parser.parse_args()
 
     print(f"--- 🚀 正在启动会话: {args.session} ---")
