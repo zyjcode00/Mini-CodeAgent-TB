@@ -54,10 +54,6 @@ class AgentEngine:
         self.context_assembler = ContextAssembler(
             ContextBudget(memory=self.memory_token_budget)
         )
-        # Request limits are byte-oriented because reverse proxies reject the
-        # serialized HTTP body, not the approximate token count.
-        self.llm_request_max_bytes = int(os.getenv("LLM_REQUEST_MAX_BYTES", str(4 * 1024 * 1024)))
-        self.llm_request_retry_bytes = int(os.getenv("LLM_REQUEST_RETRY_BYTES", str(1024 * 1024)))
 
         self.is_openai_compat = base_url is not None or "claude" not in model.lower()
 
@@ -77,84 +73,6 @@ class AgentEngine:
         self.load_session()
 
 
-
-    @staticmethod
-    def _is_request_too_large_error(exc: Exception) -> bool:
-        """Recognise proxy/provider payload-limit failures without SDK coupling."""
-        status = getattr(exc, "status_code", None)
-        response = getattr(exc, "response", None)
-        response_status = getattr(response, "status_code", None)
-        text = str(exc).lower()
-        return status == 413 or response_status == 413 or (
-            "413" in text and any(marker in text for marker in (
-                "request entity too large", "payload too large", "content too large"
-            ))
-        )
-
-    @staticmethod
-    def _request_size_bytes(messages, tools=None) -> int:
-        """Return the UTF-8 size of the relevant serialized request payload."""
-        return len(json.dumps(
-            {"messages": messages, "tools": tools or []},
-            ensure_ascii=False,
-            default=str,
-            separators=(",", ":"),
-        ).encode("utf-8"))
-
-    def _fit_openai_request_budget(
-        self, base_system_prompt, memory_context, compressed_state, messages,
-        oa_tools, provider="openai", target_bytes=None,
-    ):
-        """Assemble a provider-safe request and progressively shed old context."""
-        target = max(512, int(target_bytes or self.llm_request_max_bytes))
-        safe_messages = self.context_assembler.turn_builder.build_complete_messages(messages)
-
-        # ContextAssembler remains the single place that orders system/memory
-        # sections.  Byte fitting happens afterwards because nginx limits bytes.
-        assembled = self.context_assembler.assemble(
-            base_system_prompt=base_system_prompt,
-            memory_context=memory_context,
-            compressed_state=compressed_state,
-            messages=safe_messages,
-            provider=provider,
-        )
-        size = self._request_size_bytes(assembled.messages, oa_tools)
-        if size <= target:
-            return assembled, size
-
-        # Drop optional injected context before conversation history.
-        assembled = self.context_assembler.assemble(
-            base_system_prompt=base_system_prompt,
-            memory_context="",
-            compressed_state="",
-            messages=safe_messages,
-            provider=provider,
-        )
-        size = self._request_size_bytes(assembled.messages, oa_tools)
-        if size <= target:
-            return assembled, size
-
-        # Retain newest complete semantic turns.  Never slice an assistant tool
-        # call away from its contiguous tool responses.
-        turn_builder = self.context_assembler.turn_builder
-        turns = turn_builder.complete_turns_only(turn_builder.build(safe_messages))
-        selected = []
-        for turn in reversed(turns):
-            candidate = turn_builder.flatten([turn] + selected)
-            fitted = self.context_assembler.assemble(
-                base_system_prompt=base_system_prompt,
-                memory_context="",
-                compressed_state="",
-                messages=candidate,
-                provider=provider,
-            )
-            candidate_size = self._request_size_bytes(fitted.messages, oa_tools)
-            if selected and candidate_size > target:
-                break
-            selected.insert(0, turn)
-            assembled, size = fitted, candidate_size
-
-        return assembled, size
 
     async def _call_llm(self, relevant_history: str = "", user_input: str = ""):
         """核心推理：改为异步调用"""
@@ -209,40 +127,12 @@ class AgentEngine:
         if self.is_openai_compat:
             oa_tools = [{"type": "function", "function": {"name": t["name"], "description": t["description"], "parameters": t["input_schema"]}} for t in self.tool_specs]
 
-            # Proactively fit the serialized body below the configured proxy
-            # limit. If the provider still returns 413, retry exactly once with
-            # a smaller, minimal-context budget.
-            fitted, request_bytes = self._fit_openai_request_budget(
-                base_system_prompt=system_ptr,
-                memory_context="",
-                compressed_state="",
-                messages=messages_snapshot,
-                oa_tools=oa_tools,
-                target_bytes=self.llm_request_max_bytes,
+            # 使用 await 调用异步客户端
+            resp = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "system", "content": system_ptr}] + messages_snapshot,
+                tools=oa_tools if oa_tools else None
             )
-
-            async def create_completion(context):
-                return await self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[{"role": "system", "content": context.system_prompt}] + context.messages,
-                    tools=oa_tools if oa_tools else None,
-                )
-
-            try:
-                resp = await create_completion(fitted)
-            except Exception as exc:
-                if not self._is_request_too_large_error(exc):
-                    raise
-                retry_target = min(self.llm_request_retry_bytes, max(512, request_bytes // 2))
-                retry_context, _ = self._fit_openai_request_budget(
-                    base_system_prompt=system_ptr,
-                    memory_context="",
-                    compressed_state="",
-                    messages=messages_snapshot,
-                    oa_tools=oa_tools,
-                    target_bytes=retry_target,
-                )
-                resp = await create_completion(retry_context)
 
             msg = resp.choices[0].message
             # 🔥 修复：转换为字典格式，避免后续 .get() 报错
