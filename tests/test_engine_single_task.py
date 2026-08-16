@@ -30,11 +30,29 @@ async def test_run_single_task_wraps_execute_query_success(monkeypatch):
     assert seen == {"prompt": "solve task"}
     assert result == {
         "success": True,
+        "stop_reason": "completed",
         "final_answer": "task complete",
         "turns": 1,
         "max_turns": 7,
         "error": None,
     }
+
+
+@pytest.mark.asyncio
+async def test_run_single_task_detects_internal_turn_limit(monkeypatch):
+    engine = make_engine()
+
+    async def fake_execute_query(prompt):
+        return "任务达到最大思考步数限制。"
+
+    monkeypatch.setattr(engine, "execute_query", fake_execute_query)
+
+    result = await engine.run_single_task("solve task", max_turns=3)
+
+    assert result["success"] is False
+    assert result["stop_reason"] == "max_turns"
+    assert result["final_answer"] == "任务达到最大思考步数限制。"
+    assert result["error"] == "Agent reached its internal reasoning limit before completion."
 
 
 @pytest.mark.asyncio

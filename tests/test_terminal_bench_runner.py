@@ -141,6 +141,43 @@ def test_invalid_workspace_returns_error_and_writes_json(tmp_path):
     assert "Invalid workspace" in data["error"]
 
 
+def test_required_path_postcondition_prevents_false_success(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    output_json = tmp_path / "result.json"
+
+    exit_code = asyncio.run(main_async([
+        "--task", "build", "--workspace", str(workspace),
+        "--require-path", "bin/stp", "--output-json", str(output_json),
+    ], engine_factory=lambda args: RecordingEngine([])))
+
+    assert exit_code == EXIT_ERROR
+    data = json.loads(output_json.read_text(encoding="utf-8"))
+    assert data["success"] is False
+    assert data["stop_reason"] == "verification_failed"
+    assert "bin/stp" in data["error"]
+
+
+def test_verify_command_postcondition(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    failed = asyncio.run(main_async([
+        "--task", "build", "--workspace", str(workspace),
+        "--verify-command", "test -x bin/stp",
+    ], engine_factory=lambda args: RecordingEngine([])))
+    assert failed == EXIT_ERROR
+
+    (workspace / "bin").mkdir()
+    (workspace / "bin" / "stp").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    (workspace / "bin" / "stp").chmod(0o755)
+    passed = asyncio.run(main_async([
+        "--task", "build", "--workspace", str(workspace),
+        "--verify-command", "test -x bin/stp",
+    ], engine_factory=lambda args: RecordingEngine([])))
+    assert passed == EXIT_SUCCESS
+
+
 def test_engine_exception_returns_error_and_restores_cwd(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()

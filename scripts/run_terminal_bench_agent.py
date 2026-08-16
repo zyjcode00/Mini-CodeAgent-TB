@@ -22,6 +22,7 @@ import asyncio
 import inspect
 import json
 import os
+import subprocess
 import sys
 import time
 from dataclasses import asdict, dataclass
@@ -73,6 +74,18 @@ def parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
     parser.add_argument("--max-turns", type=int, default=40, help="Maximum agent turns.")
     parser.add_argument("--timeout", type=float, default=1800.0, help="Total timeout in seconds.")
     parser.add_argument("--output-json", help="Optional path for structured runner output.")
+    parser.add_argument(
+        "--require-path",
+        action="append",
+        default=[],
+        help="Path relative to workspace that must exist before reporting success (repeatable).",
+    )
+    parser.add_argument(
+        "--verify-command",
+        action="append",
+        default=[],
+        help="Shell command run in workspace after the agent; must exit zero (repeatable).",
+    )
     parser.add_argument(
         "--disable-memory",
         action="store_true",
@@ -265,6 +278,41 @@ def write_output_json(path: Optional[str], result: AgentRunResult) -> None:
     )
 
 
+def verify_completion(args: argparse.Namespace, workspace: Path, result: AgentRunResult) -> AgentRunResult:
+    """Validate task-specific postconditions after the engine reports completion."""
+    if not result.success:
+        return result
+
+    errors: list[str] = []
+    for required in args.require_path:
+        candidate = (workspace / required).resolve()
+        if not candidate.exists():
+            errors.append(f"Required path does not exist: {required}")
+
+    for command in args.verify_command:
+        try:
+            completed = subprocess.run(
+                command,
+                shell=True,
+                cwd=workspace,
+                text=True,
+                capture_output=True,
+                timeout=min(args.timeout, 120.0),
+            )
+        except subprocess.TimeoutExpired:
+            errors.append(f"Verification command timed out: {command}")
+            continue
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout or "no output").strip()[-1000:]
+            errors.append(f"Verification command failed ({completed.returncode}): {command}: {detail}")
+
+    if errors:
+        result.success = False
+        result.stop_reason = "verification_failed"
+        result.error = "; ".join(errors)
+    return result
+
+
 async def main_async(
     argv: Optional[Iterable[str]] = None,
     engine_factory: Optional[EngineFactory] = None,
@@ -301,6 +349,7 @@ async def main_async(
             timeout=args.timeout,
         )
         result = apply_completion_guard(result)
+        result = verify_completion(args, workspace, result)
         exit_code = EXIT_SUCCESS if result.success else EXIT_ERROR
     except asyncio.TimeoutError:
         result = AgentRunResult(
