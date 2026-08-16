@@ -1,0 +1,71 @@
+root@c13143d679c8:/app# set -e
+ty.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        /etc/apt/sources.list.d/debian.sources
+fi
+
+mkdir -p /root/.config/uv
+cat > /root/.config/uv/uv.toml <<EOF
+index-url = "${UV_INDEX_URL}"
+EOF
+
+apt-get update || true
+true; tmux wait -S done
+root@c13143d679c8:/app#
+root@c13143d679c8:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@c13143d679c8:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@c13143d679c8:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@c13143d679c8:/app#
+root@c13143d679c8:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@c13143d679c8:/app#
+root@c13143d679c8:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@c13143d679c8:/app#
+root@c13143d679c8:/app# mkdir -p /root/.config/uv
+root@c13143d679c8:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@c13143d679c8:/app#
+root@c13143d679c8:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [336 kB]
+Fetched 9375 kB in 2s (5567 kB/s)
+Reading package lists... Done
+root@c13143d679c8:/app# true; tmux wait -S done
+root@c13143d679c8:/app# python3 - /app/hello.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'Hello, world!'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/hello.txt
+root@c13143d679c8:/app# true; tmux wait -S done
+root@c13143d679c8:/app# test -f /app/hello.txt && [ "$(cat /app/hello.txt)" = "Hello, world!" ]; tmux wait -S done
+root@c13143d679c8:/app#
