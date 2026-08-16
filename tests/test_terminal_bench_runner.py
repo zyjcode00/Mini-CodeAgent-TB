@@ -156,6 +156,7 @@ def test_required_path_postcondition_prevents_false_success(tmp_path):
     assert data["success"] is False
     assert data["stop_reason"] == "verification_failed"
     assert "bin/stp" in data["error"]
+    assert "PATH" in data["recovery_hint"]
 
 
 def test_verify_command_postcondition(tmp_path):

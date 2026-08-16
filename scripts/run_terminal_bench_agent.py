@@ -59,6 +59,7 @@ class AgentRunResult:
     turns: int = 0
     message: str = ""
     error: Optional[str] = None
+    recovery_hint: Optional[str] = None
     workspace: Optional[str] = None
     duration_seconds: float = 0.0
 
@@ -278,6 +279,16 @@ def write_output_json(path: Optional[str], result: AgentRunResult) -> None:
     )
 
 
+def recovery_hint_for(reason: str) -> str:
+    hints = {
+        "timeout": "Split build, install, and verification into separate commands; inspect the last command output and resume from the unfinished phase.",
+        "max_turns": "Prioritize the smallest build/install path and run the configured verification command before spending turns on cleanup.",
+        "verification_failed": "Inspect the verification output, confirm the working directory and PATH, then repair or install the missing artifact before retrying.",
+        "exception": "Read the exception traceback and rerun the failed phase with its inputs and working directory recorded.",
+    }
+    return hints.get(reason, "Inspect the recorded error and rerun the unfinished phase with an explicit postcondition.")
+
+
 def verify_completion(args: argparse.Namespace, workspace: Path, result: AgentRunResult) -> AgentRunResult:
     """Validate task-specific postconditions after the engine reports completion."""
     if not result.success:
@@ -376,6 +387,8 @@ async def main_async(
             )
         os.chdir(old_cwd)
 
+    if not result.success and not result.recovery_hint:
+        result.recovery_hint = recovery_hint_for(result.stop_reason)
     result.workspace = str(workspace)
     result.duration_seconds = round(time.monotonic() - start, 3)
     write_output_json(args.output_json, result)
