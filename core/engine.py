@@ -107,7 +107,7 @@ class AgentEngine:
     ):
         """Assemble a provider-safe request and progressively shed old context."""
         target = max(512, int(target_bytes or self.llm_request_max_bytes))
-        safe_messages = self._sanitize_openai_tool_pairs(messages)
+        safe_messages = self.context_assembler.turn_builder.build_complete_messages(messages)
 
         # ContextAssembler remains the single place that orders system/memory
         # sections.  Byte fitting happens afterwards because nginx limits bytes.
