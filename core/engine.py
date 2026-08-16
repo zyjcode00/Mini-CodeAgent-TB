@@ -54,6 +54,10 @@ class AgentEngine:
         self.context_assembler = ContextAssembler(
             ContextBudget(memory=self.memory_token_budget)
         )
+        # Request limits are byte-oriented because reverse proxies reject the
+        # serialized HTTP body, not the approximate token count.
+        self.llm_request_max_bytes = int(os.getenv("LLM_REQUEST_MAX_BYTES", str(4 * 1024 * 1024)))
+        self.llm_request_retry_bytes = int(os.getenv("LLM_REQUEST_RETRY_BYTES", str(1024 * 1024)))
 
         self.is_openai_compat = base_url is not None or "claude" not in model.lower()
 
@@ -73,6 +77,83 @@ class AgentEngine:
         self.load_session()
 
 
+
+    @staticmethod
+    def _is_request_too_large_error(exc: Exception) -> bool:
+        """Recognise proxy/provider payload-limit failures without SDK coupling."""
+        status = getattr(exc, "status_code", None)
+        response = getattr(exc, "response", None)
+        response_status = getattr(response, "status_code", None)
+        text = str(exc).lower()
+        return status == 413 or response_status == 413 or (
+            "413" in text and any(marker in text for marker in (
+                "request entity too large", "payload too large", "content too large"
+            ))
+        )
+
+    @staticmethod
+    def _request_size_bytes(messages, tools=None) -> int:
+        """Return the UTF-8 size of the relevant serialized request payload."""
+        return len(json.dumps(
+            {"messages": messages, "tools": tools or []},
+            ensure_ascii=False,
+            default=str,
+            separators=(",", ":"),
+        ).encode("utf-8"))
+
+    def _fit_openai_request_budget(
+        self, base_system_prompt, memory_context, compressed_state, messages,
+        oa_tools, provider="openai", target_bytes=None,
+    ):
+        """Assemble a provider-safe request and progressively shed old context."""
+        target = max(512, int(target_bytes or self.llm_request_max_bytes))
+        safe_messages = self._sanitize_openai_tool_pairs(messages)
+
+        # ContextAssembler remains the single place that orders system/memory
+        # sections.  Byte fitting happens afterwards because nginx limits bytes.
+        assembled = self.context_assembler.assemble(
+            base_system_prompt=base_system_prompt,
+            memory_context=memory_context,
+            compressed_state=compressed_state,
+            messages=safe_messages,
+            provider=provider,
+        )
+        size = self._request_size_bytes(assembled.messages, oa_tools)
+        if size <= target:
+            return assembled, size
+
+        # Drop optional injected context before conversation history.
+        assembled = self.context_assembler.assemble(
+            base_system_prompt=base_system_prompt,
+            memory_context="",
+            compressed_state="",
+            messages=safe_messages,
+            provider=provider,
+        )
+        size = self._request_size_bytes(assembled.messages, oa_tools)
+        if size <= target:
+            return assembled, size
+
+        # Retain newest complete semantic turns.  Never slice an assistant tool
+        # call away from its contiguous tool responses.
+        turns = self.turn_builder.complete_turns_only(self.turn_builder.build(safe_messages))
+        selected = []
+        for turn in reversed(turns):
+            candidate = self.turn_builder.flatten([turn] + selected)
+            fitted = self.context_assembler.assemble(
+                base_system_prompt=base_system_prompt,
+                memory_context="",
+                compressed_state="",
+                messages=candidate,
+                provider=provider,
+            )
+            candidate_size = self._request_size_bytes(fitted.messages, oa_tools)
+            if selected and candidate_size > target:
+                break
+            selected.insert(0, turn)
+            assembled, size = fitted, candidate_size
+
+        return assembled, size
 
     async def _call_llm(self, relevant_history: str = "", user_input: str = ""):
         """核心推理：改为异步调用"""
