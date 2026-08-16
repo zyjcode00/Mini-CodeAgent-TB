@@ -726,4 +726,53 @@ drwxr-xr-x  3 root root  4096 Aug 15 05:31 [01;34mwindows[0m
 [?2004l[?2004h> elif [ -f setup.py ] || [ -f pyproject.toml ]; then echo python > /tmp/stp_build_system; 
 [?2004l[?2004h> else echo unknown > /tmp/stp_build_system; fi
 [?2004l[?2004hroot@3c845a560443:/app/stp# true; tmux wait -S done
-[?2004l[?2004hroot@3c845a560443:/app/stp# 
+[?2004l[?2004hroot@3c845a560443:/app/stp# set -e
+[?2004l[?2004hroot@3c845a560443:/app/stp# cd /app/stp
+[?2004l[?2004hroot@3c845a560443:/app/stp# rm -f /tmp/stp_build.log /tmp/stp_build_status
+[?2004l[?2004hroot@3c845a560443:/app/stp# build_system=unknown
+[?2004l[?2004hroot@3c845a560443:/app/stp# if [ -f CMakeLists.txt ]; then build_system=cmake; 
+[?2004l[?2004h> elif [ -f Makefile ] || [ -f makefile ] || [ -f GNUmakefile ]; then build_system=make; 
+[?2004l[?2004h> elif [ -f meson.build ]; then build_system=meson; 
+[?2004l[?2004h> elif [ -f Cargo.toml ]; then build_system=cargo; 
+[?2004l[?2004h> elif [ -f setup.py ] || [ -f pyproject.toml ]; then build_system=python; fi
+[?2004l[?2004hroot@3c845a560443:/app/stp# echo "$build_system" > /tmp/stp_build_system
+[?2004l[?2004hroot@3c845a560443:/app/stp# case "$build_system" in
+[?2004l[?2004h>   cmake)
+[?2004l[?2004h>     mkdir -p build
+[?2004l[?2004h>     cd build
+[?2004l[?2004h>     cmake .. >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     cmake --build . -j"$(nproc)" >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     ;;
+[?2004l[?2004h>   make)
+[?2004l[?2004h>     make -j"$(nproc)" >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     ;;
+[?2004l[?2004h>   meson)
+[?2004l[?2004h>     meson setup build >>/tmp/stp_build.log 2>&1 || true
+[?2004l[?2004h>     meson compile -C build >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     ;;
+[?2004l[?2004h>   cargo)
+[?2004l[?2004h>     cargo build --release >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     ;;
+[?2004l[?2004h>   python)
+[?2004l[?2004h>     python3 -m pip install . >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     ;;
+[?2004l[?2004h>   *)
+[?2004l[?2004h>     # Fallback: compile simple C/C++ single or multi-file projects.
+[?2004l[?2004h>     if find . -maxdepth 2 -name '*.c' | grep -q .; then
+[?2004l[?2004h>       gcc -O2 -Wall -Wextra $(find . -maxdepth 2 -name '*.c' | sort) -o stp >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     elif find . -maxdepth 2 \( -name '*.cc' -o -name '*.cpp' -o -name '*.cxx' \) | grep -q .; then
+[?2004l[?2004h>       g++ -O2 -std=c++17 -Wall -Wextra $(find . -maxdepth 2 \( -name '*.cc' -o -name '*.cpp' -o -name '*.cxx' \) | sort) -o stp >>/tmp/stp_build.log 2>&1
+[?2004l[?2004h>     elif [ -f stp.py ]; then
+[?2004l[?2004h>       chmod +x stp.py
+[?2004l[?2004h>     elif [ -f stp ]; then
+[?2004l[?2004h>       chmod +x stp
+[?2004l[?2004h>     else
+[?2004l[?2004h>       echo "Could not determine how to build /app/stp" >>/tmp/stp_build.log
+[?2004l[?2004h>       exit 1
+[?2004l[?2004h>     fi
+[?2004l[?2004h>     ;;
+[?2004l[?2004h> esac
+[?2004l[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@3c845a560443:/app# [?2004l
+logout
