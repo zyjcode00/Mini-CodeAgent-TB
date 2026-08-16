@@ -5,6 +5,7 @@ import types
 from tools import get_default_tools
 from tools.bash_tool import BashTool
 from tools.execution_backend import LocalExecutionBackend, TerminalBenchSessionBackend
+from tools.file_tool import FileEditTool, ReadTool, WriteFullFileTool
 from terminal_bench_adapter import MiniClaudeCodeTerminalBenchAgent
 
 
@@ -115,3 +116,17 @@ def test_terminal_bench_backend_routes_file_tools_to_session(tmp_path, monkeypat
     assert "README.md" in tree_result
     assert any("cat --" in command for command in session.commands)
     assert any("find" in command for command in session.commands)
+
+
+def test_backend_file_tools_pass_arguments_before_heredoc(tmp_path):
+    backend = LocalExecutionBackend()
+    path = tmp_path / "file with spaces.txt"
+
+    write_result = WriteFullFileTool(backend).run(str(path), "first\nsecond\n")
+    read_result = ReadTool(backend).run(str(path), start_line=2, end_line=2, raw_mode=True)
+    edit_result = FileEditTool(backend).run(str(path), "second", "updated")
+
+    assert "成功: 已写入" in write_result
+    assert read_result == "second\n"
+    assert "成功: 已更新" in edit_result
+    assert path.read_text(encoding="utf-8") == "first\nupdated\n"

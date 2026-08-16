@@ -60,7 +60,7 @@ class ReadTool(BaseTool):
             return _extract_stdout(result)
 
         end_arg = "None" if end_line is None else str(int(end_line))
-        command = f"""python3 - <<'PY' -- {quoted_path} {int(start_line)} {end_arg} {str(bool(raw_mode)).lower()}
+        command = f"""python3 - {quoted_path} {int(start_line)} {end_arg} {str(bool(raw_mode)).lower()} <<'PY'
 import sys
 path = sys.argv[1]
 start_line = int(sys.argv[2])
@@ -151,7 +151,7 @@ class FileEditTool(BaseTool):
             return f"修改失败: {str(e)}"
 
     def _run_via_backend(self, path: str, old_str: str, new_str: str) -> str:
-        command = f"""python3 - <<'PY' -- {shlex.quote(path)}
+        command = f"""python3 - {shlex.quote(path)} <<'PY'
 import sys
 path = sys.argv[1]
 old_str = {old_str!r}
@@ -226,7 +226,7 @@ class WriteFullFileTool(BaseTool):
 
     def run(self, path: str, content: str, **kwargs) -> str:
         if self.backend is not None:
-            command = f"""python3 - <<'PY' -- {shlex.quote(path)}
+            command = f"""python3 - {shlex.quote(path)} <<'PY'
 import os
 import sys
 path = sys.argv[1]
