@@ -93,8 +93,35 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
         if session is None:
             raise ValueError("session is required for TerminalBenchSessionBackend")
         self.session = session
+        self._state = "running"
+
+    @property
+    def state(self) -> str:
+        """Return the backend lifecycle state."""
+        return self._state
+
+    def close(self) -> None:
+        """Stop accepting commands and release the session when it supports close."""
+        if self._state == "closed":
+            return
+        self._state = "closing"
+        close = getattr(self.session, "close", None)
+        try:
+            if callable(close):
+                close_result = close()
+                # A session close is allowed to be asynchronous, but the backend
+                # must stop submissions immediately regardless of its return value.
+                if hasattr(close_result, "__await__"):
+                    raise RuntimeError("asynchronous session close must be awaited by the owner")
+        finally:
+            self._state = "closed"
 
     def run_command(self, command: str) -> str:
+        if self._state != "running":
+            raise ExecutorShutdownError(
+                f"cannot submit command while execution backend is {self._state}"
+            )
+
         for method_name in ("run", "exec", "execute", "send_command"):
             method = getattr(self.session, method_name, None)
             if callable(method):
@@ -104,6 +131,7 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
                 except RuntimeError as error:
                     if "cannot schedule new futures after shutdown" not in str(error):
                         raise
+                    self._state = "closed"
                     raise ExecutorShutdownError(str(error)) from error
                 return self._format_result(result)
         raise RuntimeError(

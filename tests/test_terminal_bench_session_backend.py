@@ -36,6 +36,19 @@ class BrokenTerminalBenchSession:
         raise ValueError("command protocol is invalid")
 
 
+class ClosableTerminalBenchSession:
+    def __init__(self):
+        self.commands = []
+        self.close_calls = 0
+
+    def run(self, command):
+        self.commands.append(command)
+        return {"stdout": "ok", "exit_code": 0}
+
+    def close(self):
+        self.close_calls += 1
+
+
 def test_terminal_bench_send_command_receives_terminal_command_like_object():
     session = FakeTerminalBenchSession()
     backend = TerminalBenchSessionBackend(session)
@@ -68,6 +81,24 @@ def test_shutdown_session_raises_non_retryable_executor_error():
 
     with pytest.raises(ExecutorShutdownError, match="cannot schedule new futures after shutdown"):
         backend.run_command("echo hello")
+
+    assert backend.state == "closed"
+    with pytest.raises(ExecutorShutdownError, match="backend is closed"):
+        backend.run_command("echo retry")
+
+
+def test_closed_backend_rejects_commands_without_calling_session():
+    session = ClosableTerminalBenchSession()
+    backend = TerminalBenchSessionBackend(session)
+
+    backend.close()
+    backend.close()
+
+    assert backend.state == "closed"
+    assert session.close_calls == 1
+    with pytest.raises(ExecutorShutdownError, match="backend is closed"):
+        backend.run_command("echo too-late")
+    assert session.commands == []
 
 
 def test_non_shutdown_session_errors_are_still_raised():
