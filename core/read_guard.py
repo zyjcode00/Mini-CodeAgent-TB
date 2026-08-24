@@ -1,6 +1,7 @@
 """Runtime read ledger and anti-spin guard for AgentEngine."""
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -339,6 +340,8 @@ class ReadOnlyStreakGuard:
         else:
             self.repeated_failure_count = 0
             self.last_failure_signature = None
+            # A successful non-repeated action makes the run viable again.
+            self.should_stop = False
 
         if self.repeated_failure_count >= 3:
             return self._stop("相同工具失败连续出现 3 次，继续重试不会产生进展。")
