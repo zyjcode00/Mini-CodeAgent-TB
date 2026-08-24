@@ -850,7 +850,7 @@ class AgentEngine:
             "history_summary": self.context.history_summary,
             "messages": self.context.get_serializable_messages(),
             "plan": self.plan_manager.to_dict(),  # 🔥 保存计划状态
-            "read_ledger": self.read_ledger.to_dict(),
+            "read_ledger": getattr(self, "read_ledger", RuntimeReadLedger()).to_dict(),
             # 🔥 新增：保存三层记忆数据（Phase 2/3）
             "memories": self.context.export_memories()
         }
