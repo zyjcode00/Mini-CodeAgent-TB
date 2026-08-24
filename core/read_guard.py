@@ -276,19 +276,76 @@ class ReadOnlyStreakGuard:
             return cls(checkpoint_threshold=4)
         return cls(checkpoint_threshold=3)
 
+    def _stop(self, reason: str) -> str:
+        self.should_stop = True
+        return f"⛔ 无进展，已停止当前 Agent run：{reason}"
+
+    def _reset_progress_counters(self) -> None:
+        self.streak = 0
+        self.repeated_call_count = 0
+        self.repeated_failure_count = 0
+        self.last_call_signature = None
+        self.last_failure_signature = None
+        self.should_stop = False
+
     def record_round(self, tool_names: List[str]) -> Optional[str]:
         if not tool_names:
             return None
         if all(name in self.READ_ONLY_TOOLS for name in tool_names):
             self.streak += 1
         else:
-            self.streak = 0
+            self._reset_progress_counters()
             return None
 
+        if self.streak >= int(self.stop_threshold):
+            return self._stop(
+                f"连续 {self.streak} 轮仅执行读取/搜索，检查点后仍未产生修改或最终回答。"
+            )
         if self.streak >= self.checkpoint_threshold:
             return (
                 f"⚠️ 只读工具防空转检查点：已连续 {self.streak} 轮只执行读取/搜索类工具。"
                 "下一步请先用简短文字总结已读文件、关键结论和明确的下一步动作；"
                 "如果信息已足够，请停止继续读取并开始修改或回答。"
             )
+        return None
+
+    def record_tool_round(self, calls: List[Tuple[str, Dict[str, Any], Any]]) -> Optional[str]:
+        """Track identical calls and failures after a completed tool round."""
+        if not calls:
+            return None
+        call_signature = json.dumps(
+            [(name, args) for name, args, _ in calls],
+            ensure_ascii=False,
+            sort_keys=True,
+            default=str,
+        )
+        if call_signature == self.last_call_signature:
+            self.repeated_call_count += 1
+        else:
+            self.last_call_signature = call_signature
+            self.repeated_call_count = 1
+
+        failures = [
+            (name, str(result))
+            for name, _, result in calls
+            if any(marker in str(result).lower() for marker in ("错误", "失败", "error", "failed"))
+        ]
+        failure_signature = json.dumps(failures, ensure_ascii=False, sort_keys=True)
+        if failures and failure_signature == self.last_failure_signature:
+            self.repeated_failure_count += 1
+        elif failures:
+            self.last_failure_signature = failure_signature
+            self.repeated_failure_count = 1
+        else:
+            self.repeated_failure_count = 0
+            self.last_failure_signature = None
+
+        if self.repeated_failure_count >= 3:
+            return self._stop("相同工具失败连续出现 3 次，继续重试不会产生进展。")
+        if self.repeated_call_count >= 5:
+            return self._stop("相同工具调用连续出现 5 次，结果未推动任务。")
+        if self.repeated_failure_count >= 2:
+            return "⚠️ 相同工具失败已重复，请改变参数或采取其他动作，禁止原样重试。"
+        if self.repeated_call_count >= 3:
+            return "⚠️ 重复工具调用检查点：请总结现有结果并执行不同的下一步动作。"
         return None

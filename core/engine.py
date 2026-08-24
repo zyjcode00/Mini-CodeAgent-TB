@@ -392,6 +392,13 @@ class AgentEngine:
                 # 如果工具执行失败，删除已添加的 assistant 消息，避免孤立
                 try:
                     results = await asyncio.gather(*tasks)
+                except ExecutorShutdownError as tool_exec_error:
+                    print(f" [❌] 工具执行器已关闭: {tool_exec_error}")
+                    if self.is_openai_compat and self.last_oa_msg:
+                        if self.context.messages and self.context.messages[-1] == self.last_oa_msg:
+                            self.context.messages.pop()
+                    self.save_session()
+                    raise
                 except Exception as tool_exec_error:
                     print(f" [❌] 工具执行异常: {tool_exec_error}")
 
