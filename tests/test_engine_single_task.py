@@ -2,6 +2,7 @@ import pytest
 
 from core.engine import AgentEngine
 from core.plan import PlanManager
+from tools.execution_backend import ExecutorShutdownError
 
 
 def make_engine():
@@ -71,6 +72,24 @@ async def test_run_single_task_reports_execute_query_error(monkeypatch):
     assert result["turns"] == 1
     assert result["max_turns"] == 3
     assert result["error"] == "RuntimeError: boom"
+
+
+@pytest.mark.asyncio
+async def test_run_single_task_reports_executor_shutdown(monkeypatch):
+    engine = make_engine()
+
+    async def fake_execute_query(prompt):
+        raise ExecutorShutdownError("cannot schedule new futures after shutdown")
+
+    monkeypatch.setattr(engine, "execute_query", fake_execute_query)
+
+    result = await engine.run_single_task("solve task", max_turns=3)
+
+    assert result["success"] is False
+    assert result["stop_reason"] == "executor_shutdown"
+    assert result["error"] == (
+        "ExecutorShutdownError: cannot schedule new futures after shutdown"
+    )
 
 
 @pytest.mark.asyncio

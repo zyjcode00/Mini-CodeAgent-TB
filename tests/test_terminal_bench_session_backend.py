@@ -1,4 +1,6 @@
-from tools.execution_backend import TerminalBenchSessionBackend
+import pytest
+
+from tools.execution_backend import ExecutorShutdownError, TerminalBenchSessionBackend
 
 
 class FakeTerminalBenchSession:
@@ -61,13 +63,11 @@ PY"""
     assert sent.endswith("\ntrue")
 
 
-def test_shutdown_session_returns_diagnostic_result_instead_of_raising():
+def test_shutdown_session_raises_non_retryable_executor_error():
     backend = TerminalBenchSessionBackend(ShutdownTerminalBenchSession())
 
-    result = backend.run_command("echo hello")
-
-    assert "cannot schedule new futures after shutdown" in result
-    assert "Terminal-Bench session is unavailable" in result
+    with pytest.raises(ExecutorShutdownError, match="cannot schedule new futures after shutdown"):
+        backend.run_command("echo hello")
 
 
 def test_non_shutdown_session_errors_are_still_raised():
