@@ -182,6 +182,42 @@ class RuntimeReadLedger:
         self._record_allowed_range(current)
         return ReadDecision(should_skip=False)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the read coverage needed to deduplicate future tool calls."""
+        return {
+            "duplicate_threshold": self.duplicate_threshold,
+            "exact_counts": [
+                {"path": path, "start_line": start, "end_line": end, "count": count}
+                for (path, start, end), count in self.exact_counts.items()
+            ],
+            "merged_ranges_by_path": {
+                path: [{"start_line": start, "end_line": end} for start, end in ranges]
+                for path, ranges in self.merged_ranges_by_path.items()
+            },
+        }
+
+    @classmethod
+    def from_dict(cls, data: Optional[Dict[str, Any]]) -> "RuntimeReadLedger":
+        """Restore a ledger while tolerating old or partially written sessions."""
+        data = data or {}
+        ledger = cls(duplicate_threshold=int(data.get("duplicate_threshold", 2)))
+        for item in data.get("exact_counts", []) or []:
+            try:
+                key = (item["path"], item.get("start_line"), item.get("end_line"))
+                ledger.exact_counts[key] = int(item.get("count", 0))
+            except (KeyError, TypeError, ValueError):
+                continue
+        for path, ranges in (data.get("merged_ranges_by_path", {}) or {}).items():
+            restored = []
+            for item in ranges or []:
+                try:
+                    restored.append((item.get("start_line"), item.get("end_line")))
+                except AttributeError:
+                    continue
+            if restored:
+                ledger.merged_ranges_by_path[path] = restored
+        return ledger
+
     def record(self, tool_input: Dict[str, Any]) -> List[str]:
         """Backward-compatible API returning reminders for callers/tests."""
         return self.before_read(tool_input).reminders
