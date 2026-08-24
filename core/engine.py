@@ -42,6 +42,9 @@ class AgentEngine:
         self.last_oa_msg = None
         self.session_id = session_id
         self.session_path = f"sessions/{session_id}.json"
+        # Keep read coverage at session scope so execute_query and compression
+        # cannot forget which file ranges were already provided to the model.
+        self.read_ledger = RuntimeReadLedger()
         # ----------------------------------------------------------
 
         # ========== Git 自动化保险状态追踪 ==========
@@ -307,7 +310,8 @@ class AgentEngine:
 
         await self.compress_messages()
 
-        read_ledger = RuntimeReadLedger()
+        # The ledger survives across execute_query calls in this session.
+        read_ledger = self.read_ledger
         read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
 
         step = 0
