@@ -31,7 +31,8 @@ uv run tb run \
 uv run tb run \
   --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
   --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
-  --task-id 3d-model-format-legacy \
+  --agent-kwarg max_turns=10 \
+  --task-id accelerate-maximal-square \
   --output-path ./eval_runs_test
 
 uv run tb run \
