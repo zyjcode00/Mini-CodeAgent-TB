@@ -36,6 +36,16 @@ class BrokenTerminalBenchSession:
         raise ValueError("command protocol is invalid")
 
 
+class EmptyOutputTerminalBenchSession:
+    def run(self, command):
+        return {"stdout": "", "stderr": "", "exit_code": 0}
+
+
+class MissingCaptureTerminalBenchSession:
+    def run(self, command):
+        return None
+
+
 class ClosableTerminalBenchSession:
     def __init__(self):
         self.commands = []
@@ -99,6 +109,18 @@ def test_closed_backend_rejects_commands_without_calling_session():
     with pytest.raises(ExecutorShutdownError, match="backend is closed"):
         backend.run_command("echo too-late")
     assert session.commands == []
+
+
+def test_empty_command_output_is_reported_as_a_real_empty_result():
+    backend = TerminalBenchSessionBackend(EmptyOutputTerminalBenchSession())
+
+    assert backend.run_command("true") == "Command executed with no output."
+
+
+def test_missing_command_capture_is_distinguished_from_real_empty_output():
+    backend = TerminalBenchSessionBackend(MissingCaptureTerminalBenchSession())
+
+    assert backend.run_command("true") == "❌ command execution returned no capture result"
 
 
 def test_non_shutdown_session_errors_are_still_raised():

@@ -238,10 +238,20 @@ class RuntimeReadLedger:
 
 @dataclass
 class ReadOnlyStreakGuard:
-    """Detects consecutive read-only tool rounds and asks for a checkpoint summary."""
+    """Detect repeated no-progress rounds and enforce a bounded stop."""
 
     checkpoint_threshold: int = 3
+    stop_threshold: Optional[int] = None
     streak: int = 0
+    repeated_call_count: int = 0
+    repeated_failure_count: int = 0
+    should_stop: bool = False
+    last_call_signature: Optional[str] = None
+    last_failure_signature: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.stop_threshold is None:
+            self.stop_threshold = self.checkpoint_threshold + 2
 
     READ_ONLY_TOOLS = {
         "read_file",

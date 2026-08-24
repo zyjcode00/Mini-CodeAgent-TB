@@ -181,6 +181,48 @@ def test_read_only_streak_guard_uses_dynamic_thresholds():
     assert architecture_guard.checkpoint_threshold == 6
 
 
+def test_read_only_streak_guard_stops_when_checkpoint_makes_no_progress():
+    guard = ReadOnlyStreakGuard(checkpoint_threshold=2, stop_threshold=4)
+
+    assert guard.record_round(["read_file"]) is None
+    assert "只读工具防空转检查点" in guard.record_round(["search_code"])
+    assert not guard.should_stop
+    assert "只读工具防空转检查点" in guard.record_round(["read_file"])
+    terminal = guard.record_round(["search_code"])
+
+    assert guard.should_stop
+    assert "无进展" in terminal
+
+
+def test_read_only_streak_guard_stops_repeated_identical_tool_calls():
+    guard = ReadOnlyStreakGuard(checkpoint_threshold=10)
+    call = [("search_code", {"path": ".", "pattern": "missing"}, "没有结果")]
+
+    assert guard.record_tool_round(call) is None
+    assert guard.record_tool_round(call) is None
+    assert "重复工具调用" in guard.record_tool_round(call)
+    assert not guard.should_stop
+    guard.record_tool_round(call)
+    terminal = guard.record_tool_round(call)
+
+    assert guard.should_stop
+    assert "无进展" in terminal
+
+
+def test_read_only_streak_guard_stops_same_failure_and_resets_on_progress():
+    guard = ReadOnlyStreakGuard(checkpoint_threshold=10)
+    failed = [("execute_bash", {"command": "false"}, "错误: command failed")]
+
+    assert guard.record_tool_round(failed) is None
+    assert "相同工具失败" in guard.record_tool_round(failed)
+    terminal = guard.record_tool_round(failed)
+    assert guard.should_stop
+    assert "无进展" in terminal
+
+    guard.record_tool_round([("edit_file", {"path": "x"}, "修改成功")])
+    assert not guard.should_stop
+
+
 def test_read_file_raw_mode_default_is_consistent_between_schema_and_run_signature():
     schema_default = ReadArgs.model_fields["raw_mode"].default
     runtime_default = ReadTool.run.__defaults__[-1]

@@ -185,6 +185,8 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
     def _format_result(result: Any) -> str:
         if isinstance(result, str):
             return result or "Command executed with no output."
+        if result is None:
+            return "❌ command execution returned no capture result"
 
         stdout = getattr(result, "stdout", None)
         stderr = getattr(result, "stderr", None)
