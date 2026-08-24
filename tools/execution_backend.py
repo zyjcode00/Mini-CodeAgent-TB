@@ -19,6 +19,10 @@ from typing import Any
 import chardet
 
 
+class ExecutorShutdownError(RuntimeError):
+    """Raised when a command cannot be submitted to a closed executor."""
+
+
 class ToolExecutionBackend(ABC):
     """Abstract command execution backend used by shell-like tools."""
 
@@ -100,10 +104,7 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
                 except RuntimeError as error:
                     if "cannot schedule new futures after shutdown" not in str(error):
                         raise
-                    return (
-                        "❌ Terminal-Bench session is unavailable: "
-                        f"{error}"
-                    )
+                    raise ExecutorShutdownError(str(error)) from error
                 return self._format_result(result)
         raise RuntimeError(
             "Terminal-Bench session does not expose a supported command method "
