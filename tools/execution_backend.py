@@ -23,6 +23,10 @@ class ExecutorShutdownError(RuntimeError):
     """Raised when a command cannot be submitted to a closed executor."""
 
 
+class CommandCaptureError(RuntimeError):
+    """Raised when a session executes a command without returning capture data."""
+
+
 class ToolExecutionBackend(ABC):
     """Abstract command execution backend used by shell-like tools."""
 
@@ -186,7 +190,9 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
         if isinstance(result, str):
             return result or "Command executed with no output."
         if result is None:
-            return "❌ command execution returned no capture result"
+            raise CommandCaptureError(
+                "command execution returned no capture result"
+            )
 
         stdout = getattr(result, "stdout", None)
         stderr = getattr(result, "stderr", None)

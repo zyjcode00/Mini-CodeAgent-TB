@@ -1,6 +1,10 @@
 import pytest
 
-from tools.execution_backend import ExecutorShutdownError, TerminalBenchSessionBackend
+from tools.execution_backend import (
+    CommandCaptureError,
+    ExecutorShutdownError,
+    TerminalBenchSessionBackend,
+)
 
 
 class FakeTerminalBenchSession:
@@ -120,7 +124,11 @@ def test_empty_command_output_is_reported_as_a_real_empty_result():
 def test_missing_command_capture_is_distinguished_from_real_empty_output():
     backend = TerminalBenchSessionBackend(MissingCaptureTerminalBenchSession())
 
-    assert backend.run_command("true") == "❌ command execution returned no capture result"
+    with pytest.raises(
+        CommandCaptureError,
+        match="command execution returned no capture result",
+    ):
+        backend.run_command("true")
 
 
 def test_non_shutdown_session_errors_are_still_raised():
