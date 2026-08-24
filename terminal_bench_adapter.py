@@ -31,7 +31,7 @@ uv run tb run \
 uv run tb run \
   --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
   --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
-  --task-id chem-rf \
+  --task-id 3d-model-format-legacy \
   --output-path ./eval_runs_test
 
 uv run tb run \
