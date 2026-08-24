@@ -113,6 +113,41 @@ def test_record_keeps_backward_compatible_reminder_api():
     assert any("相同范围" in reminder for reminder in reminders)
 
 
+def test_runtime_read_ledger_round_trips_session_coverage():
+    ledger = RuntimeReadLedger(duplicate_threshold=2)
+    ledger.before_read({"path": "core/engine.py", "start_line": 10, "end_line": 30})
+
+    restored = RuntimeReadLedger.from_dict(ledger.to_dict())
+    decision = restored.before_read(
+        {"path": "./core/engine.py", "start_line": 10, "end_line": 30}
+    )
+
+    assert decision.should_skip
+    assert any("相同范围" in reminder for reminder in decision.reminders)
+
+
+def test_engine_persists_read_ledger_across_session_reload(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    session_path = tmp_path / "session.json"
+
+    first = make_engine()
+    first.session_path = str(session_path)
+    first.read_ledger.before_read(
+        {"path": "core/context.py", "start_line": 1, "end_line": 25}
+    )
+    first.save_session()
+
+    second = make_engine()
+    second.session_path = str(session_path)
+    second.load_session()
+    decision = second.read_ledger.before_read(
+        {"path": "./core/context.py", "start_line": 1, "end_line": 25}
+    )
+
+    assert decision.should_skip
+    assert any("相同范围" in reminder for reminder in decision.reminders)
+
+
 def test_read_only_streak_guard_checkpoint_resets_after_write_tool():
     guard = ReadOnlyStreakGuard(checkpoint_threshold=3)
 

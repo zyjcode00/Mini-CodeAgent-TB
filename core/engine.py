@@ -843,6 +843,7 @@ class AgentEngine:
             "history_summary": self.context.history_summary,
             "messages": self.context.get_serializable_messages(),
             "plan": self.plan_manager.to_dict(),  # 🔥 保存计划状态
+            "read_ledger": self.read_ledger.to_dict(),
             # 🔥 新增：保存三层记忆数据（Phase 2/3）
             "memories": self.context.export_memories()
         }
@@ -859,6 +860,7 @@ class AgentEngine:
                     data = json.load(f)
                     self.context.history_summary = data.get("history_summary", "")
                     self.context.messages = data.get("messages", [])
+                    self.read_ledger = RuntimeReadLedger.from_dict(data.get("read_ledger"))
                     # 🔥 新增：恢复计划状态
                     if "plan" in data:
                         self.plan_manager.from_dict(data["plan"])
