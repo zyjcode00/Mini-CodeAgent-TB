@@ -7,7 +7,6 @@ import anthropic
 import openai
 import asyncio
 from tools.base import BaseTool
-from tools.execution_backend import ExecutorShutdownError
 from core.prompts import get_system_prompt
 from core.context import ContextManager  # <--- 导入新管家
 from core.context_assembler import ContextAssembler, ContextBudget
@@ -270,11 +269,6 @@ class AgentEngine:
                 # 如果工具执行失败，删除已添加的 assistant 消息，避免孤立
                 try:
                     results = await asyncio.gather(*tasks)
-                except ExecutorShutdownError:
-                    if self.is_openai_compat and self.last_oa_msg:
-                        if self.context.messages and self.context.messages[-1] == self.last_oa_msg:
-                            self.context.messages.pop()
-                    raise
                 except Exception as tool_exec_error:
                     print(f" [❌] 工具执行异常: {tool_exec_error}")
 
@@ -904,12 +898,6 @@ class AgentEngine:
         except asyncio.TimeoutError:
             timeout_seconds = float(os.getenv("COMPRESSION_LLM_TIMEOUT", "90"))
             print(f"[⚠️] 压缩 LLM 调用超时 ({timeout_seconds:g}s)，使用快速回退策略")
-            return None, "error"
-        except Exception as e:
-            print(f"[摘要调用失败]: {e}")
-            return None, "error"
-
-g}s)，使用快速回退策略")
             return None, "error"
         except Exception as e:
             print(f"[摘要调用失败]: {e}")
