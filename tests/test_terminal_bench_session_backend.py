@@ -177,13 +177,16 @@ def test_missing_command_capture_is_distinguished_from_real_empty_output():
         backend.run_command("true")
 
 
-def test_send_command_none_result_means_command_was_submitted():
+def test_send_command_without_capture_raises_a_protocol_error():
     session = AsyncSendCommandTerminalBenchSession()
     backend = TerminalBenchSessionBackend(session)
 
-    result = backend.run_command("echo hello")
+    with pytest.raises(
+        CommandCaptureError,
+        match="send_command submitted the command without returning captured output",
+    ):
+        backend.run_command("echo hello")
 
-    assert result == "Command submitted; output will be captured separately."
     assert session.received_command is not None
     assert session.received_command.command == "echo hello"
 

@@ -196,9 +196,10 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
             return result or "Command executed with no output."
         if result is None:
             if method_name == "send_command":
-                # send_command submits to tmux and intentionally has no result;
-                # callers can inspect the pane on the next interaction.
-                return "Command submitted; output will be captured separately."
+                raise CommandCaptureError(
+                    "Terminal-Bench send_command submitted the command without "
+                    "returning captured output; use a synchronous session command API"
+                )
             raise CommandCaptureError(
                 "command execution returned no capture result"
             )
