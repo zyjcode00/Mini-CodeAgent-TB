@@ -7,6 +7,7 @@ import anthropic
 import openai
 import asyncio
 from tools.base import BaseTool
+from tools.execution_backend import ExecutorShutdownError
 from core.prompts import get_system_prompt
 from core.context import ContextManager  # <--- 导入新管家
 from core.context_assembler import ContextAssembler, ContextBudget
@@ -402,6 +403,7 @@ class AgentEngine:
 
         result = {
             "success": False,
+            "stop_reason": "error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -409,13 +411,25 @@ class AgentEngine:
         }
         try:
             answer = await self.execute_query(prompt.strip())
-            result.update({
-                "success": True,
-                "final_answer": answer or "",
-                "turns": 1,
-            })
+            final_answer = answer or ""
+            if final_answer == "任务达到最大思考步数限制。":
+                result.update({
+                    "stop_reason": "max_turns",
+                    "final_answer": final_answer,
+                    "turns": 1,
+                    "error": "Agent reached its internal reasoning limit before completion.",
+                })
+            else:
+                result.update({
+                    "success": True,
+                    "stop_reason": "completed",
+                    "final_answer": final_answer,
+                    "turns": 1,
+                })
         except Exception as exc:
             result["turns"] = 1
+            if isinstance(exc, ExecutorShutdownError):
+                result["stop_reason"] = "executor_shutdown"
             result["error"] = f"{type(exc).__name__}: {exc}"
         return result
 
