@@ -50,6 +50,15 @@ class MissingCaptureTerminalBenchSession:
         return None
 
 
+class AsyncSendCommandTerminalBenchSession:
+    def __init__(self):
+        self.received_command = None
+
+    def send_command(self, command):
+        self.received_command = command
+        return None
+
+
 class ClosableTerminalBenchSession:
     def __init__(self):
         self.commands = []
@@ -129,6 +138,17 @@ def test_missing_command_capture_is_distinguished_from_real_empty_output():
         match="command execution returned no capture result",
     ):
         backend.run_command("true")
+
+
+def test_send_command_none_result_means_command_was_submitted():
+    session = AsyncSendCommandTerminalBenchSession()
+    backend = TerminalBenchSessionBackend(session)
+
+    result = backend.run_command("echo hello")
+
+    assert result == "Command submitted; output will be captured separately."
+    assert session.received_command is not None
+    assert session.received_command.command == "echo hello"
 
 
 def test_non_shutdown_session_errors_are_still_raised():

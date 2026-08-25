@@ -137,7 +137,7 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
                         raise
                     self._state = "closed"
                     raise ExecutorShutdownError(str(error)) from error
-                return self._format_result(result)
+                return self._format_result(result, method_name=method_name)
         raise RuntimeError(
             "Terminal-Bench session does not expose a supported command method "
             "(expected one of: run, exec, execute, send_command)"
@@ -186,10 +186,14 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
         return f"{command.rstrip()}\ntrue"
 
     @staticmethod
-    def _format_result(result: Any) -> str:
+    def _format_result(result: Any, *, method_name: str) -> str:
         if isinstance(result, str):
             return result or "Command executed with no output."
         if result is None:
+            if method_name == "send_command":
+                # send_command submits to tmux and intentionally has no result;
+                # callers can inspect the pane on the next interaction.
+                return "Command submitted; output will be captured separately."
             raise CommandCaptureError(
                 "command execution returned no capture result"
             )
