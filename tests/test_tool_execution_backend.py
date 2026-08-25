@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import types
 
 from tools import get_default_tools
@@ -186,3 +187,15 @@ def test_remote_pytest_uses_python_module_invocation():
     tool.run("tests/test file.py")
 
     assert session.commands == ["python3 -m pytest -v -- 'tests/test file.py'"]
+
+
+def test_remote_workspace_command_preserves_serialized_arguments():
+    from tools.remote_workspace import python_command
+
+    command = python_command(
+        "import json; print(json.dumps(ARGS, ensure_ascii=False))",
+        {"path": "a file's name\\nwith unicode: ce shi"},
+    )
+    result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+
+    assert result.stdout == '{"path": "a file\'s name\\\\nwith unicode: ce shi"}\n'
