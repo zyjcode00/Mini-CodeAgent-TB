@@ -30,10 +30,10 @@ def get_default_tools(
         FileEditTool(backend=execution_backend),
         WriteFullFileTool(backend=execution_backend),  # 新增：全量写入工具
         FileTreeTool(backend=execution_backend),
-        SearchTool(),  # 新增：代码搜索工具
-        ListSymbolsTool(),  # 新增：符号索引工具
-        FindSymbolTool(),  # 新增：符号查找工具
-        PytestTool(),
+        SearchTool(backend=execution_backend),  # 新增：代码搜索工具
+        ListSymbolsTool(backend=execution_backend),  # 新增：符号索引工具
+        FindSymbolTool(backend=execution_backend),  # 新增：符号查找工具
+        PytestTool(backend=execution_backend),
         SessionCleanerTool(),
         # Git 自动化工具
         GitStatusTool(),
