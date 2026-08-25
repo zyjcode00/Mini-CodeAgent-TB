@@ -157,7 +157,7 @@ def test_perform_task_runs_terminal_bench_setup_before_engine():
 def test_apt_mirror_setup_command_handles_debian_12_sources_and_uv_config():
     command = adapter.APT_MIRROR_SETUP_COMMAND
 
-    assert command.startswith("set -e")
+    assert command.startswith("set +e")
     assert "/etc/apt/sources.list" in command
     assert "/etc/apt/sources.list.d/debian.sources" in command
     assert "http://mirrors.ustc.edu.cn/debian" in command

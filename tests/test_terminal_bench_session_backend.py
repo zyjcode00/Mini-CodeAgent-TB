@@ -1,3 +1,6 @@
+import threading
+import time
+
 import pytest
 
 from tools.execution_backend import (
@@ -57,6 +60,22 @@ class AsyncSendCommandTerminalBenchSession:
     def send_command(self, command):
         self.received_command = command
         return None
+
+
+class SerializedTerminalBenchSession:
+    def __init__(self):
+        self.active = 0
+        self.max_active = 0
+        self.lock = threading.Lock()
+
+    def run(self, command):
+        with self.lock:
+            self.active += 1
+            self.max_active = max(self.max_active, self.active)
+        time.sleep(0.02)
+        with self.lock:
+            self.active -= 1
+        return {"stdout": command, "exit_code": 0}
 
 
 class ClosableTerminalBenchSession:
@@ -122,6 +141,24 @@ def test_closed_backend_rejects_commands_without_calling_session():
     with pytest.raises(ExecutorShutdownError, match="backend is closed"):
         backend.run_command("echo too-late")
     assert session.commands == []
+
+
+def test_session_commands_are_serialized_for_parallel_tool_calls():
+    session = SerializedTerminalBenchSession()
+    backend = TerminalBenchSessionBackend(session)
+    results = []
+
+    def invoke(command):
+        results.append(backend.run_command(command))
+
+    threads = [threading.Thread(target=invoke, args=(f"command-{index}",)) for index in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert session.max_active == 1
+    assert sorted(results) == ["STDOUT:\ncommand-0", "STDOUT:\ncommand-1"]
 
 
 def test_empty_command_output_is_reported_as_a_real_empty_result():

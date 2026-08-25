@@ -86,7 +86,7 @@ class MiniClaudeRunSummary:
 
 
 
-APT_MIRROR_SETUP_COMMAND = r"""set -e
+APT_MIRROR_SETUP_COMMAND = r"""set +e
 
 APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
 APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"

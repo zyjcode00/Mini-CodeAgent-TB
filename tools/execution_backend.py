@@ -13,6 +13,7 @@ from types import SimpleNamespace
 import os
 import platform
 import subprocess
+import threading
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -98,6 +99,9 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
             raise ValueError("session is required for TerminalBenchSessionBackend")
         self.session = session
         self._state = "running"
+        # Terminal-Bench drives one persistent tmux pane per session. Concurrent
+        # send_command calls share its input stream and completion signal.
+        self._command_lock = threading.Lock()
 
     @property
     def state(self) -> str:
@@ -126,18 +130,19 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
                 f"cannot submit command while execution backend is {self._state}"
             )
 
-        for method_name in ("run", "exec", "execute", "send_command"):
-            method = getattr(self.session, method_name, None)
-            if callable(method):
-                payload = self._coerce_command_for_method(method_name, command)
-                try:
-                    result = method(payload)
-                except RuntimeError as error:
-                    if "cannot schedule new futures after shutdown" not in str(error):
-                        raise
-                    self._state = "closed"
-                    raise ExecutorShutdownError(str(error)) from error
-                return self._format_result(result, method_name=method_name)
+        with self._command_lock:
+            for method_name in ("run", "exec", "execute", "send_command"):
+                method = getattr(self.session, method_name, None)
+                if callable(method):
+                    payload = self._coerce_command_for_method(method_name, command)
+                    try:
+                        result = method(payload)
+                    except RuntimeError as error:
+                        if "cannot schedule new futures after shutdown" not in str(error):
+                            raise
+                        self._state = "closed"
+                        raise ExecutorShutdownError(str(error)) from error
+                    return self._format_result(result, method_name=method_name)
         raise RuntimeError(
             "Terminal-Bench session does not expose a supported command method "
             "(expected one of: run, exec, execute, send_command)"
