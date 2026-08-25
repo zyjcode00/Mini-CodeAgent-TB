@@ -3,6 +3,8 @@ from __future__ import annotations
 import types
 
 from tools import get_default_tools
+from tools.search_tool import REMOTE_SEARCH_SCRIPT
+from tools.symbol_tool import REMOTE_SYMBOL_SCRIPT
 from tools.bash_tool import BashTool
 from tools.execution_backend import LocalExecutionBackend, TerminalBenchSessionBackend
 from tools.file_tool import FileEditTool, ReadTool, WriteFullFileTool
@@ -169,6 +171,11 @@ def test_remote_workspace_tools_report_remote_path_errors():
     assert "STDERR:" in result
     assert "EXIT_CODE: 1" in result
     assert "路径不存在" in result
+
+
+def test_remote_python_scripts_are_valid_syntax():
+    compile(REMOTE_SEARCH_SCRIPT, "<remote-search>", "exec")
+    compile(REMOTE_SYMBOL_SCRIPT, "<remote-symbol>", "exec")
 
 
 def test_remote_pytest_uses_python_module_invocation():
