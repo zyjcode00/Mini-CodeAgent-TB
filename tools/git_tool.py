@@ -221,7 +221,10 @@ class GitCommitTool(BaseTool):
                     return "ℹ️ 没有需要提交的修改"
                 if not message:
                     message = f"🔄 [Auto Snapshot] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                _, added = _run_backend_git(self.backend, "add", "-A")
+                # Automatic snapshots must not make transient workspace deletions permanent.
+                _, added = _run_backend_git(
+                    self.backend, "add", "--ignore-removal", "--", "."
+                )
                 if not added:
                     return "❌ 暂存失败"
                 commit_output, committed = _run_backend_git(self.backend, "commit", "-m", message)
@@ -256,9 +259,9 @@ class GitCommitTool(BaseTool):
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 message = f"🔄 [Auto Snapshot] {timestamp}"
 
-            # 暂存所有修改
+            # 自动快照不提交删除，避免把临时工作区清理固化为源码删除。
             add_result = subprocess.run(
-                ["git", "add", "-A"],
+                ["git", "add", "--ignore-removal", "--", "."],
                 capture_output=True, text=True, encoding='utf-8', errors='replace'
             )
             if add_result.returncode != 0:
