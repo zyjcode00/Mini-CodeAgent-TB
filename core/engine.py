@@ -7,7 +7,6 @@ import anthropic
 import openai
 import asyncio
 from tools.base import BaseTool
-from tools.execution_backend import ExecutorShutdownError
 from core.prompts import get_system_prompt
 from core.context import ContextManager  # <--- 导入新管家
 from core.context_assembler import ContextAssembler, ContextBudget
@@ -42,9 +41,6 @@ class AgentEngine:
         self.last_oa_msg = None
         self.session_id = session_id
         self.session_path = f"sessions/{session_id}.json"
-        # Keep read coverage at session scope so execute_query and compression
-        # cannot forget which file ranges were already provided to the model.
-        self.read_ledger = RuntimeReadLedger()
         # ----------------------------------------------------------
 
         # ========== Git 自动化保险状态追踪 ==========
@@ -57,15 +53,6 @@ class AgentEngine:
         self.memory_recall_top_k = 8
         self.context_assembler = ContextAssembler(
             ContextBudget(memory=self.memory_token_budget)
-        )
-        # OpenAI-compatible gateways commonly reject oversized JSON requests
-        # with HTTP 413.  Keep the normal budget generous and use the retry
-        # budget only after that specific, recoverable failure.
-        self.llm_request_max_bytes = int(
-            os.getenv("MINI_CLAUDE_LLM_REQUEST_MAX_BYTES", str(10 * 1024 * 1024))
-        )
-        self.llm_request_retry_bytes = int(
-            os.getenv("MINI_CLAUDE_LLM_REQUEST_RETRY_BYTES", str(2 * 1024 * 1024))
         )
 
         self.is_openai_compat = base_url is not None or "claude" not in model.lower()
@@ -86,77 +73,6 @@ class AgentEngine:
         self.load_session()
 
 
-
-    @staticmethod
-    def _is_request_too_large_error(error: Exception) -> bool:
-        """Return whether an API failure represents an oversized request."""
-        status_code = getattr(error, "status_code", None)
-        response = getattr(error, "response", None)
-        response_status = getattr(response, "status_code", None)
-        if status_code == 413 or response_status == 413:
-            return True
-        message = str(error).lower()
-        return "413" in message and (
-            "request entity too large" in message
-            or "payload too large" in message
-            or "content too large" in message
-        )
-
-    @staticmethod
-    def _openai_request_bytes(messages: List[Dict[str, Any]], oa_tools: List[Dict[str, Any]]) -> int:
-        payload = {"messages": messages, "tools": oa_tools or None}
-        return len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
-
-    def _fit_openai_request_budget(
-        self,
-        *,
-        base_system_prompt: str,
-        memory_context: str,
-        compressed_state: str,
-        messages: List[Dict[str, Any]],
-        oa_tools: List[Dict[str, Any]],
-        provider: str,
-        target_bytes: int,
-    ):
-        """Assemble the largest provider-safe context within a byte budget."""
-        target_bytes = max(1, int(target_bytes))
-
-        def assemble(total_tokens: int):
-            budget = ContextBudget(
-                total=max(1, total_tokens),
-                system=max(1, int(total_tokens * 0.30)),
-                plan=max(1, int(total_tokens * 0.04)),
-                memory=max(1, int(total_tokens * 0.08)),
-                compressed_state=max(1, int(total_tokens * 0.10)),
-                recent_turns=max(0, int(total_tokens * 0.36)),
-                current_user=max(1, int(total_tokens * 0.12)),
-                emergency_buffer_ratio=0.0,
-            )
-            result = self.context_assembler.assemble(
-                base_system_prompt=base_system_prompt,
-                memory_context=memory_context,
-                compressed_state=compressed_state,
-                messages=messages,
-                provider=provider,
-                budget=budget,
-            )
-            size = self._openai_request_bytes(result.openai_messages, oa_tools)
-            return result, size
-
-        # Four UTF-8 bytes per token is a useful upper starting point.  Binary
-        # search then uses the actual serialized request size, not an estimate.
-        high = max(1, target_bytes // 4)
-        best, best_size = assemble(1)
-        low = 1
-        while low <= high:
-            mid = (low + high) // 2
-            candidate, candidate_size = assemble(mid)
-            if candidate_size <= target_bytes:
-                best, best_size = candidate, candidate_size
-                low = mid + 1
-            else:
-                high = mid - 1
-        return best, best_size
 
     async def _call_llm(self, relevant_history: str = "", user_input: str = ""):
         """核心推理：改为异步调用"""
@@ -197,64 +113,26 @@ class AgentEngine:
         # get_system_prompt 仍负责生成兼容旧行为的基础 system prompt；主动召回的
         # relevant_history 作为 memory layer 交给 assembler，避免直接无预算拼接。
         messages_snapshot = await self.context.get_messages_snapshot()
-        oa_tools = [{"type": "function", "function": {"name": t["name"], "description": t["description"], "parameters": t["input_schema"]}} for t in self.tool_specs] if self.is_openai_compat else []
-        provider = "openai" if self.is_openai_compat else "anthropic"
-        assembled_context, request_bytes = self._fit_openai_request_budget(
+        assembled_context = self.context_assembler.assemble(
             base_system_prompt=system_ptr,
             memory_context=relevant_history,
             compressed_state=self.context.history_summary,
             messages=messages_snapshot,
-            oa_tools=oa_tools,
-            provider=provider,
-            target_bytes=self.llm_request_max_bytes,
+            provider="openai" if self.is_openai_compat else "anthropic",
+            budget=ContextBudget(memory=self.memory_token_budget),
         )
         system_ptr = assembled_context.system_prompt
         messages_snapshot = assembled_context.messages
 
         if self.is_openai_compat:
-            request_messages = [{"role": "system", "content": system_ptr}] + messages_snapshot
-            if request_bytes > self.llm_request_max_bytes:
-                assembled_context, request_bytes = self._fit_openai_request_budget(
-                    base_system_prompt=system_ptr,
-                    memory_context="",
-                    compressed_state="",
-                    messages=messages_snapshot,
-                    oa_tools=oa_tools,
-                    provider=provider,
-                    target_bytes=self.llm_request_retry_bytes,
-                )
-                system_ptr = assembled_context.system_prompt
-                messages_snapshot = assembled_context.messages
-                request_messages = [{"role": "system", "content": system_ptr}] + messages_snapshot
+            oa_tools = [{"type": "function", "function": {"name": t["name"], "description": t["description"], "parameters": t["input_schema"]}} for t in self.tool_specs]
 
             # 使用 await 调用异步客户端
-            try:
-                resp = await self.client.chat.completions.create(
-                    model=self.model,
-                    messages=request_messages,
-                    tools=oa_tools if oa_tools else None
-                )
-            except Exception as exc:
-                if self._is_request_too_large_error(exc):
-                    assembled_context, _ = self._fit_openai_request_budget(
-                        base_system_prompt=system_ptr,
-                        memory_context="",
-                        compressed_state="",
-                        messages=messages_snapshot,
-                        oa_tools=oa_tools,
-                        provider=provider,
-                        target_bytes=self.llm_request_retry_bytes,
-                    )
-                    system_ptr = assembled_context.system_prompt
-                    messages_snapshot = assembled_context.messages
-                    request_messages = [{"role": "system", "content": system_ptr}] + messages_snapshot
-                    resp = await self.client.chat.completions.create(
-                        model=self.model,
-                        messages=request_messages,
-                        tools=oa_tools if oa_tools else None
-                    )
-                else:
-                    raise
+            resp = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "system", "content": system_ptr}] + messages_snapshot,
+                tools=oa_tools if oa_tools else None
+            )
 
             msg = resp.choices[0].message
             # 🔥 修复：转换为字典格式，避免后续 .get() 报错
@@ -310,8 +188,7 @@ class AgentEngine:
 
         await self.compress_messages()
 
-        # The ledger survives across execute_query calls in this session.
-        read_ledger = self.read_ledger
+        read_ledger = RuntimeReadLedger()
         read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
 
         step = 0
@@ -392,13 +269,6 @@ class AgentEngine:
                 # 如果工具执行失败，删除已添加的 assistant 消息，避免孤立
                 try:
                     results = await asyncio.gather(*tasks)
-                except ExecutorShutdownError as tool_exec_error:
-                    print(f" [❌] 工具执行器已关闭: {tool_exec_error}")
-                    if self.is_openai_compat and self.last_oa_msg:
-                        if self.context.messages and self.context.messages[-1] == self.last_oa_msg:
-                            self.context.messages.pop()
-                    self.save_session()
-                    raise
                 except Exception as tool_exec_error:
                     print(f" [❌] 工具执行异常: {tool_exec_error}")
 
@@ -532,7 +402,6 @@ class AgentEngine:
 
         result = {
             "success": False,
-            "stop_reason": "execute_query_error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -542,21 +411,8 @@ class AgentEngine:
             answer = await self.execute_query(prompt.strip())
             result.update({
                 "success": True,
-                "stop_reason": "completed",
                 "final_answer": answer or "",
                 "turns": 1,
-            })
-            if answer == "任务达到最大思考步数限制。":
-                result.update({
-                    "success": False,
-                    "stop_reason": "max_turns",
-                    "error": "Agent reached its internal reasoning limit before completion.",
-                })
-        except ExecutorShutdownError as exc:
-            result.update({
-                "stop_reason": "executor_shutdown",
-                "turns": 1,
-                "error": f"{type(exc).__name__}: {exc}",
             })
         except Exception as exc:
             result["turns"] = 1
@@ -850,7 +706,6 @@ class AgentEngine:
             "history_summary": self.context.history_summary,
             "messages": self.context.get_serializable_messages(),
             "plan": self.plan_manager.to_dict(),  # 🔥 保存计划状态
-            "read_ledger": getattr(self, "read_ledger", RuntimeReadLedger()).to_dict(),
             # 🔥 新增：保存三层记忆数据（Phase 2/3）
             "memories": self.context.export_memories()
         }
@@ -867,7 +722,6 @@ class AgentEngine:
                     data = json.load(f)
                     self.context.history_summary = data.get("history_summary", "")
                     self.context.messages = data.get("messages", [])
-                    self.read_ledger = RuntimeReadLedger.from_dict(data.get("read_ledger"))
                     # 🔥 新增：恢复计划状态
                     if "plan" in data:
                         self.plan_manager.from_dict(data["plan"])
