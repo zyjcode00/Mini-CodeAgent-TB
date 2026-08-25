@@ -53,8 +53,12 @@ def test_get_default_tools_injects_session_backend_into_workspace_tools():
         assert tool.backend is backend
 
     _find_tool(tools, "search_code").run("needle", path="/container/project")
-    assert len(session.commands) == 1
-    assert "needle" not in session.commands[0] or "workspace-tool" in session.commands[0]
+    _find_tool(tools, "list_all_symbols").run(path="/container/project")
+    _find_tool(tools, "find_symbol_definition").run("Needle", path="/container/project")
+    _find_tool(tools, "run_pytest").run("tests/test_needle.py")
+
+    assert len(session.commands) == 4
+    assert all("workspace-tool" in command or command.startswith("pytest -v") for command in session.commands)
 
 
 def test_terminal_bench_adapter_default_engine_uses_session_backend(monkeypatch):
