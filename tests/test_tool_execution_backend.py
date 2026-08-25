@@ -36,12 +36,25 @@ def test_get_default_tools_injects_terminal_bench_backend_into_bash():
     assert "session saw: echo from-container" in result
 
 
-def test_get_default_tools_keeps_local_bash_backend_by_default():
+def test_get_default_tools_keeps_local_backends_by_default():
     tools = get_default_tools()
-    bash_tool = _find_bash_tool(tools)
+    for name in ("execute_bash", "search_code", "list_all_symbols", "find_symbol_definition", "run_pytest"):
+        tool = _find_tool(tools, name)
+        assert isinstance(tool.backend, LocalExecutionBackend)
 
-    assert isinstance(bash_tool, BashTool)
-    assert isinstance(bash_tool.backend, LocalExecutionBackend)
+
+def test_get_default_tools_injects_session_backend_into_workspace_tools():
+    session = FakeSession()
+    backend = TerminalBenchSessionBackend(session)
+    tools = get_default_tools(execution_backend=backend)
+
+    for name in ("execute_bash", "search_code", "list_all_symbols", "find_symbol_definition", "run_pytest"):
+        tool = _find_tool(tools, name)
+        assert tool.backend is backend
+
+    _find_tool(tools, "search_code").run("needle", path="/container/project")
+    assert len(session.commands) == 1
+    assert "needle" not in session.commands[0] or "workspace-tool" in session.commands[0]
 
 
 def test_terminal_bench_adapter_default_engine_uses_session_backend(monkeypatch):
