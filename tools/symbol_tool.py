@@ -137,6 +137,10 @@ import ast, os
 from pathlib import Path
 args = ARGS
 root = Path(args["path"]).resolve()
+if not root.exists():
+    raise SystemExit("错误: 路径不存在 " + args["path"])
+if not root.is_dir():
+    raise SystemExit("错误: 路径不是目录 " + args["path"])
 items = []
 for current, dirs, files in os.walk(root):
     dirs[:] = [d for d in dirs if d not in {".git", "__pycache__", "node_modules", "venv", ".venv", "env", ".env"}]

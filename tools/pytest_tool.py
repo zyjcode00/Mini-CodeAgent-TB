@@ -21,7 +21,9 @@ class PytestTool(BaseTool):
 
     def run(self, path: str) -> str:
         if not isinstance(self.backend, LocalExecutionBackend):
-            return self.backend.run_command(f"pytest -v -- {shlex.quote(path)}")
+            return self.backend.run_command(
+                f"python3 -m pytest -v -- {shlex.quote(path)}"
+            )
 
         try:
             result = subprocess.run(

@@ -25,41 +25,44 @@ from pathlib import Path
 args = ARGS
 root = Path(args["path"])
 if not root.exists():
-    print("错误: 路径不存在 " + args["path"])
-else:
+    raise SystemExit("错误: 路径不存在 " + args["path"])
+if not root.is_dir():
+    raise SystemExit("错误: 路径不是目录 " + args["path"])
+try:
+    regex = re.compile(args["pattern"], 0 if args["case_sensitive"] else re.IGNORECASE)
+except re.error as error:
+    raise SystemExit("正则表达式错误: " + str(error))
+excluded = {".git", "__pycache__", ".venv", "node_modules", ".pytest_cache"}
+results, total, files = [], 0, 0
+for file_path in root.rglob(args["file_pattern"]):
+    if any(part in excluded for part in file_path.parts) or not file_path.is_file():
+        continue
     try:
-        regex = re.compile(args["pattern"], 0 if args["case_sensitive"] else re.IGNORECASE)
-        excluded = {".git", "__pycache__", ".venv", "node_modules", ".pytest_cache"}
-        results, total, files = [], 0, 0
-        for file_path in root.rglob(args["file_pattern"]):
-            if any(part in excluded for part in file_path.parts) or not file_path.is_file():
-                continue
-            try:
-                lines = file_path.read_text(encoding="utf-8", errors="ignore").splitlines()
-            except OSError:
-                continue
-            files += 1
-            matches = []
-            for number, line in enumerate(lines, 1):
-                if regex.search(line):
-                    before = [f"{i+1:4d} | {lines[i]}" for i in range(max(0, number-args["context"]-1), number-1)]
-                    after = [f"{i+1:4d} | {lines[i]}" for i in range(number, min(len(lines), number+args["context"]))]
-                    matches.append((number, line, before, after)); total += 1
-            if matches:
-                results.append((str(file_path.relative_to(root)), matches))
-        if not results:
-            print(f"未找到匹配项。已搜索 {files} 个文件。")
-        else:
-            print(f"[SEARCH] 搜索结果: 共找到 {total} 处匹配，分布在 {len(results)} 个文件中")
-            print("=" * 80)
-            for name, matches in results:
-                print(f"\\n[FILE] {name} ({len(matches)} 处匹配)\\n" + "-" * 80)
-                for number, line, before, after in matches:
-                    if before: print("    [上下文]\\n" + "\\n".join("    " + x for x in before))
-                    print(f">>> {number:4d} | {line}")
-                    if after: print("\\n".join("    " + x for x in after))
-            print("\\n" + "=" * 80)
-            print(f"[DONE] 搜索完成: {total} 处匹配，{len(results)} 个文件，共搜索 {files} 个文件")
+        lines = file_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except OSError:
+        continue
+    files += 1
+    matches = []
+    for number, line in enumerate(lines, 1):
+        if regex.search(line):
+            before = [f"{i+1:4d} | {lines[i]}" for i in range(max(0, number-args["context"]-1), number-1)]
+            after = [f"{i+1:4d} | {lines[i]}" for i in range(number, min(len(lines), number+args["context"]))]
+            matches.append((number, line, before, after)); total += 1
+    if matches:
+        results.append((str(file_path.relative_to(root)), matches))
+if not results:
+    print(f"未找到匹配项。已搜索 {files} 个文件。")
+else:
+    print(f"[SEARCH] 搜索结果: 共找到 {total} 处匹配，分布在 {len(results)} 个文件中")
+    print("=" * 80)
+    for name, matches in results:
+        print(f"\\n[FILE] {name} ({len(matches)} 处匹配)\\n" + "-" * 80)
+        for number, line, before, after in matches:
+            if before: print("    [上下文]\\n" + "\\n".join("    " + x for x in before))
+            print(f">>> {number:4d} | {line}")
+            if after: print("\\n".join("    " + x for x in after))
+    print("\\n" + "=" * 80)
+    print(f"[DONE] 搜索完成: {total} 处匹配，{len(results)} 个文件，共搜索 {files} 个文件")
 '''
 
 

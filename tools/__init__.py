@@ -36,9 +36,9 @@ def get_default_tools(
         PytestTool(backend=execution_backend),
         SessionCleanerTool(),
         # Git 自动化工具
-        GitStatusTool(),
-        GitCommitTool(),
-        GitRollbackTool(),
+        GitStatusTool(backend=execution_backend),
+        GitCommitTool(backend=execution_backend),
+        GitRollbackTool(backend=execution_backend),
         # 长期记忆工具
         memory_save_tool,
         memory_recall_tool,

@@ -58,7 +58,8 @@ def test_get_default_tools_injects_session_backend_into_workspace_tools():
     _find_tool(tools, "run_pytest").run("tests/test_needle.py")
 
     assert len(session.commands) == 4
-    assert all("workspace-tool" in command or command.startswith("pytest -v") for command in session.commands)
+    assert all("workspace-tool" in command for command in session.commands[:-1])
+    assert session.commands[-1].startswith("python3 -m pytest -v")
 
 
 def test_terminal_bench_adapter_default_engine_uses_session_backend(monkeypatch):
@@ -147,3 +148,34 @@ def test_backend_file_tools_pass_arguments_before_heredoc(tmp_path):
     assert read_result == "second\n"
     assert "成功: 已更新" in edit_result
     assert path.read_text(encoding="utf-8") == "first\nupdated\n"
+
+
+def test_remote_workspace_tools_report_remote_path_errors():
+    class ErrorSession(FakeSession):
+        def run(self, command: str):
+            self.commands.append(command)
+            return {
+                "stdout": "",
+                "stderr": "错误: 路径不存在 /container/missing\n",
+                "exit_code": 1,
+            }
+
+    session = ErrorSession()
+    backend = TerminalBenchSessionBackend(session)
+    tools = get_default_tools(execution_backend=backend)
+
+    result = _find_tool(tools, "search_code").run("needle", path="/container/missing")
+
+    assert "STDERR:" in result
+    assert "EXIT_CODE: 1" in result
+    assert "路径不存在" in result
+
+
+def test_remote_pytest_uses_python_module_invocation():
+    session = FakeSession()
+    backend = TerminalBenchSessionBackend(session)
+    tool = _find_tool(get_default_tools(execution_backend=backend), "run_pytest")
+
+    tool.run("tests/test file.py")
+
+    assert session.commands == ["python3 -m pytest -v -- 'tests/test file.py'"]

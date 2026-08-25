@@ -1,12 +1,41 @@
 # tools/git_tool.py
 # Git 自动化保险与物理回溯系统
 import os
+import shlex
 import subprocess
 import hashlib
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 from .base import BaseTool
+from .execution_backend import LocalExecutionBackend, ToolExecutionBackend
+
+
+def _backend_result_text(result: str) -> str:
+    """Extract command output from the human-readable backend result."""
+    if "STDOUT:" not in result:
+        return result.replace("\\\\n", "\\n")
+    stdout = result.split("STDOUT:", 1)[1]
+    stdout = stdout.split("STDERR:", 1)[0]
+    return stdout.replace("\\\\n", "\\n").strip()
+
+
+def _run_backend_git(backend: ToolExecutionBackend, *args: str) -> tuple[str, bool]:
+    result = backend.run_command("git " + shlex.join(list(args)))
+    normalized = result.replace("\\\\n", "\\n")
+    if "EXIT_CODE:" in normalized:
+        try:
+            exit_code = int(normalized.rsplit("EXIT_CODE:", 1)[1].strip().split()[0])
+        except (ValueError, IndexError):
+            exit_code = 1
+    else:
+        exit_code = 0 if not normalized.startswith("❌") else 1
+    if exit_code != 0:
+        if "STDERR:" in normalized:
+            error = normalized.split("STDERR:", 1)[1].strip()
+            return error, False
+        return _backend_result_text(normalized), False
+    return _backend_result_text(normalized), True
 
 
 # ==================== 数据模型 ====================
@@ -28,13 +57,66 @@ class GitRollbackArgs(BaseModel):
 
 # ==================== Git 状态检查 ====================
 
+
+def _format_git_status(status_text: str, branch: str, last_commit: str) -> str:
+    lines = status_text.strip().split("\\n") if status_text.strip() else []
+    if not lines:
+        return f"✅ 工作区干净\\n📍 分支: {branch.strip() or 'HEAD detached'}\\n📌 最新提交: {last_commit.strip() or '无提交历史'}"
+
+    modified, staged, untracked = [], [], []
+    for line in lines:
+        if not line:
+            continue
+        index_status = line[0] if len(line) > 0 else " "
+        work_status = line[1] if len(line) > 1 else " "
+        filepath = line[2:].lstrip() if len(line) > 2 else ""
+        if index_status in "MADRC":
+            staged.append(filepath)
+        if work_status in "MD":
+            modified.append(filepath)
+        if index_status == "?":
+            untracked.append(filepath)
+
+    output = [f"📍 分支: {branch.strip() or 'HEAD detached'}", f"📌 最新提交: {last_commit.strip() or '无提交历史'}"]
+    if staged:
+        output.append(f"\\n🟢 暂存区 ({len(staged)} 个文件):")
+        output.extend(f"  + {path}" for path in staged[:10])
+        if len(staged) > 10:
+            output.append(f"  ... 还有 {len(staged) - 10} 个文件")
+    if modified:
+        output.append(f"\\n🟡 工作区修改 ({len(modified)} 个文件):")
+        output.extend(f"  ~ {path}" for path in modified[:10])
+        if len(modified) > 10:
+            output.append(f"  ... 还有 {len(modified) - 10} 个文件")
+    if untracked:
+        output.append(f"\\n⚪ 未跟踪 ({len(untracked)} 个文件):")
+        output.extend(f"  ? {path}" for path in untracked[:10])
+        if len(untracked) > 10:
+            output.append(f"  ... 还有 {len(untracked) - 10} 个文件")
+    return "\\n".join(output)
+
+
 class GitStatusTool(BaseTool):
     name = "get_git_status"
     description = "获取当前 Git 仓库状态，包括未提交的修改、暂存区状态等"
     args_schema = GitStatusArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend or LocalExecutionBackend()
+
     def run(self) -> str:
         """检查 Git 状态"""
+        if not isinstance(self.backend, LocalExecutionBackend):
+            try:
+                _, is_repo = _run_backend_git(self.backend, "rev-parse", "--is-inside-work-tree")
+                if not is_repo:
+                    return "❌ 当前目录不是 Git 仓库"
+                status, _ = _run_backend_git(self.backend, "status", "--porcelain")
+                branch, _ = _run_backend_git(self.backend, "branch", "--show-current")
+                last_commit, _ = _run_backend_git(self.backend, "log", "-1", "--oneline")
+                return _format_git_status(status, branch, last_commit)
+            except Exception as e:
+                return f"❌ 获取 Git 状态失败: {str(e)}"
         try:
             # 检查是否在 Git 仓库中
             result = subprocess.run(
@@ -124,8 +206,33 @@ class GitCommitTool(BaseTool):
     description = "创建 Git 快照提交，自动暂存所有修改并提交。用于在关键步骤后保存进度。"
     args_schema = GitCommitArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend or LocalExecutionBackend()
+
     def run(self, message: str = "") -> str:
         """创建快照提交"""
+        if not isinstance(self.backend, LocalExecutionBackend):
+            try:
+                _, is_repo = _run_backend_git(self.backend, "rev-parse", "--is-inside-work-tree")
+                if not is_repo:
+                    return "❌ 当前目录不是 Git 仓库"
+                status, _ = _run_backend_git(self.backend, "status", "--porcelain")
+                if not status.strip():
+                    return "ℹ️ 没有需要提交的修改"
+                if not message:
+                    message = f"🔄 [Auto Snapshot] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                _, added = _run_backend_git(self.backend, "add", "-A")
+                if not added:
+                    return "❌ 暂存失败"
+                commit_output, committed = _run_backend_git(self.backend, "commit", "-m", message)
+                if not committed:
+                    if "nothing to commit" in commit_output:
+                        return "ℹ️ 没有需要提交的修改"
+                    return f"❌ 提交失败: {commit_output}"
+                commit_hash, _ = _run_backend_git(self.backend, "rev-parse", "HEAD")
+                return f"✅ 快照已保存: {commit_hash.strip()[:8]}\n📝 {message}"
+            except Exception as e:
+                return f"❌ 创建快照失败: {str(e)}"
         try:
             # 检查 Git 仓库
             result = subprocess.run(
@@ -188,8 +295,27 @@ class GitRollbackTool(BaseTool):
     description = "回滚代码到指定提交。用于在连续失败时恢复到安全状态。"
     args_schema = GitRollbackArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend or LocalExecutionBackend()
+
     def run(self, commit_hash: str = "HEAD~1") -> str:
         """回滚到指定提交"""
+        if not isinstance(self.backend, LocalExecutionBackend):
+            try:
+                _, is_repo = _run_backend_git(self.backend, "rev-parse", "--is-inside-work-tree")
+                if not is_repo:
+                    return "❌ 当前目录不是 Git 仓库"
+                current_hash, _ = _run_backend_git(self.backend, "rev-parse", "HEAD")
+                target_hash, verified = _run_backend_git(self.backend, "rev-parse", "--verify", commit_hash)
+                if not verified:
+                    return f"❌ 无法找到提交: {commit_hash}"
+                _, reset = _run_backend_git(self.backend, "reset", "--hard", commit_hash)
+                if not reset:
+                    return "❌ 回滚失败"
+                _run_backend_git(self.backend, "clean", "-fd")
+                return f"✅ 已回滚到: {target_hash.strip()[:8]}\n📍 之前位置: {current_hash.strip()[:8]}\n⚠️ 所有未提交的修改已丢失"
+            except Exception as e:
+                return f"❌ 回滚失败: {str(e)}"
         try:
             # 检查 Git 仓库
             result = subprocess.run(
