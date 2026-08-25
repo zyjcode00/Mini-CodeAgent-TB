@@ -3,7 +3,7 @@ import subprocess
 from pydantic import BaseModel, Field
 
 from .base import BaseTool
-from .execution_backend import LocalExecutionBackend
+from .execution_backend import LocalExecutionBackend, ToolExecutionBackend
 
 
 class PytestArgs(BaseModel):
