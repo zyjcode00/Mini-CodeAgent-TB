@@ -132,6 +132,58 @@ class SymbolExtractor:
 
 # --- 工具定义 ---
 
+REMOTE_SYMBOL_SCRIPT = r'''
+import ast, os
+from pathlib import Path
+args = ARGS
+root = Path(args["path"]).resolve()
+items = []
+for current, dirs, files in os.walk(root):
+    dirs[:] = [d for d in dirs if d not in {".git", "__pycache__", "node_modules", "venv", ".venv", "env", ".env"}]
+    for filename in files:
+        if not filename.endswith(".py"):
+            continue
+        file_path = Path(current) / filename
+        try:
+            tree = ast.parse(file_path.read_text(encoding="utf-8", errors="ignore"), filename=str(file_path))
+        except (SyntaxError, OSError, ValueError):
+            continue
+        relative = str(file_path.relative_to(root))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                items.append((node.name, "class", relative, node.lineno, getattr(node, "end_lineno", node.lineno), ast.get_docstring(node), None))
+                for child in node.body:
+                    if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        items.append((child.name, "function", relative, child.lineno, getattr(child, "end_lineno", child.lineno), ast.get_docstring(child), node.name))
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and not any(isinstance(parent, ast.ClassDef) and node in parent.body for parent in ast.walk(tree)):
+                items.append((node.name, "function", relative, node.lineno, getattr(node, "end_lineno", node.lineno), ast.get_docstring(node), None))
+if args["mode"] == "find":
+    items = [item for item in items if args["name"] in item[0]]
+if args.get("symbol_type", "all") != "all":
+    items = [item for item in items if item[1] == args["symbol_type"]]
+if not items:
+    print("未找到符号: " + args.get("name", "任何"))
+elif args["mode"] == "find":
+    print(f"🔍 找到 {len(items)} 个匹配项")
+    print("=" * 80)
+    for index, item in enumerate(items, 1):
+        name, kind, filename, start, end, doc, parent = item
+        print(f"\\n[{index}] {kind.upper()}: {name}")
+        if parent: print("    父类: " + parent)
+        print(f"    📁 文件: {filename}")
+        print(f"    📍 行号: L{start} - L{end}")
+        if doc: print("\\n    💬 文档字符串:\\n" + "\\n".join("       " + line for line in doc.strip().splitlines()[:5]))
+else:
+    print(f"📊 项目符号索引 (共 {len(items)} 个定义)")
+    print("=" * 80)
+    for item in sorted(items, key=lambda x: (x[2], x[3])):
+        name, kind, filename, start, end, doc, parent = item
+        display = (parent + "." if parent else "") + name
+        print(f"\\n📁 {filename}\\n{'📦' if kind == 'class' else '⚡'}   {display} (L{start}-L{end})")
+        if doc: print("    💬 " + doc.strip().splitlines()[0])
+'''
+
+
 class ListSymbolsArgs(BaseModel):
     path: str = Field(".", description="项目根路径，默认为当前目录")
     symbol_type: str = Field("all", description="符号类型过滤：all/class/function")
@@ -142,7 +194,14 @@ class ListSymbolsTool(BaseTool):
     description = "返回项目所有 API 的大纲。列出所有类和函数的定义位置、行号和文档字符串，帮助快速理解陌生模块。"
     args_schema = ListSymbolsArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend or LocalExecutionBackend()
+
     def run(self, path: str = ".", symbol_type: str = "all") -> str:
+        if not isinstance(self.backend, LocalExecutionBackend):
+            return self.backend.run_command(python_command(REMOTE_SYMBOL_SCRIPT, {
+                "mode": "list", "path": path, "symbol_type": symbol_type,
+            }))
         """
         列出项目中的所有符号
 
@@ -215,7 +274,14 @@ class FindSymbolTool(BaseTool):
     description = "根据名称直接定位代码块。返回符号的定义位置（文件、起始/结束行号）、Docstring 和代码片段，跳过盲目的 grep 搜索。"
     args_schema = FindSymbolArgs
 
+    def __init__(self, backend: ToolExecutionBackend | None = None):
+        self.backend = backend or LocalExecutionBackend()
+
     def run(self, name: str, path: str = ".") -> str:
+        if not isinstance(self.backend, LocalExecutionBackend):
+            return self.backend.run_command(python_command(REMOTE_SYMBOL_SCRIPT, {
+                "mode": "find", "path": path, "name": name,
+            }))
         """
         查找符号定义
 
