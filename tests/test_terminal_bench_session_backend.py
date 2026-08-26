@@ -19,7 +19,7 @@ class FakeTerminalBenchSession:
         # object and accesses these attributes. Passing a raw str used to raise
         # AttributeError: 'str' object has no attribute 'append_enter'.
         assert command.append_enter is True
-        assert command.command == "echo hello"
+        assert command.command.endswith("\necho hello\ntrue")
         self.received_command = command
         return {"stdout": "hello\n", "exit_code": 0}
 
@@ -110,7 +110,23 @@ def test_terminal_bench_send_command_receives_terminal_command_like_object():
     result = backend.run_command("echo hello")
 
     assert session.received_command is not None
+    assert session.received_command.command.startswith(
+        "export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0\n"
+    )
     assert "STDOUT:\nhello" in result
+
+
+def test_terminal_bench_send_command_disables_git_pager_and_prompts():
+    session = CapturingTerminalBenchSession()
+    backend = TerminalBenchSessionBackend(session)
+
+    backend.run_command("git diff --find-renames master..feature")
+
+    assert session.received_command.command == (
+        "export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0\n"
+        "git diff --find-renames master..feature\n"
+        "true"
+    )
 
 
 def test_terminal_bench_multiline_send_command_keeps_heredoc_delimiter_standalone():
@@ -195,7 +211,7 @@ def test_send_command_reads_terminal_bench_incremental_output():
 
     assert backend.run_command("echo hello") == "captured output"
     assert session.received_command is not None
-    assert session.received_command.command == "echo hello"
+    assert session.received_command.command.endswith("\necho hello\ntrue")
     assert session.received_command.block is True
 
 
@@ -210,7 +226,7 @@ def test_send_command_without_capture_raises_a_protocol_error():
         backend.run_command("echo hello")
 
     assert session.received_command is not None
-    assert session.received_command.command == "echo hello"
+    assert session.received_command.command.endswith("\necho hello\ntrue")
 
 
 def test_non_shutdown_session_errors_are_still_raised():

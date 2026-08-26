@@ -157,6 +157,7 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
         if method_name != "send_command":
             return command
 
+        command = TerminalBenchSessionBackend._disable_interactive_command_features(command)
         command = TerminalBenchSessionBackend._make_multiline_command_tmux_safe(command)
 
         try:
@@ -177,6 +178,12 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
                 block=True,
                 append_enter=True,
             )
+
+    @staticmethod
+    def _disable_interactive_command_features(command: str) -> str:
+        """Prevent pagers and prompts from blocking a tmux-backed command."""
+        environment = "GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0"
+        return f"export {environment}\n{command}"
 
     @staticmethod
     def _make_multiline_command_tmux_safe(command: str) -> str:
