@@ -1,0 +1,218 @@
+[?2004hroot@62d4894e78ee:/app/personal-site# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@62d4894e78ee:/app/personal-site# clear
+[?2004l[H[J[3J[?2004hroot@62d4894e78ee:/app/personal-site# set +e
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# 
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# 
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# 
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# 
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# 
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# apt-get update || true
+[?2004l0% [Working]            Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+0% [1 InRelease 7240 B/151 kB 5%]                                 0% [Working]            Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+0% [2 InRelease 5792 B/55.4 kB 10%]                                   0% [Working]            Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+0% [3 InRelease 4344 B/34.8 kB 12%]0% [3 InRelease 34.8 kB/34.8 kB 100%]                                     0% [Working]            Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+0% [4 Packages 2896 B/8790 kB 0%]0% [4 Packages 109 kB/8790 kB 1%]19% [4 Packages 419 kB/8790 kB 5%]65% [4 Packages 5798 kB/8790 kB 66%]                                    90% [Working]90% [4 Packages store 0 B] [Waiting for headers]                                                Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+90% [4 Packages store 0 B] [5 Packages 6924 B/6924 B 100%]                                                          90% [4 Packages store 0 B] [Waiting for headers]                                                Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+90% [4 Packages store 0 B] [6 Packages 0 B/335 kB 0%]                                                     93% [4 Packages store 0 B]                          96% [Working]96% [5 Packages store 0 B]                          98% [Working]98% [6 Packages store 0 B]                          100% [Working]              Fetched 9374 kB in 2s (5253 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@62d4894e78ee:/app/personal-site# true; tmux wait -S done
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# git rev-parse --is-inside-work-tree; tmux wait -S done
+[?2004ltrue
+[?2004hroot@62d4894e78ee:/app/personal-site# git branch --all --verbose --no-abbrev; tmux wait -S done
+[?2004l[?1h=* [32mmaster[m d7d3e4ba9350f634d92d39ace2b471433ee57d50 off the job market woo[m
+[K[?1l>[?2004hroot@62d4894e78ee:/app/personal-site# git stash list --date=local; tmux wait -S done
+[?2004l[?2004hroot@62d4894e78ee:/app/personal-site# git reflog --date=local --decorate -n 30; tmux wait -S done
+[?2004l[?1h=[33md7d3e4b[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m HEAD@{Wed Aug 26 04:56:12 2026}: checkout: moving from dc5cf1b7793d0607073c12df8a6f0d5366b3f6e3 to master[m
+[33mdc5cf1b[m HEAD@{Wed Aug 26 04:56:12 2026}: commit: Move to Stanford[m
+[33mc4e38a1[m HEAD@{Wed Aug 26 04:56:12 2026}: checkout: moving from master to HEAD~1[m
+[33md7d3e4b[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m HEAD@{Wed Aug 26 04:56:12 2026}: reset: moving to d7d3e4b[m
+[33m19b5d10[m HEAD@{Wed Aug 26 04:56:11 2026}: clone: from https://github.com/TheMikeMerrill/personal-site.git[m
+[K[?1l>[?2004hroot@62d4894e78ee:/app/personal-site# git log --all --decorate --oneline --graph -n 40; tmux wait -S done
+[?2004l[?1h=* [33md7d3e4b[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m off the job market woo[m
+* [33mc4e38a1[m Add code link for BLADE[m
+* [33m6f46fa0[m CV Update[m
+* [33mdd7e395[m Adds BLADE to bib[m
+* [33m2cd355a[m n+1 (for the last time???)[m
+* [33m8eaf505[m Add BLADE[m
+* [33mcc2ec78[m Underline[m
+* [33md71094e[m Underline Conferences[m
+* [33m232b279[m Remove posters[m
+* [33m3fdf5f5[m Add NeurIPS[m
+* [33m8c4731d[m Add EMNLP acceptance[m
+* [33mf54f66b[m Add GR link[m
+* [33m18d2430[m Add other links[m
+* [33m1dd055e[m Ignore Gemfile, etc[m
+* [33m5c77a6d[m Dont overwrite[m
+* [33mc7d2f95[m Delete unsused files[m
+* [33m20b05d9[m Remove more unused files[m
+* [33m2d144f7[m Add yamls for new papers[m
+* [33m7882f2d[m Don't track _site[m
+* [33mcd2b8de[m Add new papers[m
+* [33m26dc65c[m Fix author[m
+* [33mbc1962c[m Interests update[m
+* [33m257eba8[m More space for interests[m
+* [33mff6a94a[m Bib update[m
+* [33m97c4a55[m Underline bold[m
+* [33ma320806[m Other fixes, new paper[m
+* [33m2cb7243[m New PDFs[m
+* [33m7321328[m PDF update[m
+* [33mf1e3860[m Deletions[m
+* [33m7b4d171[m Update Bio[m
+* [33m073117a[m Another update[m
+* [33mcb63517[m Another CV Updatee[m
+* [33m192ae7b[m update headshot[m
+* [33m7fb9365[m Update about and contact[m
+* [33m54ef19d[m CV Update[m
+* [33mb0fb76a[m Add GR[m
+* [33m6adfab9[m n plus one[m
+* [33m8a5509d[m Needs to be a string[m
+* [33me2f686e[m Add Gemfile[m
+:[K[K[K:[K[K:[K[K[7mNo next tag  (press RETURN)[27m[40;1H[K[K:[K[K-[Klog file: [Ktt[Kaa[Ktt[Kuu[Kss[K  [K--[K--[Kpp[Koo[Krr[Kcc[Kee[Kll[Kaa[Kii[Knn[K;;[K  [Ktt[Kmm[Kuu[Kxx[K  [Kww[Kaa[Kii[Ktt[K  [K--[KSS[K  [Kdd[Koo[Knn[Kee[K[K:[K[K* [33mfa098ef[m properly handle class[m
+[7m(END)[27m[K[K[HM* [33md7d3e4b[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m off the job market woo[m
+[40;1H[K:[K[K:[K[K[7mNo next tag  (press RETURN)[27m[40;1H[K[K:[K[K[K:[K[K...skipping...
+* [33md7d3e4b[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m off the job market woo[m
+* [33mc4e38a1[m Add code link for BLADE[m
+* [33m6f46fa0[m CV Update[m
+* [33mdd7e395[m Adds BLADE to bib[m
+* [33m2cd355a[m n+1 (for the last time???)[m
+* [33m8eaf505[m Add BLADE[m
+* [33mcc2ec78[m Underline[m
+* [33md71094e[m Underline Conferences[m
+* [33m232b279[m Remove posters[m
+* [33m3fdf5f5[m Add NeurIPS[m
+* [33m8c4731d[m Add EMNLP acceptance[m
+* [33mf54f66b[m Add GR link[m
+* [33m18d2430[m Add other links[m
+* [33m1dd055e[m Ignore Gemfile, etc[m
+* [33m5c77a6d[m Dont overwrite[m
+* [33mc7d2f95[m Delete unsused files[m
+* [33m20b05d9[m Remove more unused files[m
+* [33m2d144f7[m Add yamls for new papers[m
+* [33m7882f2d[m Don't track _site[m
+* [33mcd2b8de[m Add new papers[m
+* [33m26dc65c[m Fix author[m
+* [33mbc1962c[m Interests update[m
+* [33m257eba8[m More space for interests[m
+* [33mff6a94a[m Bib update[m
+* [33m97c4a55[m Underline bold[m
+* [33ma320806[m Other fixes, new paper[m
+* [33m2cb7243[m New PDFs[m
+* [33m7321328[m PDF update[m
+* [33mf1e3860[m Deletions[m
+* [33m7b4d171[m Update Bio[m
+* [33m073117a[m Another update[m
+* [33mcb63517[m Another CV Updatee[m
+* [33m192ae7b[m update headshot[m
+* [33m7fb9365[m Update about and contact[m
+* [33m54ef19d[m CV Update[m
+* [33mb0fb76a[m Add GR[m
+* [33m6adfab9[m n plus one[m
+* [33m8a5509d[m Needs to be a string[m
+* [33me2f686e[m Add Gemfile[m
+:[K[K:[K[K/[K[K[7mNo previous regular expression  (press RETURN)[27m[40;1H[K[K:[K[K...skipping...
+[m
+                   [1mSUMMARY[0m [1mOF[0m [1mLESS[0m [1mCOMMANDS[0m[m
+[m
+      Commands marked with * may be preceded by a number, [4mN[24m.[m
+      Notes in parentheses indicate the behavior if [4mN[24m is given.[m
+      A key preceded by a caret indicates the Ctrl key; thus ^K is ctrl-K.[m
+[m
+  h  H                 Display this help.[m
+  q  :q  Q  :Q  ZZ     Exit.[m
+ ---------------------------------------------------------------------------[m
+[m
+                           [1mMOVING[0m[m
+[m
+  e  ^E  j  ^N  CR  *  Forward  one line   (or [4mN[24m lines).[m
+  y  ^Y  k  ^K  ^P  *  Backward one line   (or [4mN[24m lines).[m
+  f  ^F  ^V  SPACE  *  Forward  one window (or [4mN[24m lines).[m
+  b  ^B  ESC-v      *  Backward one window (or [4mN[24m lines).[m
+  z                 *  Forward  one window (and set window to [4mN[24m).[m
+  w                 *  Backward one window (and set window to [4mN[24m).[m
+  ESC-SPACE         *  Forward  one window, but don't stop at end-of-file.[m
+  d  ^D             *  Forward  one half-window (and set half-window to [4mN[24m).[m
+  u  ^U             *  Backward one half-window (and set half-window to [4mN[24m).[m
+  ESC-)  RightArrow *  Right one half screen width (or [4mN[24m positions).[m
+  ESC-(  LeftArrow  *  Left  one half screen width (or [4mN[24m positions).[m
+  ESC-}  ^RightArrow   Right to last column displayed.[m
+  ESC-{  ^LeftArrow    Left  to first column.[m
+  F                    Forward forever; like "tail -f".[m
+  ESC-F                Like F but stop when search pattern is found.[m
+  r  ^R  ^L            Repaint screen.[m
+  R                    Repaint screen, discarding buffered input.[m
+        ---------------------------------------------------[m
+        Default "window" is the screen height.[m
+        Default "half-window" is half of the screen height.[m
+ ---------------------------------------------------------------------------[m
+[m
+                          [1mSEARCHING[0m[m
+[m
+  /[4mpattern[24m          *  Search forward for ([4mN[24m-th) matching line.[m
+  ?[4mpattern[24m          *  Search backward for ([4mN[24m-th) matching line.[m
+[7mHELP -- Press RETURN for more, or q when done[27m[K[K  n                 *  Repeat previous search (for [4mN[24m-th occurrence).[m
+  N                 *  Repeat previous search in reverse direction.[m
+  ESC-n             *  Repeat previous search, spanning files.[m
+  ESC-N             *  Repeat previous search, reverse dir. & spanning files.[m
+  ESC-u                Undo (toggle) search highlighting.[m
+  ESC-U                Clear search highlighting.[m
+  &[4mpattern[24m          *  Display only matching lines.[m
+        ---------------------------------------------------[m
+        A search pattern may begin with one or more of:[m
+        ^N or !  Search for NON-matching lines.[m
+        ^E or *  Search multiple files (pass thru END OF FILE).[m
+        ^F or @  Start search at FIRST file (for /) or last file (for ?).[m
+        ^K       Highlight matches, but don't move (KEEP position).[m
+        ^R       Don't use REGULAR EXPRESSIONS.[m
+        ^W       WRAP search if no match found.[m
+ ---------------------------------------------------------------------------[m
+[m
+                           [1mJUMPING[0m[m
+[m
+  g  <  ESC-<       *  Go to first line in file (or line [4mN[24m).[m
+  G  >  ESC->       *  Go to last line in file (or line [4mN[24m).[m
+  p  %              *  Go to beginning of file (or [4mN[24m percent into file).[m
+  t                 *  Go to the ([4mN[24m-th) next tag.[m
+  T                 *  Go to the ([4mN[24m-th) previous tag.[m
+  {  (  [           *  Find close bracket } ) ].[m
+  }  )  ]           *  Find open bracket { ( [.[m
+  ESC-^F [4m<c1>[24m [4m<c2>[24m  *  Find close bracket [4m<c2>[24m.[m
+  ESC-^B [4m<c1>[24m [4m<c2>[24m  *  Find open bracket [4m<c1>[24m.[m
+        ---------------------------------------------------[m
+        Each "find close bracket" command goes forward to the close bracket [m
+          matching the ([4mN[24m-th) open bracket in the top line.[m
+        Each "find open bracket" command goes backward to the open bracket [m
+          matching the ([4mN[24m-th) close bracket in the bottom line.[m
+[m
+  m[4m<letter>[24m            Mark the current top line with <letter>.[m
+  M[4m<letter>[24m            Mark the current bottom line with <letter>.[m
+  '[4m<letter>[24m            Go to a previously marked position.[m
+  ''                   Go to the previous position.[m
+  ^X^X                 Same as '.[m
+[7mHELP -- Press RETURN for more, or q when done[27m[K[K-[K--[Kss[Khh[K--[Kss[Khh[Kii[Kff[Ktt[KHorizontal shift: 
