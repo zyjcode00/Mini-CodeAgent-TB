@@ -62,6 +62,18 @@ class AsyncSendCommandTerminalBenchSession:
         return None
 
 
+class CapturingSendCommandTerminalBenchSession:
+    def __init__(self):
+        self.received_command = None
+
+    def send_command(self, command):
+        self.received_command = command
+        return None
+
+    def get_incremental_output(self):
+        return "captured output"
+
+
 class SerializedTerminalBenchSession:
     def __init__(self):
         self.active = 0
@@ -175,6 +187,16 @@ def test_missing_command_capture_is_distinguished_from_real_empty_output():
         match="command execution returned no capture result",
     ):
         backend.run_command("true")
+
+
+def test_send_command_reads_terminal_bench_incremental_output():
+    session = CapturingSendCommandTerminalBenchSession()
+    backend = TerminalBenchSessionBackend(session)
+
+    assert backend.run_command("echo hello") == "captured output"
+    assert session.received_command is not None
+    assert session.received_command.command == "echo hello"
+    assert session.received_command.block is True
 
 
 def test_send_command_without_capture_raises_a_protocol_error():

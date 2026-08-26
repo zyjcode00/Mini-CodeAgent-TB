@@ -142,7 +142,11 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
                             raise
                         self._state = "closed"
                         raise ExecutorShutdownError(str(error)) from error
-                    return self._format_result(result, method_name=method_name)
+                    return self._format_result(
+                        result,
+                        method_name=method_name,
+                        session=self.session,
+                    )
         raise RuntimeError(
             "Terminal-Bench session does not expose a supported command method "
             "(expected one of: run, exec, execute, send_command)"
@@ -191,11 +195,25 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
         return f"{command.rstrip()}\ntrue"
 
     @staticmethod
-    def _format_result(result: Any, *, method_name: str) -> str:
+    def _format_result(
+        result: Any,
+        *,
+        method_name: str,
+        session: Any | None = None,
+    ) -> str:
         if isinstance(result, str):
             return result or "Command executed with no output."
         if result is None:
             if method_name == "send_command":
+                get_output = getattr(session, "get_incremental_output", None)
+                if callable(get_output):
+                    captured_output = get_output()
+                    if not isinstance(captured_output, str):
+                        raise CommandCaptureError(
+                            "Terminal-Bench get_incremental_output returned "
+                            "a non-string capture result"
+                        )
+                    return captured_output or "Command executed with no output."
                 raise CommandCaptureError(
                     "Terminal-Bench send_command submitted the command without "
                     "returning captured output; use a synchronous session command API"
