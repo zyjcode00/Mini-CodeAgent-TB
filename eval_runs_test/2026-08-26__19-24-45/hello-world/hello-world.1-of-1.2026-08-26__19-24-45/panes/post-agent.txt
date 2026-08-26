@@ -1,0 +1,64 @@
+root@27da58c2c990:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@27da58c2c990:/app# set +e
+root@27da58c2c990:/app#
+root@27da58c2c990:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@27da58c2c990:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@27da58c2c990:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@27da58c2c990:/app#
+root@27da58c2c990:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@27da58c2c990:/app#
+root@27da58c2c990:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@27da58c2c990:/app#
+root@27da58c2c990:/app# mkdir -p /root/.config/uv
+root@27da58c2c990:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@27da58c2c990:/app#
+root@27da58c2c990:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (5447 kB/s)
+Reading package lists... Done
+root@27da58c2c990:/app# true; tmux wait -S done
+root@27da58c2c990:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@27da58c2c990:/app# python3 - /app/hello.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'Hello, world!'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/hello.txt
+root@27da58c2c990:/app# true; tmux wait -S done
+root@27da58c2c990:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@27da58c2c990:/app# if [ -f /app/hello.txt ]; then cat -- /app/hello.txt; else echo '错误: 找不到文件 /app/hello.txt'; fi
+Hello, world!root@27da58c2c990:/app# true; tmux wait -S done
+root@27da58c2c990:/app#
