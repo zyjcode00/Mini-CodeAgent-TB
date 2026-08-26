@@ -15,6 +15,8 @@ from core.memory_manager import MemoryManager
 from core.read_guard import ReadOnlyStreakGuard, RuntimeReadLedger
 from core.safe_json import replace_lone_surrogates, safe_json_dump
 
+from tools.execution_backend import ExecutorShutdownError
+
 # Git 自动化保险导入
 from tools.git_tool import create_snapshot, rollback_to, has_uncommitted_changes, start_task_branch, finalize_task, start_plan_branch, finalize_plan
 
@@ -402,6 +404,7 @@ class AgentEngine:
 
         result = {
             "success": False,
+            "stop_reason": "error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -411,9 +414,20 @@ class AgentEngine:
             answer = await self.execute_query(prompt.strip())
             result.update({
                 "success": True,
+                "stop_reason": "completed",
                 "final_answer": answer or "",
                 "turns": 1,
             })
+            if answer == "任务达到最大思考步数限制。":
+                result.update({
+                    "success": False,
+                    "stop_reason": "max_turns",
+                    "error": "Agent reached its internal reasoning limit before completion.",
+                })
+        except ExecutorShutdownError as exc:
+            result["turns"] = 1
+            result["stop_reason"] = "executor_shutdown"
+            result["error"] = f"{type(exc).__name__}: {exc}"
         except Exception as exc:
             result["turns"] = 1
             result["error"] = f"{type(exc).__name__}: {exc}"
