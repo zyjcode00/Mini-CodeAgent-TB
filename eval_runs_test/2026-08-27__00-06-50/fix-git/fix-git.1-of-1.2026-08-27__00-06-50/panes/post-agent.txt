@@ -1,0 +1,43 @@
+root@ad1f829e7cea:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ad1f829e7cea:/app/personal-site# set +e
+root@ad1f829e7cea:/app/personal-site#
+root@ad1f829e7cea:/app/personal-site# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@ad1f829e7cea:/app/personal-site# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@ad1f829e7cea:/app/personal-site# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@ad1f829e7cea:/app/personal-site#
+root@ad1f829e7cea:/app/personal-site# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@ad1f829e7cea:/app/personal-site#
+root@ad1f829e7cea:/app/personal-site# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@ad1f829e7cea:/app/personal-site#
+root@ad1f829e7cea:/app/personal-site# mkdir -p /root/.config/uv
+root@ad1f829e7cea:/app/personal-site# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@ad1f829e7cea:/app/personal-site#
+root@ad1f829e7cea:/app/personal-site# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (3969 kB/s)
+Reading package lists... Done
+root@ad1f829e7cea:/app/personal-site# true; tmux wait -S done
+root@ad1f829e7cea:/app/personal-site#
