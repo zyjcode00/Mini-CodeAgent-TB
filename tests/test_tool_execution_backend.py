@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
 import subprocess
+import sys
 import types
 
 from tools import get_default_tools
@@ -199,3 +202,31 @@ def test_remote_workspace_command_preserves_serialized_arguments():
     result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
 
     assert result.stdout == '{"path": "a file\'s name\\\\nwith unicode: ce shi"}\n'
+
+
+def test_terminal_bench_adapter_imports_from_outside_project(tmp_path):
+    project_root = Path(__file__).resolve().parents[1]
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        part for part in (str(project_root), env.get("PYTHONPATH", "")) if part
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import terminal_bench_adapter; "
+                "from tools.remote_workspace import python_command; "
+                "print(terminal_bench_adapter.MiniClaudeCodeAgent.__name__)"
+            ),
+        ],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "MiniClaudeCodeTerminalBenchAgent"
