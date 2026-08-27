@@ -201,4 +201,86 @@ M	_layouts/default.html
 * [33m8c4731d[m Add EMNLP acceptance
 * [33mf54f66b[m Add GR link
 [?2004hroot@73b3835a6842:/app/personal-site# true; tmux wait -S done
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# git branch recovered-move-to-stanford dc5cf1b && git merge recovered-move-to-stanford
+[?2004lAuto-merging _includes/about.md
+CONFLICT (content): Merge conflict in _includes/about.md
+Automatic merge failed; fix conflicts and then commit the result.
+[?2004hroot@73b3835a6842:/app/personal-site# true; tmux wait -S done
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# python3 - /app/personal-site/_includes/about.md 1 30 false <<'PY'
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> start_line = int(sys.argv[2])
+[?2004l[?2004h> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+[?2004l[?2004h> raw_mode = sys.argv[4].lower() == 'true'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+[?2004l[?2004h>         lines = f.readlines()
+[?2004l[?2004h> except FileNotFoundError:
+[?2004l[?2004h>     print(f"错误: 找不到文件 {path}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"读取失败: {exc}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> 
+[?2004l[?2004h> total_lines = len(lines)
+[?2004l[?2004h> s_idx = max(0, start_line - 1)
+[?2004l[?2004h> e_idx = end_line if end_line is not None else total_lines
+[?2004l[?2004h> selected_lines = lines[s_idx:e_idx]
+[?2004l[?2004h> if raw_mode:
+[?2004l[?2004h>     sys.stdout.write(''.join(selected_lines))
+[?2004l[?2004h> else:
+[?2004l[?2004h>     output = []
+[?2004l[?2004h>     for i, line in enumerate(selected_lines):
+[?2004l[?2004h>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+[?2004l[?2004h>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+[?2004l[?2004h>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+[?2004l[?2004h> PY
+[?2004l--- 文件: /app/personal-site/_includes/about.md (第 1 至 9 行，共 9 行) ---
+   1 | <<<<<<< HEAD
+   2 | I am a sixth PhD candidate at the [Paul G. Allen School of Computer Science & Engineering](https://www.cs.washington.edu/) at The University of Washington, where I am advised by [Tim Althoff](http://www.timalthoff.com/). I am affiliated with [UW NLP](https://twitter.com/uwnlp).
+   3 | 
+   4 |  Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+   5 | =======
+   6 | I am a Postdoctoral Researcher at Stanford CS.
+   7 | 
+   8 | Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+   9 | >>>>>>> recovered-move-to-stanford
+--- 读取完毕 ---[?2004hroot@73b3835a6842:/app/personal-site# true; tmux wait -S done
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# git show master:_includes/about.md && printf '\n--- recovered ---\n' && git show recovered-move-to-stanford:_includes/about.md && printf '\n--- status ---\n' && git status --short
+[?2004lI am a sixth PhD candidate at the [Paul G. Allen School of Computer Science & Engineering](https://www.cs.washington.edu/) at The University of Washington, where I am advised by [Tim Althoff](http://www.timalthoff.com/). I am affiliated with [UW NLP](https://twitter.com/uwnlp).
+
+ Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com). 
+--- recovered ---
+I am a Postdoctoral Researcher at Stanford CS.
+
+Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com). 
+--- status ---
+[31mUU[m _includes/about.md
+[32mM[m  _layouts/default.html
+[?2004hroot@73b3835a6842:/app/personal-site# true; tmux wait -S done
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# python3 - /app/personal-site/_includes/about.md <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'I am a Postdoctoral Researcher at Stanford CS.\n\nPreviously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/personal-site/_includes/about.md
+[?2004hroot@73b3835a6842:/app/personal-site# true; tmux wait -S done
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@73b3835a6842:/app/personal-site# git add _includes/about.md _layouts/default.html && git commit --no-edit
+[?2004l[master 05caf66] Merge branch 'recovered-move-to-stanford'
+[?2004hroot@73b3835a6842:/app/personal-site# true; tmux wait -S done
 [?2004l[?2004hroot@73b3835a6842:/app/personal-site# 
