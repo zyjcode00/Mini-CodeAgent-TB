@@ -402,6 +402,7 @@ class AgentEngine:
 
         result = {
             "success": False,
+            "stop_reason": "error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -409,13 +410,26 @@ class AgentEngine:
         }
         try:
             answer = await self.execute_query(prompt.strip())
+            answer = answer or ""
+            if answer == "任务达到最大思考步数限制。":
+                result.update({
+                    "stop_reason": "max_turns",
+                    "final_answer": answer,
+                    "turns": 1,
+                    "error": "Agent reached its internal reasoning limit before completion.",
+                })
+                return result
+
             result.update({
                 "success": True,
-                "final_answer": answer or "",
+                "stop_reason": "completed",
+                "final_answer": answer,
                 "turns": 1,
             })
         except Exception as exc:
             result["turns"] = 1
+            if type(exc).__name__ == "ExecutorShutdownError":
+                result["stop_reason"] = "executor_shutdown"
             result["error"] = f"{type(exc).__name__}: {exc}"
         return result
 

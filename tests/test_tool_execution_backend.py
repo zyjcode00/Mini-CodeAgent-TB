@@ -204,6 +204,26 @@ def test_remote_workspace_command_preserves_serialized_arguments():
     assert result.stdout == '{"path": "a file\'s name\\\\nwith unicode: ce shi"}\n'
 
 
+def test_main_import_chain_exposes_agent_engine(tmp_path):
+    project_root = Path(__file__).resolve().parents[1]
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        part for part in (str(project_root), env.get("PYTHONPATH", "")) if part
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-c", "import main; print(main.AgentEngine.__name__)"],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "AgentEngine"
+
+
 def test_terminal_bench_adapter_imports_from_outside_project(tmp_path):
     project_root = Path(__file__).resolve().parents[1]
     env = os.environ.copy()
