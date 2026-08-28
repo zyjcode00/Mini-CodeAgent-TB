@@ -161,4 +161,39 @@ pairs: [('Alice', 'Bob'), ('Alice', 'Ethan')]
 [?2004l[?2004h> PY
 [?2004l成功: 已写入 results.txt
 [?2004hroot@ff8b74e9146f:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ff8b74e9146f:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ff8b74e9146f:/app# if [ -f results.txt ]; then cat -- results.txt; else echo '错误: 找不到文件 results.txt'; fi
+[?2004lAlice, Bob
+Alice, Ethan
+[?2004hroot@ff8b74e9146f:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ff8b74e9146f:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ff8b74e9146f:/app# python - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import itertools
+[?2004l[?2004h> content = Path('results.txt').read_text(encoding='utf-8')
+[?2004l[?2004h> print('FILE_CONTENT:\n' + content)
+[?2004l[?2004h> expected = 'Alice, Bob\nAlice, Ethan\n'
+[?2004l[?2004h> print('MATCH_EXPECTED:', content == expected)
+[?2004l[?2004h> people=('Alice','Bob','Charlie','David','Ethan','Frankie')
+[?2004l[?2004h> valid=[]
+[?2004l[?2004h> for rest in itertools.permutations([p for p in people if p!='Alice']):
+[?2004l[?2004h>     seat=('Alice',)+rest
+[?2004l[?2004h>     pos={p:i for i,p in enumerate(seat)}
+[?2004l[?2004h>     if pos['Bob'] != (pos['Alice']-2)%6: continue
+[?2004l[?2004h>     def adjacent(a,b): return (pos[a]-pos[b])%6 in (1,5)
+[?2004l[?2004h>     if adjacent('Bob','Ethan'): continue
+[?2004l[?2004h>     if not (adjacent('Frankie','David') or adjacent('Frankie','Ethan')): continue
+[?2004l[?2004h>     if adjacent('Alice','Frankie'): continue
+[?2004l[?2004h>     if pos['Ethan'] == (pos['Bob']+3)%6 and pos['David'] != (pos['Alice']+2)%6: continue
+[?2004l[?2004h>     valid.append(seat)
+[?2004l[?2004h> pairs=sorted({tuple(sorted((s[(s.index('Charlie')-1)%6],s[(s.index('Charlie')+1)%6]))) for s in valid})
+[?2004l[?2004h> print('PAIRS:', pairs)
+[?2004l[?2004h> PY
+[?2004lFILE_CONTENT:
+Alice, Bob
+Alice, Ethan
+
+MATCH_EXPECTED: True
+PAIRS: [('Alice', 'Bob'), ('Alice', 'Ethan')]
+[?2004hroot@ff8b74e9146f:/app# true; tmux wait -S done
 [?2004l[?2004hroot@ff8b74e9146f:/app# 
