@@ -302,7 +302,7 @@ class AgentEngine:
                         deferred_memory_contexts.append(failure_memory_context)
                     # ========== Git 自动化保险逻辑 ==========
                     # 1. 检测 edit_file 失败
-                    if t_name == "edit_file":
+                    if self.enable_git_automation and t_name == "edit_file":
                         file_path = t_input.get("path", "unknown")
                         if "错误" in str(res) or "失败" in str(res):
                             self.edit_failures[file_path] = self.edit_failures.get(file_path, 0) + 1
@@ -315,7 +315,7 @@ class AgentEngine:
                             self.edit_failures[file_path] = 0
 
                     # 2. 检测 mark_task_done 成功，检查 Plan 是否完成
-                    if t_name == "mark_task_done" and "✅" in str(res):
+                    if self.enable_git_automation and t_name == "mark_task_done" and "✅" in str(res):
                         # 检查 Plan 是否全部完成
                         if self.plan_manager.is_plan_complete():
                             if self.current_plan_branch:
