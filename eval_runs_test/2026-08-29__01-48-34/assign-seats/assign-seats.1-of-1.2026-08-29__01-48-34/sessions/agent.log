@@ -83,4 +83,121 @@
 [?2004l[?2004hroot@e25676d80083:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
 [?2004l[?2004hroot@e25676d80083:/app# if [ -f ./deps/ask_charlie.b64 ]; then cat -- ./deps/ask_charlie.b64; else echo '错误: 找不到文件 ./deps/ask_charlie.b64'; fi
 [?2004lcHJpbnQoIlNvLi4uIHdobyBhcmUgdGhlIHR3byBwZW9wbGUgSSdtIHNpdHRpbmcgYmV0d2Vlbj8iKQ==[?2004hroot@e25676d80083:/app# true; tmux wait -S done
+[?2004l[?2004hroot@e25676d80083:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@e25676d80083:/app# python - <<'PY'
+[?2004l[?2004h> import pickle, base64, pathlib, pprint
+[?2004l[?2004h> for path in ['deps/ask_alice.pkl','deps/ask_bob.pkl']:
+[?2004l[?2004h>     with open(path,'rb') as f:
+[?2004l[?2004h>         obj = pickle.load(f)
+[?2004l[?2004h>     print(path)
+[?2004l[?2004h>     pprint.pp(obj)
+[?2004l[?2004h>     print('---')
+[?2004l[?2004h> with open('deps/ask_charlie.b64','r') as f:
+[?2004l[?2004h>     data = f.read().strip()
+[?2004l[?2004h> print('deps/ask_charlie.b64 decoded:')
+[?2004l[?2004h> print(base64.b64decode(data).decode())
+[?2004l[?2004h> PY
+[?2004ldeps/ask_alice.pkl
+('print("I\'m Alice! You should know that Frankie and I work at rival '
+ 'companies.")')
+---
+deps/ask_bob.pkl
+('print("I\'m Bob! My preference is that I sit two seats to the left of Alice. '
+ 'Also, I don\'t like Ethan, so I refuse to sit next to him.")')
+---
+deps/ask_charlie.b64 decoded:
+print("So... who are the two people I'm sitting between?")
+[?2004hroot@e25676d80083:/app# true; tmux wait -S done
+[?2004l[?2004hroot@e25676d80083:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@e25676d80083:/app# python - <<'PY'
+[?2004l[?2004h> import itertools
+[?2004l[?2004h> people = ['Alice','Bob','Charlie','David','Ethan','Frankie']
+[?2004l[?2004h> for left_dir in [1,-1]:
+[?2004l[?2004h>     print('LEFT_DIR', left_dir)
+[?2004l[?2004h>     sols=[]
+[?2004l[?2004h>     # fix Alice at seat 0
+[?2004l[?2004h>     for perm in itertools.permutations([p for p in people if p!='Alice']):
+[?2004l[?2004h>         seats = { 'Alice':0 }
+[?2004l[?2004h>         for i,p in enumerate(perm, start=1):
+[?2004l[?2004h>             seats[p]=i
+[?2004l[?2004h>         # adjacency helpers
+[?2004l[?2004h>         def adj(a,b):
+[?2004l[?2004h>             da=(seats[a]-seats[b])%6
+[?2004l[?2004h>             return da in (1,5)
+[?2004l[?2004h>         def opposite(a,b):
+[?2004l[?2004h>             return (seats[a]-seats[b])%6==3
+[?2004l[?2004h>         def left_of(a,k=1):
+[?2004l[?2004h>             return (seats[a]+left_dir*k)%6
+[?2004l[?2004h>         # Bob two seats to the left of Alice
+[?2004l[?2004h>         if seats['Bob'] != left_of('Alice',2):
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         # Alice and Frankie not adjacent
+[?2004l[?2004h>         if adj('Alice','Frankie'):
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         # Bob not next to Ethan
+[?2004l[?2004h>         if adj('Bob','Ethan'):
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         # Frankie next to at least one of David/Ethan
+[?2004l[?2004h>         if not (adj('Frankie','David') or adj('Frankie','Ethan')):
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         # If Ethan opposite Bob then David two seats to the right of Alice.
+[?2004l[?2004h>         # right is opposite direction of left_dir
+[?2004l[?2004h>         if opposite('Ethan','Bob'):
+[?2004l[?2004h>             if seats['David'] != (seats['Alice'] - left_dir*2)%6:
+[?2004l[?2004h>                 continue
+[?2004l[?2004h>         sols.append(tuple(p for p,_ in sorted(seats.items(), key=lambda kv: kv[1])))
+[?2004l[?2004h>     print('solutions', len(sols))
+[?2004l[?2004h>     neigh=set()
+[?2004l[?2004h>     for s in sols:
+[?2004l[?2004h>         idx=s.index('Charlie')
+[?2004l[?2004h>         neigh.add(tuple(sorted((s[(idx-1)%6], s[(idx+1)%6]))))
+[?2004l[?2004h>     print('neighbor pairs', sorted(neigh))
+[?2004l[?2004h>     print('example sols', sols[:5])
+[?2004l[?2004h> PY
+[?2004lLEFT_DIR 1
+solutions 3
+neighbor pairs [('Alice', 'Bob'), ('Alice', 'Ethan')]
+example sols [('Alice', 'Charlie', 'Bob', 'Frankie', 'David', 'Ethan'), ('Alice', 'Charlie', 'Bob', 'Frankie', 'Ethan', 'David'), ('Alice', 'David', 'Bob', 'Frankie', 'Ethan', 'Charlie')]
+LEFT_DIR -1
+solutions 3
+neighbor pairs [('Alice', 'Bob'), ('Alice', 'Ethan')]
+example sols [('Alice', 'Charlie', 'Ethan', 'Frankie', 'Bob', 'David'), ('Alice', 'David', 'Ethan', 'Frankie', 'Bob', 'Charlie'), ('Alice', 'Ethan', 'David', 'Frankie', 'Bob', 'Charlie')]
+[?2004hroot@e25676d80083:/app# true; tmux wait -S done
+[?2004l[?2004hroot@e25676d80083:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@e25676d80083:/app# python3 - /app/results.txt <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'Alice, Bob\nAlice, Ethan\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/results.txt
+[?2004hroot@e25676d80083:/app# true; tmux wait -S done
+[?2004l[?2004hroot@e25676d80083:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@e25676d80083:/app# if [ -f /app/results.txt ]; then cat -- /app/results.txt; else echo '错误: 找不到文件 /app/results.txt'; fi
+[?2004lAlice, Bob
+Alice, Ethan
+[?2004hroot@e25676d80083:/app# true; tmux wait -S done
+[?2004l[?2004hroot@e25676d80083:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@e25676d80083:/app# python - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> p = Path('/app/results.txt')
+[?2004l[?2004h> expected = 'Alice, Bob\nAlice, Ethan\n'
+[?2004l[?2004h> actual = p.read_text(encoding='utf-8')
+[?2004l[?2004h> assert actual == expected, repr(actual)
+[?2004l[?2004h> lines = actual.splitlines()
+[?2004l[?2004h> assert len(lines) == 2
+[?2004l[?2004h> assert all(line == ', '.join(sorted(line.split(', '))) for line in lines)
+[?2004l[?2004h> print('results.txt validation passed')
+[?2004l[?2004h> PY
+[?2004lresults.txt validation passed
+[?2004hroot@e25676d80083:/app# true; tmux wait -S done
 [?2004l[?2004hroot@e25676d80083:/app# 
