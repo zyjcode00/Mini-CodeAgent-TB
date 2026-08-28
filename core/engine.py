@@ -7,7 +7,6 @@ import anthropic
 import openai
 import asyncio
 from tools.base import BaseTool
-from tools.execution_backend import ExecutorShutdownError
 from core.prompts import get_system_prompt
 from core.context import ContextManager  # <--- 导入新管家
 from core.context_assembler import ContextAssembler, ContextBudget
@@ -23,11 +22,9 @@ class AgentEngine:
     def __init__(self, tools: List[BaseTool], model: str, plan_manager, # <--- 传入管家
                  base_url: str = None, api_key: str = None,
                  max_history: int = 100, min_keep: int = 4, session_id="default",
-                 memory_manager: Optional[MemoryManager] = None,
-                 enable_git_automation: bool = True):
+                 memory_manager: Optional[MemoryManager] = None):
         self.tools = tools
         self.model = model
-        self.enable_git_automation = enable_git_automation
         self.plan_manager = plan_manager  # <--- 保存管家引用
         self.tool_map = {t.name: t for t in tools}
         self.tool_specs = [t.to_anthropic_spec() for t in tools]
@@ -204,8 +201,7 @@ class AgentEngine:
             # ========== 影子分支逻辑：Plan 开始时创建分支 ==========
             # 检查是否有 Plan 且当前不在影子分支上
             plan_id = self.plan_manager.get_plan_id()
-            if (self.enable_git_automation and plan_id and not self.current_plan_branch
-                    and self.skipped_plan_branch_id != plan_id):
+            if plan_id and not self.current_plan_branch and self.skipped_plan_branch_id != plan_id:
                 print(f" [🌿] 检测到 Plan，创建影子分支 agent/plan-{plan_id}...")
                 success, msg = start_plan_branch(plan_id)
                 if success:
@@ -316,8 +312,7 @@ class AgentEngine:
                             self.edit_failures[file_path] = 0
 
                     # 2. 检测 mark_task_done 成功，检查 Plan 是否完成
-                    if (self.enable_git_automation and t_name == "mark_task_done"
-                            and "✅" in str(res)):
+                    if t_name == "mark_task_done" and "✅" in str(res):
                         # 检查 Plan 是否全部完成
                         if self.plan_manager.is_plan_complete():
                             if self.current_plan_branch:
@@ -376,7 +371,7 @@ class AgentEngine:
                     self.context.add_message({"role": "user", "content": memory_context})
 
                 # ========== 自动回滚逻辑 ==========
-                if self.enable_git_automation and should_rollback:
+                if should_rollback:
                     print(f"\n [🚨] 触发自动回滚: {rollback_reason}")
                     success, msg = rollback_to("HEAD~1")
                     if success:
@@ -407,7 +402,6 @@ class AgentEngine:
 
         result = {
             "success": False,
-            "stop_reason": "error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -415,28 +409,14 @@ class AgentEngine:
         }
         try:
             answer = await self.execute_query(prompt.strip())
-            answer_text = answer or ""
-            hit_turn_limit = "达到最大思考步数限制" in answer_text
             result.update({
-                "success": not hit_turn_limit,
-                "stop_reason": "max_turns" if hit_turn_limit else "completed",
-                "final_answer": answer_text,
-                "turns": max_turns if hit_turn_limit else 1,
-            })
-            if hit_turn_limit:
-                result["error"] = "Agent reached its internal reasoning limit before completion."
-        except ExecutorShutdownError as exc:
-            result.update({
-                "stop_reason": "executor_shutdown",
+                "success": True,
+                "final_answer": answer or "",
                 "turns": 1,
-                "error": f"{type(exc).__name__}: {exc}",
             })
         except Exception as exc:
-            result.update({
-                "stop_reason": "error",
-                "turns": 1,
-                "error": f"{type(exc).__name__}: {exc}",
-            })
+            result["turns"] = 1
+            result["error"] = f"{type(exc).__name__}: {exc}"
         return result
 
     def _is_simple_interaction(self, query: str) -> bool:
