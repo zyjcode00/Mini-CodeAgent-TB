@@ -137,4 +137,113 @@ Alice | Charlie | Ethan | Frankie | Bob | David
 Alice | David | Ethan | Frankie | Bob | Charlie
 Alice | Ethan | David | Frankie | Bob | Charlie
 [?2004hroot@ac0f159fe533:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ac0f159fe533:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ac0f159fe533:/app# python3 - /app/results.txt <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'Alice, Bob\nAlice, Ethan\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/results.txt
+[?2004hroot@ac0f159fe533:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ac0f159fe533:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ac0f159fe533:/app# if [ -f /app/results.txt ]; then cat -- /app/results.txt; else echo '错误: 找不到文件 /app/results.txt'; fi
+[?2004lAlice, Bob
+Alice, Ethan
+[?2004hroot@ac0f159fe533:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ac0f159fe533:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ac0f159fe533:/app# python3 - <<'PY'
+[?2004l[?2004h> from itertools import permutations
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import base64, pickle
+[?2004l[?2004h> 
+[?2004l[?2004h> # Confirm all source formats remain readable.
+[?2004l[?2004h> assert 'Frankie' in Path('/app/deps/frankie_preferences.txt').read_text()
+[?2004l[?2004h> assert base64.b64decode(Path('/app/deps/ask_charlie.b64').read_bytes()).startswith(b'print(')
+[?2004l[?2004h> for name in ('ask_alice.pkl', 'ask_bob.pkl'):
+[?2004l[?2004h>     with open('/app/deps/' + name, 'rb') as f:
+[?2004l[?2004h>         assert isinstance(pickle.load(f), str)
+[?2004l[?2004h> 
+[?2004l[?2004h> people = ['Alice', 'Bob', 'Charlie', 'David', 'Ethan', 'Frankie']
+[?2004l[?2004h> valid = []
+[?2004l[?2004h> for rest in permutations([p for p in people if p != 'Alice']):
+[?2004l[?2004h>     seats = ('Alice',) + rest
+[?2004l[?2004h>     pos = {person: seats.index(person) for person in seats}
+[?2004l[?2004h>     n = len(seats)
+[?2004l[?2004h>     if pos['Bob'] != (pos['Alice'] - 2) % n:
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if (pos['Bob'] - pos['Ethan']) % n in (1, n - 1):
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if (pos['Alice'] - pos['Frankie']) % n in (1, n - 1):
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     frankie_neighbors = {seats[(pos['Frankie'] - 1) % n], seats[(pos['Frankie'] + 1) % n]}
+[?2004l[?2004h>     if not frankie_neighbors.intersection({'David', 'Ethan'}):
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if (pos['Ethan'] - pos['Bob']) % n == 3 and pos['David'] != (pos['Alice'] + 2) % n:
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     valid.append(seats)
+[?2004l[?2004h> 
+[?2004l[?2004h> pairs = sorted({tuple(sorted((s[(s.index('Charlie') - 1) % 6], s[(s.index('Charlie') + 1) % 6]))) for s in valid})
+[?2004l[?2004h> expected = ''.join(f'{a}, {b}\n' for a, b in pairs)
+[?2004l[?2004h> actual = Path('/app/results.txt').read_text()
+[?2004l[?2004h> assert actual == expected, (actual, expected)
+[?2004l[?2004h> assert len(valid) == 3
+[?2004l[?2004h> assert pairs == [('Alice', 'Bob'), ('Alice', 'Ethan')]
+[?2004l[?2004h> print(f'PASS: {len(valid)} valid arrangements; {len(pairs)} Charlie neighbor pairs; output matches.')
+[?2004l[?2004h> PY
+[?2004lTraceback (most recent call last):
+  File [35m"<stdin>"[0m, line [35m6[0m, in [35m<module>[0m
+[1;35mAssertionError[0m
+[?2004hroot@ac0f159fe533:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ac0f159fe533:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ac0f159fe533:/app# python3 - <<'PY'
+[?2004l[?2004h> from itertools import permutations
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import base64, pickle
+[?2004l[?2004h> 
+[?2004l[?2004h> frankie = Path('/app/deps/frankie_preferences.txt').read_text()
+[?2004l[?2004h> assert 'at least one of them' in frankie
+[?2004l[?2004h> assert base64.b64decode(Path('/app/deps/ask_charlie.b64').read_bytes()).startswith(b'print(')
+[?2004l[?2004h> for name in ('ask_alice.pkl', 'ask_bob.pkl'):
+[?2004l[?2004h>     with open('/app/deps/' + name, 'rb') as f:
+[?2004l[?2004h>         assert isinstance(pickle.load(f), str)
+[?2004l[?2004h> 
+[?2004l[?2004h> people = ['Alice', 'Bob', 'Charlie', 'David', 'Ethan', 'Frankie']
+[?2004l[?2004h> valid = []
+[?2004l[?2004h> for rest in permutations([p for p in people if p != 'Alice']):
+[?2004l[?2004h>     seats = ('Alice',) + rest
+[?2004l[?2004h>     pos = {person: seats.index(person) for person in seats}
+[?2004l[?2004h>     n = len(seats)
+[?2004l[?2004h>     if pos['Bob'] != (pos['Alice'] - 2) % n:
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if (pos['Bob'] - pos['Ethan']) % n in (1, n - 1):
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if (pos['Alice'] - pos['Frankie']) % n in (1, n - 1):
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     frankie_neighbors = {seats[(pos['Frankie'] - 1) % n], seats[(pos['Frankie'] + 1) % n]}
+[?2004l[?2004h>     if not frankie_neighbors.intersection({'David', 'Ethan'}):
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if (pos['Ethan'] - pos['Bob']) % n == 3 and pos['David'] != (pos['Alice'] + 2) % n:
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     valid.append(seats)
+[?2004l[?2004h> 
+[?2004l[?2004h> pairs = sorted({tuple(sorted((s[(s.index('Charlie') - 1) % 6], s[(s.index('Charlie') + 1) % 6]))) for s in valid})
+[?2004l[?2004h> expected = ''.join(f'{a}, {b}\n' for a, b in pairs)
+[?2004l[?2004h> actual = Path('/app/results.txt').read_text()
+[?2004l[?2004h> assert actual == expected, (actual, expected)
+[?2004l[?2004h> assert len(valid) == 3
+[?2004l[?2004h> assert pairs == [('Alice', 'Bob'), ('Alice', 'Ethan')]
+[?2004l[?2004h> print(f'PASS: {len(valid)} valid arrangements; {len(pairs)} Charlie neighbor pairs; output matches.')
+[?2004l[?2004h> PY
+[?2004lPASS: 3 valid arrangements; 2 Charlie neighbor pairs; output matches.
+[?2004hroot@ac0f159fe533:/app# true; tmux wait -S done
 [?2004l[?2004hroot@ac0f159fe533:/app# 
