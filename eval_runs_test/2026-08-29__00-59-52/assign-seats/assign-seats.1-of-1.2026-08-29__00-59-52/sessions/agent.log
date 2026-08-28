@@ -115,4 +115,50 @@ print("So... who are the two people I'm sitting between?")
 [?2004l[?2004hroot@ff8b74e9146f:/app# if [ -f app/results.txt ]; then cat -- app/results.txt; else echo '错误: 找不到文件 app/results.txt'; fi
 [?2004l错误: 找不到文件 app/results.txt
 [?2004hroot@ff8b74e9146f:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ff8b74e9146f:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ff8b74e9146f:/app# python - <<'PY'
+[?2004l[?2004h> import itertools
+[?2004l[?2004h> people=('Alice','Bob','Charlie','David','Ethan','Frankie')
+[?2004l[?2004h> valid=[]
+[?2004l[?2004h> for rest in itertools.permutations([p for p in people if p!='Alice']):
+[?2004l[?2004h>     seat=('Alice',)+rest
+[?2004l[?2004h>     pos={p:i for i,p in enumerate(seat)}
+[?2004l[?2004h>     # Bob two seats left of Alice; use left=-2 around circle
+[?2004l[?2004h>     if pos['Bob'] != (pos['Alice']-2)%6: continue
+[?2004l[?2004h>     def adjacent(a,b): return (pos[a]-pos[b])%6 in (1,5)
+[?2004l[?2004h>     if adjacent('Bob','Ethan'): continue
+[?2004l[?2004h>     if not (adjacent('Frankie','David') or adjacent('Frankie','Ethan')): continue
+[?2004l[?2004h>     if adjacent('Alice','Frankie'): continue
+[?2004l[?2004h>     # conditional clue
+[?2004l[?2004h>     if pos['Ethan'] == (pos['Bob']+3)%6 and pos['David'] != (pos['Alice']+2)%6: continue
+[?2004l[?2004h>     valid.append(seat)
+[?2004l[?2004h> pairs=sorted({tuple(sorted((s[(s.index('Charlie')-1)%6],s[(s.index('Charlie')+1)%6]))) for s in valid})
+[?2004l[?2004h> print('valid arrangements:', len(valid))
+[?2004l[?2004h> for s in valid: print(s)
+[?2004l[?2004h> print('pairs:', pairs)
+[?2004l[?2004h> PY
+[?2004lvalid arrangements: 3
+('Alice', 'Charlie', 'Ethan', 'Frankie', 'Bob', 'David')
+('Alice', 'David', 'Ethan', 'Frankie', 'Bob', 'Charlie')
+('Alice', 'Ethan', 'David', 'Frankie', 'Bob', 'Charlie')
+pairs: [('Alice', 'Bob'), ('Alice', 'Ethan')]
+[?2004hroot@ff8b74e9146f:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ff8b74e9146f:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ff8b74e9146f:/app# python3 - results.txt <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'Alice, Bob\nAlice, Ethan\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 results.txt
+[?2004hroot@ff8b74e9146f:/app# true; tmux wait -S done
 [?2004l[?2004hroot@ff8b74e9146f:/app# 
