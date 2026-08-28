@@ -172,8 +172,8 @@ def test_default_engine_uses_real_agent_engine_with_git_automation_disabled(monk
     monkeypatch.setattr("core.engine.AgentEngine", FakeAgentEngine, raising=False)
     monkeypatch.setattr("core.memory_manager.MemoryManager", FakeMemoryManager)
     monkeypatch.setattr("core.plan.PlanManager", FakePlanManager)
-    monkeypatch.setattr(adapter.MiniClaudeCodeTerminalBenchAgent, "_build_tools", lambda self: [])
-    monkeypatch.setattr(adapter, "get_agent_config", lambda: {})
+    monkeypatch.setattr("main.get_agent_config", lambda: {"base_url": "", "api_key": "test-key"})
+    monkeypatch.setattr("tools.get_default_tools", lambda **kwargs: [])
 
     agent = adapter.MiniClaudeCodeTerminalBenchAgent(model="test-model")
     engine = agent._create_default_engine()
@@ -181,13 +181,3 @@ def test_default_engine_uses_real_agent_engine_with_git_automation_disabled(monk
     assert isinstance(engine, FakeAgentEngine)
     assert captured["model"] == "test-model"
     assert captured["enable_git_automation"] is False
-
-    assert command.startswith("set +e")
-    assert "/etc/apt/sources.list" in command
-    assert "/etc/apt/sources.list.d/debian.sources" in command
-    assert "http://mirrors.ustc.edu.cn/debian" in command
-    assert "http://mirrors.ustc.edu.cn/debian-security" in command
-    assert "mkdir -p /root/.config/uv" in command
-    assert "cat > /root/.config/uv/uv.toml" in command
-    assert 'index-url = "${UV_INDEX_URL}"' in command
-    assert "https://pypi.tuna.tsinghua.edu.cn/simple" in command
