@@ -93,4 +93,64 @@ FILE deps/ask_charlie.b64 80 bytes
 DECODED_BYTES b'print("So... who are the two people I\'m sitting between?")'
 PICKLE_ERR UnpicklingError pickle data was truncated
 [?2004hroot@d191a9940904:/app# true; tmux wait -S done
+[?2004l[?2004hroot@d191a9940904:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@d191a9940904:/app# if [ -f deps/random_fact.txt ]; then cat -- deps/random_fact.txt; else echo '错误: 找不到文件 deps/random_fact.txt'; fi
+[?2004lPeople who work at rival companies cannot sit next to each other.[?2004hroot@d191a9940904:/app# true; tmux wait -S done
+[?2004l[?2004hroot@d191a9940904:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@d191a9940904:/app# python - <<'PY'
+[?2004l[?2004h> import itertools
+[?2004l[?2004h> people = ['Alice','Bob','Charlie','David','Ethan','Frankie']
+[?2004l[?2004h> idx = {p:i for i,p in enumerate(people)}
+[?2004l[?2004h> 
+[?2004l[?2004h> # We will consider circular arrangements as seat order tuples around the table.
+[?2004l[?2004h> # Fix Alice at seat 0 to remove rotational symmetry.
+[?2004l[?2004h> others = [p for p in people if p != 'Alice']
+[?2004l[?2004h> 
+[?2004l[?2004h> for left in [1,-1]:
+[?2004l[?2004h>     sols = []
+[?2004l[?2004h>     for perm in itertools.permutations(others):
+[?2004l[?2004h>         seats = ['Alice'] + list(perm)
+[?2004l[?2004h>         pos = {p:i for i,p in enumerate(seats)}
+[?2004l[?2004h>         def adj(a,b):
+[?2004l[?2004h>             d = (pos[a]-pos[b]) % 6
+[?2004l[?2004h>             return d in (1,5)
+[?2004l[?2004h>         def two_left(a,b):
+[?2004l[?2004h>             # b is two seats to the left of a
+[?2004l[?2004h>             return (pos[b]-pos[a]) % 6 == (2*left) % 6
+[?2004l[?2004h>         ok = True
+[?2004l[?2004h>         if not two_left('Alice','Bob'):
+[?2004l[?2004h>             ok = False
+[?2004l[?2004h>         if ok and adj('Bob','Ethan'):
+[?2004l[?2004h>             ok = False
+[?2004l[?2004h>         if ok and adj('Alice','Frankie'):
+[?2004l[?2004h>             ok = False
+[?2004l[?2004h>         if ok and not (adj('Frankie','David') or adj('Frankie','Ethan')):
+[?2004l[?2004h>             ok = False
+[?2004l[?2004h>         if ok:
+[?2004l[?2004h>             sols.append(seats)
+[?2004l[?2004h>     pairs = set()
+[?2004l[?2004h>     for seats in sols:
+[?2004l[?2004h>         pos = {p:i for i,p in enumerate(seats)}
+[?2004l[?2004h>         neigh = tuple(sorted([seats[(pos['Charlie']-1)%6], seats[(pos['Charlie']+1)%6]]))
+[?2004l[?2004h>         pairs.add(neigh)
+[?2004l[?2004h>     print('left', left, 'solutions', len(sols), 'pairs', sorted(pairs))
+[?2004l[?2004h>     for s in sols[:10]:
+[?2004l[?2004h>         print(s)
+[?2004l[?2004h>     print()
+[?2004l[?2004h> PY
+[?2004lleft 1 solutions 5 pairs [('Alice', 'Bob'), ('Alice', 'Ethan'), ('Bob', 'Frankie')]
+['Alice', 'Charlie', 'Bob', 'David', 'Frankie', 'Ethan']
+['Alice', 'Charlie', 'Bob', 'Frankie', 'David', 'Ethan']
+['Alice', 'Charlie', 'Bob', 'Frankie', 'Ethan', 'David']
+['Alice', 'David', 'Bob', 'Charlie', 'Frankie', 'Ethan']
+['Alice', 'David', 'Bob', 'Frankie', 'Ethan', 'Charlie']
+
+left -1 solutions 5 pairs [('Alice', 'Bob'), ('Alice', 'Ethan'), ('Bob', 'Frankie')]
+['Alice', 'Charlie', 'Ethan', 'Frankie', 'Bob', 'David']
+['Alice', 'David', 'Ethan', 'Frankie', 'Bob', 'Charlie']
+['Alice', 'Ethan', 'David', 'Frankie', 'Bob', 'Charlie']
+['Alice', 'Ethan', 'Frankie', 'Charlie', 'Bob', 'David']
+['Alice', 'Ethan', 'Frankie', 'David', 'Bob', 'Charlie']
+
+[?2004hroot@d191a9940904:/app# true; tmux wait -S done
 [?2004l[?2004hroot@d191a9940904:/app# 
