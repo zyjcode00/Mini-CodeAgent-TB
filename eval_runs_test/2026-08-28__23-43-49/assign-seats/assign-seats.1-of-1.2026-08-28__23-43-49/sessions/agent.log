@@ -99,4 +99,42 @@
 /app/deps/ask_charlie.b64
 print("So... who are the two people I'm sitting between?")
 [?2004hroot@ac0f159fe533:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ac0f159fe533:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ac0f159fe533:/app# python3 - <<'PY'
+[?2004l[?2004h> from itertools import permutations
+[?2004l[?2004h> people=['Alice','Bob','Charlie','David','Ethan','Frankie']
+[?2004l[?2004h> # Fix Alice at 0 to remove circular rotations. right = increasing index.
+[?2004l[?2004h> valid=[]
+[?2004l[?2004h> for p in permutations([x for x in people if x!='Alice']):
+[?2004l[?2004h>     seats=('Alice',)+p
+[?2004l[?2004h>     pos={x:seats.index(x) for x in seats}
+[?2004l[?2004h>     n=6
+[?2004l[?2004h>     # Bob two seats left of Alice: left = decreasing, hence -2
+[?2004l[?2004h>     if pos['Bob'] != (pos['Alice']-2)%n: continue
+[?2004l[?2004h>     # Bob not next to Ethan
+[?2004l[?2004h>     if (pos['Bob']-pos['Ethan'])%n in (1,n-1): continue
+[?2004l[?2004h>     # Alice/Frankie rivals: not adjacent
+[?2004l[?2004h>     if (pos['Alice']-pos['Frankie'])%n in (1,n-1): continue
+[?2004l[?2004h>     # Frankie next to David or Ethan
+[?2004l[?2004h>     f=pos['Frankie']
+[?2004l[?2004h>     neigh={seats[(f-1)%n],seats[(f+1)%n]}
+[?2004l[?2004h>     if not ({'David','Ethan'} & neigh): continue
+[?2004l[?2004h>     # conditional: if Ethan across Bob, David two right of Alice
+[?2004l[?2004h>     if (pos['Ethan']-pos['Bob'])%n == 3:
+[?2004l[?2004h>         if pos['David'] != (pos['Alice']+2)%n: continue
+[?2004l[?2004h>     valid.append(seats)
+[?2004l[?2004h> print('valid count',len(valid))
+[?2004l[?2004h> pairs=sorted({tuple(sorted((s[(s.index('Charlie')-1)%6],s[(s.index('Charlie')+1)%6]))) for s in valid})
+[?2004l[?2004h> print('pairs',len(pairs))
+[?2004l[?2004h> for p in pairs: print(p[0]+', '+p[1])
+[?2004l[?2004h> for s in valid: print(' | '.join(s))
+[?2004l[?2004h> PY
+[?2004lvalid count 3
+pairs 2
+Alice, Bob
+Alice, Ethan
+Alice | Charlie | Ethan | Frankie | Bob | David
+Alice | David | Ethan | Frankie | Bob | Charlie
+Alice | Ethan | David | Frankie | Bob | Charlie
+[?2004hroot@ac0f159fe533:/app# true; tmux wait -S done
 [?2004l[?2004hroot@ac0f159fe533:/app# 
