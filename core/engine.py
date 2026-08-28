@@ -22,8 +22,10 @@ class AgentEngine:
     def __init__(self, tools: List[BaseTool], model: str, plan_manager, # <--- 传入管家
                  base_url: str = None, api_key: str = None,
                  max_history: int = 100, min_keep: int = 4, session_id="default",
-                 memory_manager: Optional[MemoryManager] = None):
+                 memory_manager: Optional[MemoryManager] = None,
+                 enable_git_automation: bool = True):
         self.tools = tools
+        self.enable_git_automation = enable_git_automation
         self.model = model
         self.plan_manager = plan_manager  # <--- 保存管家引用
         self.tool_map = {t.name: t for t in tools}
@@ -201,7 +203,8 @@ class AgentEngine:
             # ========== 影子分支逻辑：Plan 开始时创建分支 ==========
             # 检查是否有 Plan 且当前不在影子分支上
             plan_id = self.plan_manager.get_plan_id()
-            if plan_id and not self.current_plan_branch and self.skipped_plan_branch_id != plan_id:
+            if (self.enable_git_automation and plan_id and
+                    not self.current_plan_branch and self.skipped_plan_branch_id != plan_id):
                 print(f" [🌿] 检测到 Plan，创建影子分支 agent/plan-{plan_id}...")
                 success, msg = start_plan_branch(plan_id)
                 if success:
