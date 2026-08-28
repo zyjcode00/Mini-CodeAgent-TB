@@ -241,7 +241,6 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
             max_history=150,
             min_keep=8,
             memory_manager=memory_manager,
-            enable_git_automation=False,
         )
 
     @staticmethod
