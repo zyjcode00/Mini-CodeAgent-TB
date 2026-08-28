@@ -13,15 +13,23 @@ def test_terminal_bench_agent_disables_git_automation(monkeypatch):
         def __init__(self, **kwargs):
             captured.update(kwargs)
 
-    monkeypatch.setattr(adapter_module, "AgentEngine", FakeEngine)
+    import core.engine as core_engine
+    import core.memory_manager as memory_module
+    import core.plan as plan_module
+    import main as main_module
+    import tools as tools_module
+    import tools.execution_backend as backend_module
+
+    monkeypatch.setattr(core_engine, "AgentEngine", FakeEngine)
 
     # Avoid constructing the external model/client and memory dependencies.
-    monkeypatch.setattr(adapter_module, "get_agent_config", lambda: {})
-    monkeypatch.setattr(adapter_module, "get_default_tools", lambda: [])
-    monkeypatch.setattr(adapter_module, "MemoryManager", lambda **_: object())
-    monkeypatch.setattr(adapter_module, "PlanManager", lambda: object())
+    monkeypatch.setattr(main_module, "get_agent_config", lambda: {"base_url": "", "api_key": "", "model": ""})
+    monkeypatch.setattr(tools_module, "get_default_tools", lambda **_: [])
+    monkeypatch.setattr(memory_module, "MemoryManager", lambda **_: object())
+    monkeypatch.setattr(plan_module, "PlanManager", lambda: object())
+    monkeypatch.setattr(backend_module, "TerminalBenchSessionBackend", lambda **_: object())
 
-    adapter_module.TerminalBenchAgent()
+    adapter_module.MiniClaudeCodeTerminalBenchAgent()._create_default_engine()
 
     assert captured["enable_git_automation"] is False
 
