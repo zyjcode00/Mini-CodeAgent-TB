@@ -154,8 +154,33 @@ def test_perform_task_runs_terminal_bench_setup_before_engine():
     assert agent.last_result.success is True
 
 
-def test_apt_mirror_setup_command_handles_debian_12_sources_and_uv_config():
-    command = adapter.APT_MIRROR_SETUP_COMMAND
+def test_default_engine_uses_real_agent_engine_with_git_automation_disabled(monkeypatch):
+    captured = {}
+
+    class FakeAgentEngine:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    class FakeMemoryManager:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class FakePlanManager:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    monkeypatch.setattr("core.engine.AgentEngine", FakeAgentEngine, raising=False)
+    monkeypatch.setattr("core.memory_manager.MemoryManager", FakeMemoryManager)
+    monkeypatch.setattr("core.plan.PlanManager", FakePlanManager)
+    monkeypatch.setattr(adapter.MiniClaudeCodeTerminalBenchAgent, "_build_tools", lambda self: [])
+    monkeypatch.setattr(adapter, "get_agent_config", lambda: {})
+
+    agent = adapter.MiniClaudeCodeTerminalBenchAgent(model="test-model")
+    engine = agent._create_default_engine()
+
+    assert isinstance(engine, FakeAgentEngine)
+    assert captured["model"] == "test-model"
+    assert captured["enable_git_automation"] is False
 
     assert command.startswith("set +e")
     assert "/etc/apt/sources.list" in command
