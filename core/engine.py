@@ -900,12 +900,10 @@ class AgentEngine:
                 return resp.content, resp.stop_reason
         except asyncio.TimeoutError:
             timeout_seconds = float(os.getenv("COMPRESSION_LLM_TIMEOUT", "90"))
-            print(f"[⚠️] 压缩 LLM 调用超时 ({timeout_seconds:g}s)，使用快速回退策略")
+            print(f"[compression error]: {e}")
             return None, "error"
         except Exception as e:
-            print(f"[摘要调用失败]: {e}")
+            print(f"[compression error]: {e}")
             return None, "error"
 
-�失败]: {e}")
-            return None, "error"
 
