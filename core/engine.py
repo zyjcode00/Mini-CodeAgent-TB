@@ -22,7 +22,8 @@ class AgentEngine:
     def __init__(self, tools: List[BaseTool], model: str, plan_manager, # <--- 传入管家
                  base_url: str = None, api_key: str = None,
                  max_history: int = 100, min_keep: int = 4, session_id="default",
-                 memory_manager: Optional[MemoryManager] = None):
+                 memory_manager: Optional[MemoryManager] = None,
+                 enable_git_automation: bool = True):
         self.tools = tools
         self.model = model
         self.plan_manager = plan_manager  # <--- 保存管家引用
@@ -44,6 +45,8 @@ class AgentEngine:
         # ----------------------------------------------------------
 
         # ========== Git 自动化保险状态追踪 ==========
+        # Terminal-Bench 等评测环境可关闭 Git 副作用；默认开启以保持历史行为。
+        self.enable_git_automation = enable_git_automation
         self.edit_failures = {}  # {"file_path": failure_count}
         self.last_snapshot_plan_step = None  # 记录上次快照时的计划步骤
         self.current_plan_branch = None  # 当前 Plan 影子分支对应的 plan_id；必须先初始化，execute_query 会读取
@@ -201,7 +204,9 @@ class AgentEngine:
             # ========== 影子分支逻辑：Plan 开始时创建分支 ==========
             # 检查是否有 Plan 且当前不在影子分支上
             plan_id = self.plan_manager.get_plan_id()
-            if plan_id and not self.current_plan_branch and self.skipped_plan_branch_id != plan_id:
+            if (self.enable_git_automation and plan_id
+                    and not self.current_plan_branch
+                    and self.skipped_plan_branch_id != plan_id):
                 print(f" [🌿] 检测到 Plan，创建影子分支 agent/plan-{plan_id}...")
                 success, msg = start_plan_branch(plan_id)
                 if success:
@@ -298,7 +303,8 @@ class AgentEngine:
                     if failure_memory_context:
                         deferred_memory_contexts.append(failure_memory_context)
                     # ========== Git 自动化保险逻辑 ==========
-                    # 1. 检测 edit_file 失败
+                    if self.enable_git_automation:
+                        # 1. 检测 edit_file 失败
                     if t_name == "edit_file":
                         file_path = t_input.get("path", "unknown")
                         if "错误" in str(res) or "失败" in str(res):
@@ -350,6 +356,9 @@ class AgentEngine:
                             else:
                                 print(f" [⚠️] 快照创建失败: {msg}")
                     # =========================================
+                    else:
+                        # 评测模式不执行任何 Git 快照、分支或回滚副作用。
+                        pass
 
                     if self.is_openai_compat:
                         self.context.add_message({
