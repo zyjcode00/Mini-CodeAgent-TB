@@ -182,9 +182,41 @@ class RuntimeReadLedger:
         self._record_allowed_range(current)
         return ReadDecision(should_skip=False)
 
-    def record(self, tool_input: Dict[str, Any]) -> List[str]:
-        """Backward-compatible API returning reminders for callers/tests."""
-        return self.before_read(tool_input).reminders
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize read coverage so duplicate detection survives reload."""
+        return {
+            "duplicate_threshold": self.duplicate_threshold,
+            "exact_counts": [
+                {"path": path, "start_line": start, "end_line": end, "count": count}
+                for (path, start, end), count in self.exact_counts.items()
+            ],
+            "ranges": [
+                {"path": read_range.path, "start_line": read_range.start_line,
+                 "end_line": read_range.end_line}
+                for ranges in self.ranges_by_path.values() for read_range in ranges
+            ],
+            "last_read": ({"path": self.last_read.path,
+                           "start_line": self.last_read.start_line,
+                           "end_line": self.last_read.end_line}
+                          if self.last_read else None),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "RuntimeReadLedger":
+        ledger = cls(duplicate_threshold=int(data.get("duplicate_threshold", 2)))
+        for item in data.get("exact_counts", []):
+            key = (normalize_read_path(str(item.get("path", ""))),
+                   ReadRange._to_optional_int(item.get("start_line")),
+                   ReadRange._to_optional_int(item.get("end_line")))
+            ledger.exact_counts[key] = int(item.get("count", 0))
+        for item in data.get("ranges", []):
+            read_range = ReadRange.from_tool_input(item)
+            if read_range.path:
+                ledger._record_allowed_range(read_range)
+        last = data.get("last_read")
+        if last:
+            ledger.last_read = ReadRange.from_tool_input(last)
+        return ledger
 
     def _find_covering_range(self, current: ReadRange) -> Optional[ReadRange]:
         for start, end in self.merged_ranges_by_path.get(current.path, []):
@@ -202,10 +234,15 @@ class RuntimeReadLedger:
 
 @dataclass
 class ReadOnlyStreakGuard:
-    """Detects consecutive read-only tool rounds and asks for a checkpoint summary."""
+    """Detect consecutive non-progressing read/tool rounds."""
 
     checkpoint_threshold: int = 3
+    stop_threshold: int = 6
     streak: int = 0
+    should_stop: bool = False
+    _last_signature: Optional[str] = field(default=None, repr=False)
+    _same_signature_streak: int = 0
+    _same_failure_streak: int = 0
 
     READ_ONLY_TOOLS = {
         "read_file",

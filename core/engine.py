@@ -14,6 +14,7 @@ from core.memory_items import MemoryKind, ObservationType, RawObservation
 from core.memory_manager import MemoryManager
 from core.read_guard import ReadOnlyStreakGuard, RuntimeReadLedger
 from core.safe_json import replace_lone_surrogates, safe_json_dump
+from tools.execution_backend import ExecutorShutdownError
 
 # Git 自动化保险导入
 from tools.git_tool import create_snapshot, rollback_to, has_uncommitted_changes, start_task_branch, finalize_task, start_plan_branch, finalize_plan
@@ -304,57 +305,57 @@ class AgentEngine:
                         deferred_memory_contexts.append(failure_memory_context)
                     # ========== Git 自动化保险逻辑 ==========
                     if self.enable_git_automation:
-                        # 1. 检测 edit_file 失败
-                    if t_name == "edit_file":
-                        file_path = t_input.get("path", "unknown")
-                        if "错误" in str(res) or "失败" in str(res):
-                            self.edit_failures[file_path] = self.edit_failures.get(file_path, 0) + 1
-                            print(f" [⚠️] edit_file 失败计数: {file_path} -> {self.edit_failures[file_path]}")
-                            if self.edit_failures[file_path] >= 2:
-                                should_rollback = True
-                                rollback_reason = f"edit_file 在 {file_path} 连续失败 2 次"
-                        else:
-                            # 成功则重置计数
-                            self.edit_failures[file_path] = 0
+                            # 1. 检测 edit_file 失败
+                        if t_name == "edit_file":
+                            file_path = t_input.get("path", "unknown")
+                            if "错误" in str(res) or "失败" in str(res):
+                                self.edit_failures[file_path] = self.edit_failures.get(file_path, 0) + 1
+                                print(f" [⚠️] edit_file 失败计数: {file_path} -> {self.edit_failures[file_path]}")
+                                if self.edit_failures[file_path] >= 2:
+                                    should_rollback = True
+                                    rollback_reason = f"edit_file 在 {file_path} 连续失败 2 次"
+                            else:
+                                # 成功则重置计数
+                                self.edit_failures[file_path] = 0
 
-                    # 2. 检测 mark_task_done 成功，检查 Plan 是否完成
-                    if t_name == "mark_task_done" and "✅" in str(res):
-                        # 检查 Plan 是否全部完成
-                        if self.plan_manager.is_plan_complete():
-                            if self.current_plan_branch:
-                                print(f" [📸] 检测到 Plan 全部完成，正在归档影子分支...")
+                        # 2. 检测 mark_task_done 成功，检查 Plan 是否完成
+                        if t_name == "mark_task_done" and "✅" in str(res):
+                            # 检查 Plan 是否全部完成
+                            if self.plan_manager.is_plan_complete():
+                                if self.current_plan_branch:
+                                    print(f" [📸] 检测到 Plan 全部完成，正在归档影子分支...")
 
-                                # 获取 Plan 描述
-                                plan_desc = self.plan_manager.current_goal
+                                    # 获取 Plan 描述
+                                    plan_desc = self.plan_manager.current_goal
 
-                                success, msg = finalize_plan(self.current_plan_branch, plan_desc)
+                                    success, msg = finalize_plan(self.current_plan_branch, plan_desc)
+                                    if success:
+                                        print(f" [✅] {msg}")
+                                        self.current_plan_branch = None  # 重置影子分支状态
+                                        self.skipped_plan_branch_id = None
+                                        # 🔥 新增：清除已完成的 Plan，避免重复执行
+                                        self.plan_manager.clear_plan()
+                                    else:
+                                        print(f" [⚠️] 归档失败: {msg}")
+                                        # 归档失败时，仍创建普通快照作为后备
+                                        success2, msg2 = create_snapshot("🎯 [Fallback] Plan completed")
+                                        if success2:
+                                            print(f" [✅] 已创建后备快照: {msg2}")
+                                        # 即使归档失败，也要清除 Plan（避免重复执行）
+                                        self.plan_manager.clear_plan()
+                                else:
+                                    print(" [ℹ️] Plan 完成，但未使用影子分支，跳过影子分支归档")
+                                    self.skipped_plan_branch_id = None
+                                    self.plan_manager.clear_plan()
+                            else:
+                                # Plan 未完成，创建普通快照
+                                task_id = t_input.get("task_id", 0)
+                                print(f" [📸] 任务 {task_id} 完成，创建普通 Git 快照...")
+                                success, msg = create_snapshot(f"🎯 [Task-{task_id}] Auto snapshot")
                                 if success:
                                     print(f" [✅] {msg}")
-                                    self.current_plan_branch = None  # 重置影子分支状态
-                                    self.skipped_plan_branch_id = None
-                                    # 🔥 新增：清除已完成的 Plan，避免重复执行
-                                    self.plan_manager.clear_plan()
                                 else:
-                                    print(f" [⚠️] 归档失败: {msg}")
-                                    # 归档失败时，仍创建普通快照作为后备
-                                    success2, msg2 = create_snapshot("🎯 [Fallback] Plan completed")
-                                    if success2:
-                                        print(f" [✅] 已创建后备快照: {msg2}")
-                                    # 即使归档失败，也要清除 Plan（避免重复执行）
-                                    self.plan_manager.clear_plan()
-                            else:
-                                print(" [ℹ️] Plan 完成，但未使用影子分支，跳过影子分支归档")
-                                self.skipped_plan_branch_id = None
-                                self.plan_manager.clear_plan()
-                        else:
-                            # Plan 未完成，创建普通快照
-                            task_id = t_input.get("task_id", 0)
-                            print(f" [📸] 任务 {task_id} 完成，创建普通 Git 快照...")
-                            success, msg = create_snapshot(f"🎯 [Task-{task_id}] Auto snapshot")
-                            if success:
-                                print(f" [✅] {msg}")
-                            else:
-                                print(f" [⚠️] 快照创建失败: {msg}")
+                                    print(f" [⚠️] 快照创建失败: {msg}")
                     # =========================================
                     else:
                         # 评测模式不执行任何 Git 快照、分支或回滚副作用。
@@ -411,6 +412,7 @@ class AgentEngine:
 
         result = {
             "success": False,
+            "stop_reason": "error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -418,14 +420,30 @@ class AgentEngine:
         }
         try:
             answer = await self.execute_query(prompt.strip())
+            answer = answer or ""
             result.update({
                 "success": True,
-                "final_answer": answer or "",
+                "stop_reason": "completed",
+                "final_answer": answer,
                 "turns": 1,
             })
+            if answer == "任务达到最大思考步数限制。":
+                result.update({
+                    "success": False,
+                    "stop_reason": "max_turns",
+                    "error": "Agent reached its internal reasoning limit before completion.",
+                })
+        except ExecutorShutdownError as exc:
+            result.update({
+                "stop_reason": "executor_shutdown",
+                "turns": 1,
+                "error": f"{type(exc).__name__}: {exc}",
+            })
         except Exception as exc:
-            result["turns"] = 1
-            result["error"] = f"{type(exc).__name__}: {exc}"
+            result.update({
+                "turns": 1,
+                "error": f"{type(exc).__name__}: {exc}",
+            })
         return result
 
     def _is_simple_interaction(self, query: str) -> bool:

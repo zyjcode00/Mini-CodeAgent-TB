@@ -1,0 +1,179 @@
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# set +e
+root@c85de513c548:/app#
+root@c85de513c548:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@c85de513c548:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@c85de513c548:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@c85de513c548:/app#
+root@c85de513c548:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@c85de513c548:/app#
+root@c85de513c548:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@c85de513c548:/app#
+root@c85de513c548:/app# mkdir -p /root/.config/uv
+root@c85de513c548:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@c85de513c548:/app#
+root@c85de513c548:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (5421 kB/s)
+Reading package lists... Done
+root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+./deps
+./deps/ask_alice.pkl
+./deps/ask_bob.pkl
+./deps/ask_charlie.b64
+./deps/clue.txt
+./deps/frankie_preferences.txt
+./deps/random_fact.txt
+root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# if [ -f ./deps/clue.txt ]; then cat -- ./deps/clue.txt; else echo '错误: 找不到文件 ./deps/clue.txt'; fi
+If it's the case that Ethan ends up sitting across from Bob, then David has to sit two seats to the right of Alice.root@c85de513c548:/app# true; tmux wait -S do
+ne
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# if [ -f ./deps/frankie_preferences.txt ]; then cat -- ./deps/frankie_preferences.txt; else echo '错误: 找不到文件 ./deps/frankie_prefere
+nces.txt'; fi
+I'm not really friends with anyone at this dinner party besides David and Ethan, so I have to sit next to at least one of them.root@c85de513c548:/app# true; tmu
+x wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# if [ -f ./deps/random_fact.txt ]; then cat -- ./deps/random_fact.txt; else echo '错误: 找不到文件 ./deps/random_fact.txt'; fi
+People who work at rival companies cannot sit next to each other.root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# python - <<'PY'
+> import pickle, base64, pathlib
+> for path in ['deps/ask_alice.pkl','deps/ask_bob.pkl']:
+>     data = pathlib.Path(path).read_bytes()
+>     obj = pickle.loads(data)
+>     print(path, type(obj), obj)
+> print('deps/ask_charlie.b64')
+> raw = pathlib.Path('deps/ask_charlie.b64').read_text().strip()
+> print(base64.b64decode(raw).decode())
+> PY
+deps/ask_alice.pkl <class 'str'> print("I'm Alice! You should know that Frankie and I work at rival companies.")
+deps/ask_bob.pkl <class 'str'> print("I'm Bob! My preference is that I sit two seats to the left of Alice. Also, I don't like Ethan, so I refuse to sit next to
+him.")
+deps/ask_charlie.b64
+print("So... who are the two people I'm sitting between?")
+root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# if [ -f ./deps/ask_charlie.b64 ]; then cat -- ./deps/ask_charlie.b64; else echo '错误: 找不到文件 ./deps/ask_charlie.b64'; fi
+cHJpbnQoIlNvLi4uIHdobyBhcmUgdGhlIHR3byBwZW9wbGUgSSdtIHNpdHRpbmcgYmV0d2Vlbj8iKQ==root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+e
+    # Frankie next to at least one of David and Ethan
+    if not (next_to('Frankie','David') or next_to('Frankie','Ethan')):
+        return False
+    return True
+
+for left_is_clockwise in [True, False]:
+    pairs = set()
+    sols = []
+    for arr in permutations(people):
+        if valid(arr, left_is_clockwise):
+            pos = {p:i for i,p in enumerate(arr)}
+            # canonical via rotation? just collect neighbors of Charlie
+            neigh = [arr[(pos['Charlie']-1)%6], arr[(pos['Charlie']+1)%6]]
+            pairs.add(tuple(sorted(neigh)))
+            sols.append(arr)
+    print('left_is_clockwise', left_is_clockwise, 'solutions', len(sols), 'pairs', sorted(pairs))
+PY
+true; tmux wait -S done
+root@c85de513c548:/app# python - <<'PY'
+> from itertools import permutations
+> people = ['Alice','Bob','Charlie','David','Ethan','Frankie']
+>
+> # circular positions 0..5 clockwise
+> # adjacency pairs (i,(i+1)%6)
+>
+> def valid(arr, left_is_clockwise):
+>     pos = {p:i for i,p in enumerate(arr)}
+>     def left_of(a, k=1):
+>         return (pos[a] + (k if left_is_clockwise else -k)) % 6
+>     def right_of(a, k=1):
+>         return (pos[a] - (k if left_is_clockwise else -k)) % 6
+>     def next_to(a,b):
+>         return (pos[a]-pos[b])%6 in (1,5)
+>     def across(a,b):
+>         return (pos[a]-pos[b])%6 == 3
+>
+>     # Alice and Frankie not next to each other
+>     if next_to('Alice','Frankie'):
+>         return False
+>     # Bob sits two seats to the left of Alice
+>     if pos['Bob'] != left_of('Alice',2):
+>         return False
+>     # Bob and Ethan not next to each other
+>     if next_to('Bob','Ethan'):
+>         return False
+>     # conditional
+>     if across('Ethan','Bob') and pos['David'] != right_of('Alice',2):
+>         return False
+>     # Frankie next to at least one of David and Ethan
+>     if not (next_to('Frankie','David') or next_to('Frankie','Ethan')):
+>         return False
+>     return True
+>
+> for left_is_clockwise in [True, False]:
+>     pairs = set()
+>     sols = []
+>     for arr in permutations(people):
+>         if valid(arr, left_is_clockwise):
+>             pos = {p:i for i,p in enumerate(arr)}
+>             # canonical via rotation? just collect neighbors of Charlie
+>             neigh = [arr[(pos['Charlie']-1)%6], arr[(pos['Charlie']+1)%6]]
+>             pairs.add(tuple(sorted(neigh)))
+>             sols.append(arr)
+>     print('left_is_clockwise', left_is_clockwise, 'solutions', len(sols), 'pairs', sorted(pairs))
+> PY
+left_is_clockwise True solutions 18 pairs [('Alice', 'Bob'), ('Alice', 'Ethan')]
+left_is_clockwise False solutions 18 pairs [('Alice', 'Bob'), ('Alice', 'Ethan')]
+root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# python3 - /app/results.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'Alice, Bob\nAlice, Ethan\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/results.txt
+root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c85de513c548:/app# if [ -f /app/results.txt ]; then cat -- /app/results.txt; else echo '错误: 找不到文件 /app/results.txt'; fi
+Alice, Bob
+Alice, Ethan
+root@c85de513c548:/app# true; tmux wait -S done
+root@c85de513c548:/app#
