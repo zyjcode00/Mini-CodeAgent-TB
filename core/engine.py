@@ -22,10 +22,8 @@ class AgentEngine:
     def __init__(self, tools: List[BaseTool], model: str, plan_manager, # <--- 传入管家
                  base_url: str = None, api_key: str = None,
                  max_history: int = 100, min_keep: int = 4, session_id="default",
-                 memory_manager: Optional[MemoryManager] = None,
-                 enable_git_automation: bool = True):
+                 memory_manager: Optional[MemoryManager] = None):
         self.tools = tools
-        self.enable_git_automation = enable_git_automation
         self.model = model
         self.plan_manager = plan_manager  # <--- 保存管家引用
         self.tool_map = {t.name: t for t in tools}
@@ -43,10 +41,6 @@ class AgentEngine:
         self.last_oa_msg = None
         self.session_id = session_id
         self.session_path = f"sessions/{session_id}.json"
-        # Runtime anti-spin state is session-persistent so repeated reads are
-        # still recognized after an AgentEngine reload.
-        self.read_ledger = RuntimeReadLedger()
-        self.read_only_guard = ReadOnlyStreakGuard()
         # ----------------------------------------------------------
 
         # ========== Git 自动化保险状态追踪 ==========
@@ -194,10 +188,8 @@ class AgentEngine:
 
         await self.compress_messages()
 
-        self.read_ledger = RuntimeReadLedger()
-        self.read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
-        read_ledger = self.read_ledger
-        read_only_guard = self.read_only_guard
+        read_ledger = RuntimeReadLedger()
+        read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
 
         step = 0
         max_steps = 80
@@ -209,8 +201,7 @@ class AgentEngine:
             # ========== 影子分支逻辑：Plan 开始时创建分支 ==========
             # 检查是否有 Plan 且当前不在影子分支上
             plan_id = self.plan_manager.get_plan_id()
-            if (self.enable_git_automation and plan_id and not self.current_plan_branch
-                    and self.skipped_plan_branch_id != plan_id):
+            if plan_id and not self.current_plan_branch and self.skipped_plan_branch_id != plan_id:
                 print(f" [🌿] 检测到 Plan，创建影子分支 agent/plan-{plan_id}...")
                 success, msg = start_plan_branch(plan_id)
                 if success:
@@ -411,7 +402,6 @@ class AgentEngine:
 
         result = {
             "success": False,
-            "stop_reason": "error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -419,20 +409,14 @@ class AgentEngine:
         }
         try:
             answer = await self.execute_query(prompt.strip())
-            answer = answer or ""
-            result["final_answer"] = answer
-            result["turns"] = 1
-            if "达到最大思考步数限制" in answer:
-                result["stop_reason"] = "max_turns"
-                result["error"] = "Agent reached its internal reasoning limit before completion."
-            else:
-                result["success"] = True
-                result["stop_reason"] = "completed"
+            result.update({
+                "success": True,
+                "final_answer": answer or "",
+                "turns": 1,
+            })
         except Exception as exc:
             result["turns"] = 1
             result["error"] = f"{type(exc).__name__}: {exc}"
-            if type(exc).__name__ == "ExecutorShutdownError":
-                result["stop_reason"] = "executor_shutdown"
         return result
 
     def _is_simple_interaction(self, query: str) -> bool:
@@ -913,10 +897,9 @@ class AgentEngine:
                 return resp.content, resp.stop_reason
         except asyncio.TimeoutError:
             timeout_seconds = float(os.getenv("COMPRESSION_LLM_TIMEOUT", "90"))
-            print(f"[compression error]: {e}")
+            print(f"[⚠️] 压缩 LLM 调用超时 ({timeout_seconds:g}s)，使用快速回退策略")
             return None, "error"
         except Exception as e:
-            print(f"[compression error]: {e}")
+            print(f"[摘要调用失败]: {e}")
             return None, "error"
-
 
