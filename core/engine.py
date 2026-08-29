@@ -43,6 +43,10 @@ class AgentEngine:
         self.last_oa_msg = None
         self.session_id = session_id
         self.session_path = f"sessions/{session_id}.json"
+        # Runtime anti-spin state is session-persistent so repeated reads are
+        # still recognized after an AgentEngine reload.
+        self.read_ledger = RuntimeReadLedger()
+        self.read_only_guard = ReadOnlyStreakGuard()
         # ----------------------------------------------------------
 
         # ========== Git 自动化保险状态追踪 ==========
@@ -190,8 +194,10 @@ class AgentEngine:
 
         await self.compress_messages()
 
-        read_ledger = RuntimeReadLedger()
-        read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
+        self.read_ledger = RuntimeReadLedger()
+        self.read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
+        read_ledger = self.read_ledger
+        read_only_guard = self.read_only_guard
 
         step = 0
         max_steps = 80
@@ -405,6 +411,7 @@ class AgentEngine:
 
         result = {
             "success": False,
+            "stop_reason": "error",
             "final_answer": "",
             "turns": 0,
             "max_turns": max_turns,
@@ -412,14 +419,20 @@ class AgentEngine:
         }
         try:
             answer = await self.execute_query(prompt.strip())
-            result.update({
-                "success": True,
-                "final_answer": answer or "",
-                "turns": 1,
-            })
+            answer = answer or ""
+            result["final_answer"] = answer
+            result["turns"] = 1
+            if "达到最大思考步数限制" in answer:
+                result["stop_reason"] = "max_turns"
+                result["error"] = "Agent reached its internal reasoning limit before completion."
+            else:
+                result["success"] = True
+                result["stop_reason"] = "completed"
         except Exception as exc:
             result["turns"] = 1
             result["error"] = f"{type(exc).__name__}: {exc}"
+            if type(exc).__name__ == "ExecutorShutdownError":
+                result["stop_reason"] = "executor_shutdown"
         return result
 
     def _is_simple_interaction(self, query: str) -> bool:

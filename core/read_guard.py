@@ -148,6 +148,49 @@ class RuntimeReadLedger:
     merged_ranges_by_path: Dict[str, List[Tuple[int, Optional[int]]]] = field(default_factory=dict)
     last_read: Optional[ReadRange] = None
 
+    def to_dict(self) -> dict:
+        return {
+            "duplicate_threshold": self.duplicate_threshold,
+            "exact_counts": [list(key) + [value] for key, value in self.exact_counts.items()],
+            "ranges_by_path": {
+                path: [
+                    {"path": item.path, "start_line": item.start_line, "end_line": item.end_line}
+                    for item in ranges
+                ]
+                for path, ranges in self.ranges_by_path.items()
+            },
+            "merged_ranges_by_path": {
+                path: [list(interval) for interval in intervals]
+                for path, intervals in self.merged_ranges_by_path.items()
+            },
+            "last_read": (
+                {"path": self.last_read.path, "start_line": self.last_read.start_line, "end_line": self.last_read.end_line}
+                if self.last_read else None
+            ),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "RuntimeReadLedger":
+        ledger = cls(duplicate_threshold=int(data.get("duplicate_threshold", 2)))
+        for item in data.get("exact_counts", []):
+            if len(item) == 4:
+                ledger.exact_counts[(item[0], item[1], item[2])] = int(item[3])
+        for path, ranges in data.get("ranges_by_path", {}).items():
+            ledger.ranges_by_path[path] = [
+                ReadRange(item.get("path", path), item.get("start_line"), item.get("end_line"))
+                for item in ranges
+            ]
+        ledger.merged_ranges_by_path = {
+            path: [tuple(interval) for interval in intervals]
+            for path, intervals in data.get("merged_ranges_by_path", {}).items()
+        }
+        last_read = data.get("last_read")
+        if last_read:
+            ledger.last_read = ReadRange(
+                last_read.get("path", ""), last_read.get("start_line"), last_read.get("end_line")
+            )
+        return ledger
+
     def before_read(self, tool_input: Dict[str, Any]) -> ReadDecision:
         current = ReadRange.from_tool_input(tool_input or {})
         if not current.path:
