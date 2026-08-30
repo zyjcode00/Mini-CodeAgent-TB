@@ -144,9 +144,9 @@ def task_session_id(
     if explicit_session_id:
         return safe_session_id(explicit_session_id)
 
-    candidates = [task_name, task_id]
+    candidates = [task_id, task_name]
     if session is not None:
-        candidates.extend(getattr(session, key, None) for key in ("task_name", "task_id", "name", "id"))
+        candidates.extend(getattr(session, key, None) for key in ("task_id", "task_name", "name", "id"))
     if logging_dir:
         candidates.append(Path(str(logging_dir)).name)
     for candidate in candidates:
