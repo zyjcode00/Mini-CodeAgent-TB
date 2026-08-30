@@ -1,0 +1,411 @@
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# set +e
+root@8be1a9b53f89:/app/personal-site#
+root@8be1a9b53f89:/app/personal-site# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@8be1a9b53f89:/app/personal-site# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@8be1a9b53f89:/app/personal-site# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@8be1a9b53f89:/app/personal-site#
+root@8be1a9b53f89:/app/personal-site# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@8be1a9b53f89:/app/personal-site#
+root@8be1a9b53f89:/app/personal-site# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@8be1a9b53f89:/app/personal-site#
+root@8be1a9b53f89:/app/personal-site# mkdir -p /root/.config/uv
+root@8be1a9b53f89:/app/personal-site# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@8be1a9b53f89:/app/personal-site#
+root@8be1a9b53f89:/app/personal-site# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (4048 kB/s)
+Reading package lists... Done
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git rev-parse --is-inside-work-tree
+true
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git branch -avv && echo '---' && git reflog --date=iso --decorate -n 30 && echo '---' && git stash list && echo '---' && g
+it log --oneline --decorate --graph --all -n 30
+* master d7d3e4b off the job market woo
+---
+d7d3e4b (HEAD -> master) HEAD@{2026-08-26 04:56:12 +0000}: checkout: moving from dc5cf1b7793d0607073c12df8a6f0d5366b3f6e3 to master
+dc5cf1b HEAD@{2026-08-26 04:56:12 +0000}: commit: Move to Stanford
+c4e38a1 HEAD@{2026-08-26 04:56:12 +0000}: checkout: moving from master to HEAD~1
+d7d3e4b (HEAD -> master) HEAD@{2026-08-26 04:56:12 +0000}: reset: moving to d7d3e4b
+19b5d10 HEAD@{2026-08-26 04:56:11 +0000}: clone: from https://github.com/TheMikeMerrill/personal-site.git
+---
+---
+* d7d3e4b (HEAD -> master) off the job market woo
+* c4e38a1 Add code link for BLADE
+* 6f46fa0 CV Update
+* dd7e395 Adds BLADE to bib
+* 2cd355a n+1 (for the last time???)
+* 8eaf505 Add BLADE
+* cc2ec78 Underline
+* d71094e Underline Conferences
+* 232b279 Remove posters
+* 3fdf5f5 Add NeurIPS
+* 8c4731d Add EMNLP acceptance
+* f54f66b Add GR link
+* 18d2430 Add other links
+* 1dd055e Ignore Gemfile, etc
+* 5c77a6d Dont overwrite
+* c7d2f95 Delete unsused files
+* 20b05d9 Remove more unused files
+* 2d144f7 Add yamls for new papers
+* 7882f2d Don't track _site
+* cd2b8de Add new papers
+* 26dc65c Fix author
+* bc1962c Interests update
+* 257eba8 More space for interests
+* ff6a94a Bib update
+* 97c4a55 Underline bold
+* a320806 Other fixes, new paper
+* 2cb7243 New PDFs
+* 7321328 PDF update
+* f1e3860 Deletions
+* 7b4d171 Update Bio
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git status --porcelain
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git branch --show-current
+master
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git log -1 --oneline
+d7d3e4b (HEAD -> master) off the job market woo
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git show --stat --summary --oneline dc5cf1b
+dc5cf1b Move to Stanford
+ _includes/about.md    |  4 ++--
+ _layouts/default.html | 32 +++++++++++++++++---------------
+ 2 files changed, 19 insertions(+), 17 deletions(-)
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git diff --stat d7d3e4b..dc5cf1b && echo '---' && git diff --name-only d7d3e4b..dc5cf1b
+ _includes/about.md    |  4 ++--
+ _layouts/default.html | 32 +++++++++++++++++---------------
+ 2 files changed, 19 insertions(+), 17 deletions(-)
+---
+_includes/about.md
+_layouts/default.html
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git branch --contains dc5cf1b && echo '---' && git status --short
+---
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git cherry-pick dc5cf1b
+Auto-merging _includes/about.md
+CONFLICT (content): Merge conflict in _includes/about.md
+error: could not apply dc5cf1b... Move to Stanford
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git cherry-pick --continue".
+hint: You can instead skip this commit with "git cherry-pick --skip".
+hint: To abort and get back to the state before "git cherry-pick",
+hint: run "git cherry-pick --abort".
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git rev-parse --is-inside-work-tree
+true
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git status --porcelain
+UU _includes/about.md
+M  _layouts/default.html
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git branch --show-current
+master
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git log -1 --oneline
+d7d3e4b (HEAD -> master) off the job market woo
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git diff --cc -- _includes/about.md && git diff -- _layouts/default.html
+diff --cc _includes/about.md
+index ebf11b4,7561d9e..0000000
+--- a/_includes/about.md
++++ b/_includes/about.md
+@@@ -1,3 -1,3 +1,9 @@@
+++<<<<<<< HEAD
+ +I am a sixth PhD candidate at the [Paul G. Allen School of Computer Science & Engineering](https://www.cs.washington.edu/) at The University of Washington, wh
+ere I am advised by [Tim Althoff](http://www.timalthoff.com/). I am affiliated with [UW NLP](https://twitter.com/uwnlp).
+ +
+-  Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.app
+le.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+++ Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.app
+le.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+++=======
++ I am a Postdoctoral Researcher at Stanford CS.
++
+ -Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.appl
+e.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+++Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.appl
+e.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+++>>>>>>> dc5cf1b (Move to Stanford)
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# python3 - /app/personal-site/_includes/about.md 1 120 false <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+--- 文件: /app/personal-site/_includes/about.md (第 1 至 9 行，共 9 行) ---
+   1 | <<<<<<< HEAD
+   2 | I am a sixth PhD candidate at the [Paul G. Allen School of Computer Science & Engineering](https://www.cs.washington.edu/) at The University of Washingto
+n, where I am advised by [Tim Althoff](http://www.timalthoff.com/). I am affiliated with [UW NLP](https://twitter.com/uwnlp).
+   3 |
+   4 |  Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearnin
+g.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+   5 | =======
+   6 | I am a Postdoctoral Researcher at Stanford CS.
+   7 |
+   8 | Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning
+.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+   9 | >>>>>>> dc5cf1b (Move to Stanford)
+--- 读取完毕 ---root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# python3 - /app/personal-site/_includes/about.md <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = '<<<<<<< HEAD\nI am a sixth PhD candidate at the [Paul G. Allen School of Computer Science & Engineering](https://www.cs.washington.edu/) at The Uni
+versity of Washington, where I am advised by [Tim Althoff](http://www.timalthoff.com/). I am affiliated with [UW NLP](https://twitter.com/uwnlp).\n\n Previously
+, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.apple.com/work-w
+ith-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).\n=======\nI am a Postdoctoral Researcher at St
+anford CS.\n\nPreviously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinel
+earning.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).\n>>>>>>> dc5cf1b (Move
+ to Stanford)\n'
+> new_str = 'I am a Postdoctoral Researcher at Stanford CS.\n\nPreviously, I was a Student Researcher at [Google Research](https://research.google/), an ML Rese
+arch Intern at [Apple Health AI](https://machinelearning.apple.com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https
+://www.healthrhythms.com).\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/personal-site/_includes/about.md。修改已持久化。
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git rev-parse --is-inside-work-tree
+true
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git diff --check && git diff --name-only --diff-filter=U && git diff --cached --stat && git diff --stat
+_includes/about.md
+ _includes/about.md    | Unmerged _layouts/default.html | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
+ _includes/about.md | Unmerged _includes/about.md | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git status --porcelain
+UU _includes/about.md
+M  _layouts/default.html
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git branch --show-current
+master
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git log -1 --oneline
+d7d3e4b (HEAD -> master) off the job market woo
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git add _includes/about.md _layouts/default.html && git cherry-pick --continue
+hint: Waiting for your editor to close the file... error: cannot run editor: No such file or directory
+error: unable to start editor 'editor'
+Please supply the message using either -m or -F option.
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# GIT_EDITOR=true git cherry-pick --continue
+[master 1f2d7df] Move to Stanford
+ Date: Wed Aug 26 04:56:12 2026 +0000
+ 2 files changed, 19 insertions(+), 17 deletions(-)
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git rev-parse --is-inside-work-tree
+true
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git status --porcelain
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git diff --check HEAD^ HEAD && (bundle exec jekyll build 2>&1 || jekyll build 2>&1)
+bash: bundle: command not found
+bash: jekyll: command not found
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git show --stat --summary --oneline HEAD && echo '--- about ---' && sed -n '1,20p' _includes/about.md && echo '--- default
+ diff against parent ---' && git diff HEAD^ HEAD -- _layouts/default.html
+1f2d7df (HEAD -> master) Move to Stanford
+ _includes/about.md    |  4 ++--
+ _layouts/default.html | 32 +++++++++++++++++---------------
+ 2 files changed, 19 insertions(+), 17 deletions(-)
+--- about ---
+I am a Postdoctoral Researcher at Stanford CS.
+
+Previously, I was a Student Researcher at [Google Research](https://research.google/), an ML Research Intern at [Apple Health AI](https://machinelearning.apple.
+com/work-with-us) and a data scientist and the second full-time employee at [HealthRhythms](https://www.healthrhythms.com).
+--- default diff against parent ---
+diff --git a/_layouts/default.html b/_layouts/default.html
+index 3fe07ee..cff5b5e 100644
+--- a/_layouts/default.html
++++ b/_layouts/default.html
+@@ -27,7 +27,9 @@
+     <link href="css/bootstrap.min.css" rel="stylesheet">
+     <link href="css/style.css" rel="stylesheet">
+
+-    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+HK:100,300|Barlow+Condensed|PT+Mono|PT+Serif&display=swap" rel="stylesheet">
++    <link
++        href="https://fonts.googleapis.com/css?family=Noto+Sans+HK:100,300|Barlow+Condensed|PT+Mono|PT+Serif&display=swap"
++        rel="stylesheet">
+
+ </head>
+
+@@ -38,7 +40,7 @@
+             <div class="jumbotron">
+                 <div class="row">
+                     <h3>
+-                        PhD Student @ UW CSE
++                        Postdoc @ Stanford
+                     </h3>
+                 </div>
+                 <div class="row">
+@@ -88,7 +90,7 @@
+         <div class="row">
+             <div class="col-md-12">
+                 <h2>Publications</h2>
+-                {% assign sorted_pubs = site.publications | sort: 'year' | reverse %}
++                {% assign sorted_pubs = site.publications | sort: 'year' | reverse %}
+                 {% for pub in sorted_pubs %}
+                 <div class="row">
+                     <div class="col-md-3 hide-on-small">
+@@ -99,22 +101,22 @@
+                     <div class="col-md-9">
+                         <p><b>{{pub.title}}</b></p>
+                         <p>
+-                            {% if pub.author contains "Michael Merrill" %}
+-                                {% assign a = pub.author | split: 'Michael Merrill' %}
+-                                {{a[0]}}<span class="author">Michael Merrill</span>{{a[1]}}
+-                            {% elsif pub.author contains "Mike A. Merrill*" %}
+-                                {% assign a = pub.author | split: 'Mike A. Merrill' %}
+-                                {{a[0]}}<span class="author">Mike A. Merrill*</span>{{a[1]}}
+-                            {% elsif pub.author contains "Mike A. Merrill" %}
+-                                {% assign a = pub.author | split: 'Mike A. Merrill' %}
+-                                {{a[0]}}<span class="author">Mike A. Merrill</span>{{a[1]}}
++                            {% if pub.author contains "Michael Merrill" %}
++                            {% assign a = pub.author | split: 'Michael Merrill' %}
++                            {{a[0]}}<span class="author">Michael Merrill</span>{{a[1]}}
++                            {% elsif pub.author contains "Mike A. Merrill*" %}
++                            {% assign a = pub.author | split: 'Mike A. Merrill' %}
++                            {{a[0]}}<span class="author">Mike A. Merrill*</span>{{a[1]}}
++                            {% elsif pub.author contains "Mike A. Merrill" %}
++                            {% assign a = pub.author | split: 'Mike A. Merrill' %}
++                            {{a[0]}}<span class="author">Mike A. Merrill</span>{{a[1]}}
+
+                             {% endif %}
+                         </p>
+-                        <p><span class = "venue">{{pub.venue}}</span>, {{pub.year}} {% if pub.pdf_path %}
++                        <p><span class="venue">{{pub.venue}}</span>, {{pub.year}} {% if pub.pdf_path %}
+                             <a href="{{pub.pdf_path}}">[PDF]</a> {% endif %}
+                             {% for link in pub.other_links %}
+-                            <a href="{{link.url}}">[{{link.name}}]</a>
++                            <a href="{{link.url}}">[{{link.name}}]</a>
+                             {% endfor %}
+                             {{pub.notes}}
+                         </p>
+@@ -123,7 +125,7 @@
+                 </div>
+                 {% endfor %}
+             </div>
+-
++
+         </div>
+
+     </div>
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git branch --show-current
+master
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@8be1a9b53f89:/app/personal-site# git log -1 --oneline
+1f2d7df (HEAD -> master) Move to Stanford
+root@8be1a9b53f89:/app/personal-site# true; tmux wait -S done
+root@8be1a9b53f89:/app/personal-site#

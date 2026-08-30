@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import inspect
+import re
 import json
 import os
 import subprocess
@@ -75,6 +76,8 @@ def parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
     parser.add_argument("--max-turns", type=int, default=40, help="Maximum agent turns.")
     parser.add_argument("--timeout", type=float, default=1800.0, help="Total timeout in seconds.")
     parser.add_argument("--output-json", help="Optional path for structured runner output.")
+    parser.add_argument("--task-id", help="Terminal-Bench task id used for session isolation.")
+    parser.add_argument("--session-id", help="Explicit session id; overrides --task-id.")
     parser.add_argument(
         "--require-path",
         action="append",
@@ -113,6 +116,24 @@ def load_task(args: argparse.Namespace) -> str:
     if not task_text:
         raise ValueError("Task text is empty.")
     return task_text
+
+
+def session_id_for_args(args: argparse.Namespace) -> str:
+    """Select a filesystem-safe session id for one benchmark task."""
+    explicit = getattr(args, "session_id", None)
+    if explicit:
+        value = explicit
+    elif getattr(args, "task_id", None):
+        value = args.task_id
+    elif getattr(args, "task_file", None):
+        value = Path(args.task_file).stem
+    else:
+        value = os.getenv("MINI_CLAUDE_SESSION", "terminal-bench")
+
+    value = str(value).strip()
+    value = re.sub(r"[^A-Za-z0-9._-]+", "-", value)
+    value = re.sub(r"-+", "-", value).strip("-.")
+    return value[:180] or "terminal-bench"
 
 
 def build_prompt(task_text: str) -> str:
@@ -208,7 +229,7 @@ def default_engine_factory(args: argparse.Namespace) -> SingleTaskEngine:
         tools=tools,
         model=os.getenv("MINI_CLAUDE_MODEL", "gpt-5.5"),
         plan_manager=plan_manager,
-        session_id=os.getenv("MINI_CLAUDE_SESSION", "terminal-bench"),
+        session_id=session_id_for_args(args),
         base_url=os.getenv("MINI_CLAUDE_BASE_URL", "https://api.openai.com/v1"),
         api_key=api_key,
         max_history=150,

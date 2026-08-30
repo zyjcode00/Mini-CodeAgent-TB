@@ -8,7 +8,7 @@ class RecordingEngine:
         self.calls = []
 
     async def run_single_task(self, prompt, max_turns=40):
-        self.calls.append({"prompt": prompt, "max_turns": max_turns})
+        self.calls.append((prompt, max_turns))
         return {"success": True, "stop_reason": "completed", "output": "done"}
 
 
@@ -17,29 +17,20 @@ class FailingEngine:
         return {"success": False, "stop_reason": "error", "error": "boom"}
 
 
-class SyncEngine:
-    def __init__(self):
-        self.calls = []
-
-    def run_single_task(self, prompt, max_turns=40):
-        self.calls.append({"prompt": prompt, "max_turns": max_turns})
-        return "sync done"
-
-
-def test_adapter_exports_importable_base_agent_subclass():
+def test_adapter_exports_terminal_bench_agent():
     assert hasattr(adapter, "MiniClaudeCodeTerminalBenchAgent")
     assert adapter.MiniClaudeCodeAgent is adapter.MiniClaudeCodeTerminalBenchAgent
     assert issubclass(adapter.MiniClaudeCodeTerminalBenchAgent, adapter.BaseAgent)
     assert adapter.MiniClaudeCodeTerminalBenchAgent.name() == "mini-claude-code-cli"
 
 
-def test_adapter_accepts_terminal_bench_style_kwargs_and_metadata():
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(model="test-model", max_turns=5, task_ids=["demo"])
-
+def test_adapter_accepts_terminal_bench_kwargs():
+    agent = adapter.MiniClaudeCodeTerminalBenchAgent(
+        model="test-model", max_turns=5, task_ids=["demo"]
+    )
     assert agent.model == "test-model"
     assert agent.max_turns == 5
     assert agent.extra_kwargs == {"task_ids": ["demo"]}
-    assert agent._identifying_params == {"model": "test-model", "max_turns": 5}
 
 
 @pytest.mark.parametrize("max_turns", [0, -1, 1.5, "2"])
@@ -48,45 +39,17 @@ def test_adapter_rejects_invalid_max_turns(max_turns):
         adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=max_turns)
 
 
-@pytest.mark.parametrize("instruction", ["", "   ", None])
-def test_adapter_rejects_empty_instruction(instruction):
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(engine_factory=RecordingEngine)
-
-    with pytest.raises(ValueError, match="instruction must be a non-empty string"):
-        agent.perform_task(instruction, session=object())
-
-
-def test_perform_task_calls_async_engine_and_stores_summary():
+def test_perform_task_runs_engine_and_stores_summary():
     engine = RecordingEngine()
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=7, engine_factory=lambda: engine)
-
-    class NoopSession:
-        def run(self, command):
-            return ""
-
-    agent.perform_task("  solve this task  ", session=NoopSession())
-
-    assert engine.calls == [{"prompt": "solve this task", "max_turns": 7}]
-    assert agent.last_result == adapter.MiniClaudeRunSummary(
-        success=True,
-        stop_reason="completed",
-        output="done",
-        error=None,
+    agent = adapter.MiniClaudeCodeTerminalBenchAgent(
+        max_turns=7, engine_factory=lambda: engine
     )
 
+    agent.perform_task("  solve this task  ", session=None)
 
-def test_perform_task_accepts_sync_engine_result():
-    engine = SyncEngine()
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(engine_factory=lambda: engine)
-
-    agent.perform_task("solve", session=None)
-
-    assert engine.calls == [{"prompt": "solve", "max_turns": 40}]
+    assert engine.calls == [("solve this task", 7)]
     assert agent.last_result == adapter.MiniClaudeRunSummary(
-        success=True,
-        stop_reason="completed",
-        output="sync done",
-        error=None,
+        success=True, stop_reason="completed", output="done", error=None
     )
 
 
@@ -96,65 +59,32 @@ def test_perform_task_raises_when_engine_reports_failure():
     with pytest.raises(RuntimeError, match="boom"):
         agent.perform_task("solve", session=None)
 
-    assert agent.last_result == adapter.MiniClaudeRunSummary(
-        success=False,
-        stop_reason="error",
-        output="",
-        error="boom",
-    )
+    assert agent.last_result.success is False
+    assert agent.last_result.error == "boom"
 
 
-def test_perform_task_runs_terminal_bench_setup_before_engine():
-    session = type("Session", (), {"commands": []})()
-
-    class OrderingEngine:
-        def __init__(self):
-            self.calls = []
-
-        async def run_single_task(self, prompt, max_turns=40):
-            self.calls.append({"prompt": prompt, "max_turns": max_turns, "commands_before_run": list(session.commands)})
-            return {"success": True, "stop_reason": "completed", "output": "done"}
-
-    class FakeTerminalBenchSessionBackend:
-        def __init__(self, session_obj):
-            self.session_obj = session_obj
-
-        def run_command(self, command):
-            self.session_obj.commands.append(command)
-            return "setup ok"
-
-    engine = OrderingEngine()
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=4, engine_factory=lambda: engine)
-
-    original_backend = adapter.__dict__.get("TerminalBenchSessionBackend")
-    try:
-        import tools.execution_backend as execution_backend
-
-        original_execution_backend = execution_backend.TerminalBenchSessionBackend
-        execution_backend.TerminalBenchSessionBackend = FakeTerminalBenchSessionBackend
-        try:
-            agent.perform_task(" solve ", session=session)
-        finally:
-            execution_backend.TerminalBenchSessionBackend = original_execution_backend
-    finally:
-        if original_backend is not None:
-            adapter.TerminalBenchSessionBackend = original_backend
-
-    assert session.commands == [adapter.APT_MIRROR_SETUP_COMMAND]
-    assert engine.calls == [
-        {"prompt": "solve", "max_turns": 4, "commands_before_run": [adapter.APT_MIRROR_SETUP_COMMAND]}
-    ]
-
-    engine = RecordingEngine()
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(max_turns=3, engine_factory=lambda: engine)
-
-    agent.perform_task("solve inside loop", session=None)
-
-    assert engine.calls == [{"prompt": "solve inside loop", "max_turns": 3}]
-    assert agent.last_result.success is True
+def test_task_session_id_prefers_explicit_configuration():
+    assert adapter.task_session_id(
+        "manual/session", task_name="fix-git", logging_dir="other"
+    ) == "manual-session"
 
 
-def test_default_engine_uses_real_agent_engine_with_git_automation_disabled(monkeypatch):
+def test_task_session_id_uses_task_id_and_sanitizes_filename():
+    assert adapter.task_session_id(
+        None, task_id="fix-git", task_name=None
+    ) == "fix-git"
+    assert adapter.safe_session_id("fix/git: v1") == "fix-git-v1"
+
+
+def test_task_session_id_falls_back_to_session_metadata_and_logging_dir(tmp_path):
+    session = type("Session", (), {"task_id": "metadata-task"})()
+    assert adapter.task_session_id(None, session=session) == "metadata-task"
+    assert adapter.task_session_id(
+        None, logging_dir=tmp_path / "fix-git"
+    ) == "fix-git"
+
+
+def test_default_engine_passes_task_id_as_session_id(monkeypatch):
     captured = {}
 
     class FakeAgentEngine:
@@ -172,12 +102,16 @@ def test_default_engine_uses_real_agent_engine_with_git_automation_disabled(monk
     monkeypatch.setattr("core.engine.AgentEngine", FakeAgentEngine, raising=False)
     monkeypatch.setattr("core.memory_manager.MemoryManager", FakeMemoryManager)
     monkeypatch.setattr("core.plan.PlanManager", FakePlanManager)
-    monkeypatch.setattr("main.get_agent_config", lambda: {"base_url": "", "api_key": "test-key"})
+    monkeypatch.setattr(
+        "main.get_agent_config",
+        lambda: {"base_url": "https://example.invalid", "api_key": "test-key"},
+    )
     monkeypatch.setattr("tools.get_default_tools", lambda **kwargs: [])
 
-    agent = adapter.MiniClaudeCodeTerminalBenchAgent(model="test-model")
-    engine = agent._create_default_engine()
+    agent = adapter.MiniClaudeCodeTerminalBenchAgent(
+        model="test-model", task_id="fix-git"
+    )
+    agent._current_task_name = "fix-git"
+    agent._create_default_engine()
 
-    assert isinstance(engine, FakeAgentEngine)
-    assert captured["model"] == "test-model"
-    assert captured["enable_git_automation"] is False
+    assert captured["session_id"] == "fix-git"

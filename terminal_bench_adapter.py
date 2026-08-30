@@ -32,7 +32,7 @@ uv run tb run \
   --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
   --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
   --agent-kwarg max_turns=10 \
-  --task-id assign-seats \
+  --task-id accelerate-maximal-square\
   --output-path ./eval_runs_test
 
 uv run tb run \
@@ -56,8 +56,10 @@ uv run tb run \
 
 import asyncio
 import os
+import re
 import threading
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 try:  # Prefer the real Terminal-Bench base class when available.
@@ -121,6 +123,38 @@ apt-get update || true
 """
 
 
+def safe_session_id(task_name: Any, fallback: str = "terminal-bench") -> str:
+    """Convert a task name into a stable session id that is safe in filenames."""
+
+    value = str(task_name or "").strip()
+    value = re.sub(r"[^A-Za-z0-9._-]+", "-", value)
+    value = re.sub(r"-+", "-", value).strip("-.")
+    return value[:180] or fallback
+
+
+def task_session_id(
+    explicit_session_id: Any,
+    task_name: Any = None,
+    task_id: Any = None,
+    session: Any = None,
+    logging_dir: Any = None,
+) -> str:
+    """Prefer explicit configuration, otherwise derive the id from TB metadata."""
+
+    if explicit_session_id:
+        return safe_session_id(explicit_session_id)
+
+    candidates = [task_name, task_id]
+    if session is not None:
+        candidates.extend(getattr(session, key, None) for key in ("task_name", "task_id", "name", "id"))
+    if logging_dir:
+        candidates.append(Path(str(logging_dir)).name)
+    for candidate in candidates:
+        if candidate:
+            return safe_session_id(candidate)
+    return "terminal-bench"
+
+
 class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
     """Terminal-Bench ``BaseAgent`` implementation for mini-claude-code-cli.
 
@@ -146,8 +180,11 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         self.engine_factory = engine_factory or self._create_default_engine
         self.extra_args = args
         self.extra_kwargs = kwargs
+        self.session_id = kwargs.get("session_id")
         self.last_result: Optional[MiniClaudeRunSummary] = None
         self._current_session: Any = None
+        self._current_task_name: Any = None
+        self._current_logging_dir: Any = None
 
     @staticmethod
     def name() -> str:
@@ -166,6 +203,8 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         instruction: str,
         session: Any = None,
         logging_dir: Any = None,
+        task_name: Any = None,
+        task_id: Any = None,
         **_: Any,
     ) -> None:
         """Execute one Terminal-Bench task instruction.
@@ -189,10 +228,14 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         # default engine so shell tools can execute inside the benchmark
         # container through TerminalBenchSessionBackend.
         self._current_session = session
+        self._current_task_name = task_name or task_id
+        self._current_logging_dir = logging_dir
         try:
             result = self._run_coroutine_sync(self._run_engine(instruction.strip()))
         finally:
             self._current_session = None
+            self._current_task_name = None
+            self._current_logging_dir = None
         self.last_result = self._normalize_result(result)
 
         if not self.last_result.success:
@@ -235,7 +278,12 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
             tools=tools_list,
             model=self.model,
             plan_manager=plan_manager,
-            session_id="terminal-bench",
+            session_id=task_session_id(
+                self.session_id,
+                task_name=self._current_task_name,
+                session=self._current_session,
+                logging_dir=self._current_logging_dir,
+            ),
             base_url=config["base_url"],
             api_key=config["api_key"],
             max_history=150,

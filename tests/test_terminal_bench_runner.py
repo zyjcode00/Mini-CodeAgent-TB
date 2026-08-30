@@ -291,3 +291,54 @@ def test_non_terminal_stop_reason_cannot_report_success(tmp_path):
     assert data["success"] is False
     assert data["stop_reason"] == "agent_timeout"
     assert "Agent stopped before completion" in data["error"]
+
+
+def test_session_id_for_args_prefers_explicit_task_id_then_task_file(monkeypatch, tmp_path):
+    monkeypatch.setenv("MINI_CLAUDE_SESSION", "agent-logs")
+
+    explicit = runner.parse_args([
+        "--task", "solve", "--workspace", str(tmp_path),
+        "--task-id", "fix-git", "--session-id", "manual session",
+    ])
+    assert runner.session_id_for_args(explicit) == "manual-session"
+
+    task_id_args = runner.parse_args([
+        "--task", "solve", "--workspace", str(tmp_path), "--task-id", "fix-git",
+    ])
+    assert runner.session_id_for_args(task_id_args) == "fix-git"
+
+    task_file = tmp_path / "mailman task.txt"
+    task_file.write_text("solve", encoding="utf-8")
+    task_file_args = runner.parse_args([
+        "--task-file", str(task_file), "--workspace", str(tmp_path),
+    ])
+    assert runner.session_id_for_args(task_file_args) == "mailman-task"
+
+
+def test_default_engine_factory_uses_task_id_session_instead_of_agent_logs(monkeypatch, tmp_path):
+    captured = {}
+
+    class FakeAgentEngine:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        async def run_single_task(self, prompt, max_turns=40):
+            return {"success": True, "stop_reason": "completed"}
+
+    class FakePlanManager:
+        pass
+
+    monkeypatch.setenv("MINI_CLAUDE_API_KEY", "test-key")
+    monkeypatch.setenv("MINI_CLAUDE_SESSION", "agent-logs")
+    monkeypatch.setattr(runner, "AgentEngine", FakeAgentEngine, raising=False)
+    monkeypatch.setattr(runner, "PlanManager", FakePlanManager, raising=False)
+    monkeypatch.setattr(runner, "MemoryManager", None, raising=False)
+    monkeypatch.setattr(runner, "get_default_tools", lambda **kwargs: [], raising=False)
+
+    args = runner.parse_args([
+        "--task", "solve", "--workspace", str(tmp_path), "--task-id", "fix-git",
+    ])
+    engine = runner.default_engine_factory(args)
+
+    assert isinstance(engine, FakeAgentEngine)
+    assert captured["session_id"] == "fix-git"

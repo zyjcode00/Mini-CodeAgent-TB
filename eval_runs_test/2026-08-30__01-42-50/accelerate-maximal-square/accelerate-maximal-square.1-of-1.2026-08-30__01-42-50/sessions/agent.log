@@ -1,0 +1,45 @@
+root@647dbf0b88dc:/taichi-dev/taichi# asciinema rec --stdin /logs/agent.cast
+[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+root@647dbf0b88dc:/taichi-dev/taichi# clear
+[H[Jroot@647dbf0b88dc:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@647dbf0b88dc:/taichi-dev/taichi# set +e
+root@647dbf0b88dc:/taichi-dev/taichi# 
+root@647dbf0b88dc:/taichi-dev/taichi# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@647dbf0b88dc:/taichi-dev/taichi# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@647dbf0b88dc:/taichi-dev/taichi# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@647dbf0b88dc:/taichi-dev/taichi# 
+root@647dbf0b88dc:/taichi-dev/taichi# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@647dbf0b88dc:/taichi-dev/taichi# 
+root@647dbf0b88dc:/taichi-dev/taichi# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@647dbf0b88dc:/taichi-dev/taichi# 
+root@647dbf0b88dc:/taichi-dev/taichi# mkdir -p /root/.config/uv
+root@647dbf0b88dc:/taichi-dev/taichi# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@647dbf0b88dc:/taichi-dev/taichi# 
+root@647dbf0b88dc:/taichi-dev/taichi# apt-get update || true
+0% [Working]0% [Connecting to archive.ubuntu.com (91.189.91.83)] [Waiting for headers]                                                                          Get:1 http://security.ubuntu.com/ubuntu bionic-security InRelease [102 kB]
+0% [Connecting to archive.ubuntu.com (91.189.91.81)] [1 InRelease 8380 B/102 kB 8%]                                                                                   Hit:2 http://archive.ubuntu.com/ubuntu bionic InRelease
+                                                                                   0% [Waiting for headers] [1 InRelease 43.1 kB/102 kB 42%]0% [2 InRelease gpgv 242 kB] [Waiting for headers] [1 InRelease 43.1 kB/102 kB 42%]                                                                                   0% [Waiting for headers] [1 InRelease 48.9 kB/102 kB 48%]                                                         Get:3 http://archive.ubuntu.com/ubuntu bionic-updates InRelease [102 kB]
+0% [3 InRelease 8380 B/102 kB 8%] [1 InRelease 70.6 kB/102 kB 69%]                                                                  0% [3 InRelease 15.6 kB/102 kB 15%]0% [1 InRelease gpgv 102 kB] [3 InRelease 15.6 kB/102 kB 15%]                                                             0% [3 InRelease 20.0 kB/102 kB 20%]0% [3 InRelease 62.0 kB/102 kB 61%]                                   0% [Working]0% [3 InRelease gpgv 102 kB] [Waiting for headers]                                                  0% [Waiting for headers]                        Get:4 http://archive.ubuntu.com/ubuntu bionic-backports InRelease [102 kB]
+0% [4 InRelease 2588 B/102 kB 3%]                                 0% [Working]0% [4 InRelease gpgv 102 kB]                            100% [Working]              Fetched 305 kB in 3s (108 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 4%Reading package lists... 4%Reading package lists... 4%Reading package lists... 4%Reading package lists... 45%Reading package lists... 45%Reading package lists... 45%Reading package lists... 45%Reading package lists... 59%Reading package lists... 59%Reading package lists... 66%Reading package lists... 66%Reading package lists... 74%Reading package lists... 74%Reading package lists... 74%Reading package lists... 74%Reading package lists... 75%Reading package lists... 75%Reading package lists... 75%Reading package lists... 75%Reading package lists... 87%Reading package lists... 87%Reading package lists... 93%Reading package lists... 93%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+root@647dbf0b88dc:/taichi-dev/taichi# true; tmux wait -S done
+root@647dbf0b88dc:/taichi-dev/taichi# 
