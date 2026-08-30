@@ -1,0 +1,1948 @@
+    19                  MDF_TRANSFORMS  =       32,
+    20                  MDF_ALL                 = (MDF_MESHES|MDF_TEXTURES|MDF_BINDMATS|MDF_PARENTINFO|MDF_ANIMATIONS|MDF_TRANSFORMS)
+    21          };
+    22
+    23          /************************************************************************/
+    24          /* DATA MEMBERS                                                         */
+    25          /************************************************************************/
+    26  protected:
+    27          size_t m_nDataSize;                                     ///< Size of the memory pool
+    28          Byte *m_pData;                                          ///< Memory pool for this MDF
+    29
+    30
+    31          TMdfMesh *m_vpMeshes;                           ///< All the meshes in the file
+    32          unsigned int m_nMeshArrayLength;        ///< Length of the meshes array
+    33
+    34          TMdfAnimation *m_vpAnimations;          ///< All the animations in the file
+    35          unsigned int m_nAnimArrayLength;        ///< Size of the animations array
+    36
+    37          char **m_vpTextures;                            ///< Array of texture strings
+    38
+    39          mutable MdfHeader m_tMdfHeader;                         ///< Master MDF header
+    40
+    41
+    42          /************************************************************************/
+    43          /* CONSTRUCTION                                                         */
+    44          /************************************************************************/
+    45  public:
+    46          MdfFormat(void);
+    47  public:
+    48          virtual ~MdfFormat(void);
+    49
+    50          /************************************************************************/
+    51          /* CLASS METHODS                                                        */
+    52          /************************************************************************/
+    53  public:
+    54          //////////////////////////////////////////////////////////////////////////
+    55          /// Create a new MDF file
+    56          ///
+    57          /// \param nNumMeshesHint - number of meshes this file might store
+    58          /// \return true if successful
+    59          ///
+    60          /// \remarks To recreate a new MDF on the same object, Destroy() must
+    61          ///                      be called first
+    62          //////////////////////////////////////////////////////////////////////////
+    63          bool Create(unsigned int nNumMeshesHint=0);
+    64
+    65          //////////////////////////////////////////////////////////////////////////
+    66          /// Create a new MDF by loading its data from a file
+    67          ///
+    68          /// \param szFilename - the path of the file to load
+    69          /// \return true if successful
+    70          //////////////////////////////////////////////////////////////////////////
+    71          bool CreateFromFile(const char *szFilename);
+    72
+    73          //////////////////////////////////////////////////////////////////////////
+    74          /// Create a new MDF from raw MDF data in memory
+    75          ///
+    76          /// \param pData - location of the raw MDF data to load
+    77          /// \param nDataSize - size of the data buffer in bytes
+    78          /// \return true if successful
+    79          //////////////////////////////////////////////////////////////////////////
+    80          bool CreateFromFileInMemory(Byte *pData, size_t nDataSize);
+    81
+    82          //////////////////////////////////////////////////////////////////////////
+    83          /// Destroy the MDF and free all the memory
+    84          ///
+    85          /// \remarks Once destroyed, this object is available for any of the
+    86          ///                      Create* calls to create a new MDF
+    87          ///
+    88          //////////////////////////////////////////////////////////////////////////
+    89          void Destroy();
+    90
+    91          //////////////////////////////////////////////////////////////////////////
+    92          /// Save MDF data to a file
+    93          ///
+    94          /// \param szFilename - path of the file to save to
+    95          /// \return true if successful
+    96          //////////////////////////////////////////////////////////////////////////
+    97          bool SaveToFile(const char *szFilename) const;
+    98
+    99
+   100          //////////////////////////////////////////////////////////////////////////
+   101          /// Add a new mesh to this MDF
+   102          ///
+   103          /// \param newMesh - mesh information to add
+   104          /// \return index of the newly-added mesh
+   105          //////////////////////////////////////////////////////////////////////////
+   106          MdfHandle AddMesh(const MdfFullMesh &newMesh);
+   107
+   108          //////////////////////////////////////////////////////////////////////////
+   109          /// Add a new animation to this MDF
+   110          ///
+   111          /// \param newAnimation - animation information to add
+   112          /// \return index of the newly-added animation
+   113          //////////////////////////////////////////////////////////////////////////
+   114          MdfHandle AddAnimation(const MdfFullAnimation &newAnimation);
+   115
+   116          /************************************************************************/
+   117          /* ACCESSORS                                                            */
+   118          /************************************************************************/
+   119  public:
+   120
+   121          //////////////////////////////////////////////////////////////////////////
+   122          /// Get the number of meshes that are stored in this MDF
+   123          ///
+   124          /// \return total number of meshes
+   125          //////////////////////////////////////////////////////////////////////////
+   126          unsigned int GetNumMeshes() const { return m_tMdfHeader.nMeshCount; }
+   127
+   128          //////////////////////////////////////////////////////////////////////////
+   129          /// Obtain a read-only mesh object given by the index
+   130          ///
+   131          /// \param hMeshId index of the mesh object to obtain
+   132          /// \return Mesh object of the given index
+   133          ///
+   134          /// \warning Invalid indexes are not checked, use GetNumMeshes() to find
+   135          ///                      the maximum index
+   136          //////////////////////////////////////////////////////////////////////////
+   137          const TMdfMesh & GetMesh(MdfHandle hMeshId) const { return m_vpMeshes[hMeshId]; }
+   138
+   139          //////////////////////////////////////////////////////////////////////////
+   140          /// Get number of animations that are stored in this MDF
+   141          ///
+   142          /// \return number of animations in this MDF
+   143          //////////////////////////////////////////////////////////////////////////
+   144          unsigned int GetNumAnimations() const { return m_tMdfHeader.nAnimCount; }
+   145
+   146          //////////////////////////////////////////////////////////////////////////
+   147          /// Obtain a read-only animation object given by the index
+   148          ///
+   149          /// \param hAnimId - animation index
+   150          /// \return Mesh animation of the given index
+   151          ///
+   152          /// \warning Invalid indexes are not checked, use GetNumAnimations() to find
+   153          ///                      the maximum index
+   154          //////////////////////////////////////////////////////////////////////////
+   155          const TMdfAnimation & GetAnimation(MdfHandle hAnimId) const { return m_vpAnimations[hAnimId]; }
+   156
+   157          //////////////////////////////////////////////////////////////////////////
+   158          /// Get texture that is assigned to the given mesh
+   159          ///
+   160          /// \param hMeshId - index of the mesh
+   161          /// \return index of the texture
+   162          //////////////////////////////////////////////////////////////////////////
+   163          MdfHandle GetTextureId(MdfHandle hMeshId) const {
+   164                  return m_vpMeshes[hMeshId].hTexture;
+   165          }
+   166
+   167          //////////////////////////////////////////////////////////////////////////
+   168          /// Get the number of texture names that are stored in this MDF
+   169          ///
+   170          /// \return total number of texture names
+   171          //////////////////////////////////////////////////////////////////////////
+   172          unsigned int GetNumTextures() const { return m_tMdfHeader.nTextureCount; }
+   173
+   174          //////////////////////////////////////////////////////////////////////////
+   175          /// Get texture name from the specified texture index value
+   176          ///
+   177          /// \param hTextureId - texture index
+   178          /// \return name of the texture
+   179          ///
+   180          /// \warning The string memory is maintained by the MDF object.
+   181          ///                      Always use deep-copying if you want to store the
+   182          ///                      string elsewhere.
+   183          ///                      The string is destroyed when this MDF is destroyed.
+   184          ///
+   185          //////////////////////////////////////////////////////////////////////////
+   186          const char * GetTextureName(MdfHandle hTextureId) const { return m_vpTextures[hTextureId]; }
+   187
+   188          //////////////////////////////////////////////////////////////////////////
+   189          /// Get the header of this MDF
+   190          ///
+   191          /// \return the header of this MDF
+   192          //////////////////////////////////////////////////////////////////////////
+   193          const MdfHeader & GetHeader() const { return m_tMdfHeader; }
+   194
+   195          bool HasAnimations() const {
+   196                  return(m_vpAnimations != 0);
+   197          }
+   198
+   199          bool HasMeshes() const {
+   200                  return(m_vpMeshes != 0);
+   201          }
+   202
+   203          /************************************************************************/
+   204          /* PRIVATE METHODS                                                      */
+   205          /************************************************************************/
+   206  protected:
+   207
+   208          //////////////////////////////////////////////////////////////////////////
+   209          /// Loads an MDF from a given stream
+   210          ///
+   211          /// \param stream - the stream to load from
+   212          /// \return true if successful
+   213          //////////////////////////////////////////////////////////////////////////
+   214          bool LoadFromStream(MdfStream &stream);
+   215
+   216          //////////////////////////////////////////////////////////////////////////
+   217          /// Add a texture name to this MDF
+   218          ///
+   219          /// \remarks Adding duplicate names will waste memory. It is up to the
+   220          ///                      caller to ensure that no duplicate texture names are added.
+   221          ///
+   222          /// \param szName - the name of the texture (usually filename)
+   223          /// \return the index of the newly added texture name
+   224          //////////////////////////////////////////////////////////////////////////
+   225          MdfHandle AddTexture(const char *szName);
+   226
+   227          void ByteAlignFile(FILE *fp) const;
+   228
+   229  private:
+   230          // disable copy and assignment operator
+   231          MdfFormat(MdfFormat &) {};
+   232          MdfFormat & operator=(MdfFormat &) {}
+   233
+   234  };
+   235
+   236  class MdfStream {
+   237  public:
+   238          virtual ~MdfStream() {};
+   239          virtual bool Seek(int offset, int origin) = 0;
+   240          virtual int Tell() = 0;
+   241          virtual int Read(void *pDest, int nLength) = 0;
+   242          virtual int Length() = 0;
+   243  };
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba MdfFormat.cpp | sed -n '1,260p'
+     1  #include "stdafx.h"
+     2  #include "MdfFormat.h"
+     3  #include <stdint.h>
+     4  #include <stdlib.h>
+     5
+     6  const char MDF_VER_STR[8] = {
+     7          'M',
+     8          'D',
+     9          'F',
+    10          ' ',
+    11          'v',
+    12          '1',
+    13          '.',
+    14          '2'
+    15  };
+    16
+    17  class MdfMemStream
+    18          : public MdfStream
+    19  {
+    20  public:
+    21          MdfMemStream(Byte *pData, int nDataLen) : pData(pData), nDataLen(nDataLen), nPos(0) {}
+    22          virtual ~MdfMemStream() {}
+    23
+    24          virtual bool Seek(int offset, int origin);
+    25          virtual int Tell();
+    26          virtual int Read(void *pDest, int nLength);
+    27          virtual int Length();
+    28
+    29  private:
+    30          Byte *pData;
+    31          int nDataLen;
+    32          int nPos;
+    33
+    34  };
+    35
+    36  bool MdfMemStream::Seek(int offset, int origin)
+    37  {
+    38          switch(origin) {
+    39                  case SEEK_SET:
+    40                  {
+    41                          if(offset < 0 || offset > nDataLen) {
+    42                                  return false;
+    43                          }
+    44                          nPos = offset;
+    45                  } break;
+    46                  case SEEK_CUR:
+    47                  {
+    48                          register int test = nPos += offset;
+    49                          if(test < 0 || test > nDataLen) {
+    50                                  return false;
+    51                          }
+    52                          nPos += offset;
+    53                  } break;
+    54                  case SEEK_END:
+    55                  {
+    56                          register int test = nPos += offset;
+    57                          if(test < 0 || test > nDataLen) {
+    58                                  return false;
+    59                          }
+    60                          nPos = nDataLen - origin;
+    61                  } break;
+    62          }
+    63          return true;
+    64  }
+    65
+    66  int MdfMemStream::Tell()
+    67  {
+    68          return nPos;
+    69  }
+    70
+    71  int MdfMemStream::Read(void *pDest, int nLength)
+    72  {
+    73          if(nPos + nLength >= nDataLen) {
+    74                  nLength = nDataLen - nPos;
+    75          }
+    76          memcpy(pDest, &pData[nPos], nLength);
+    77          nPos += nLength;
+    78          return nLength;
+    79  }
+    80
+    81  int MdfMemStream::Length()
+    82  {
+    83          return nDataLen;
+    84  }
+    85
+    86  //////////////////////////////////////////////////////////////////////////
+    87
+    88  class MdfFileStream
+    89          : public MdfStream
+    90  {
+    91  public:
+    92          MdfFileStream() : fp(0), nDataLen(0) {}
+    93          virtual ~MdfFileStream() { Close(); }
+    94
+    95          bool Open(const char *szFilename) {
+    96                  fp = fopen(szFilename, "rb");
+    97                  if(fp) {
+    98                          fseek(fp, 0, SEEK_END);
+    99                          nDataLen = (int)ftell(fp);
+   100                          fseek(fp, 0, SEEK_SET);
+   101                          return true;
+   102                  } else {
+   103                          return false;
+   104                  }
+   105          }
+   106
+   107          void Close() {
+   108                  if(fp) {
+   109                          fclose(fp);
+   110                  }
+   111                  fp = 0;
+   112                  nDataLen = 0;
+   113          }
+   114
+   115          virtual bool Seek(int offset, int origin) {
+   116                  return(fseek(fp, offset, origin) == 0);
+   117          }
+   118
+   119          virtual int Tell() { return (int)ftell(fp); }
+   120
+   121          virtual int Read(void *pDest, int nLength) {
+   122                  return (int)fread(pDest, 1, nLength, fp);
+   123          }
+   124
+   125          virtual int Length() { return nDataLen; }
+   126
+   127  private:
+   128          FILE *fp;
+   129          int nDataLen;
+   130  };
+   131
+   132  //////////////////////////////////////////////////////////////////////////
+   133
+   134  MdfFormat::MdfFormat(void)
+   135  : m_nDataSize(0),
+   136    m_pData(0),
+   137    m_vpMeshes(0),
+   138    m_nMeshArrayLength(0),
+   139    m_vpAnimations(0),
+   140    m_nAnimArrayLength(0),
+   141    m_vpTextures(0)
+   142  {
+   143          ZeroMemory(&m_tMdfHeader, sizeof(m_tMdfHeader));
+   144  }
+   145
+   146  MdfFormat::~MdfFormat(void)
+   147  {
+   148          Destroy();
+   149  }
+   150
+   151  bool MdfFormat::Create(unsigned int nNumMeshesHint/* =0 */)
+   152  {
+   153          if(m_vpMeshes != 0) {
+   154                  return false;
+   155          }
+   156
+   157          ZeroMemory(&m_tMdfHeader, sizeof(m_tMdfHeader));
+   158
+   159          memcpy(m_tMdfHeader.cId, MDF_VER_STR, sizeof(MDF_VER_STR));
+   160
+   161          m_tMdfHeader.nByteAlignment = MDF_BYTE_ALIGNMENT;
+   162
+   163          if(nNumMeshesHint) {
+   164                  m_vpMeshes = (TMdfMesh*)malloc(nNumMeshesHint * sizeof(TMdfMesh));
+   165                  ZeroMemory(m_vpMeshes, nNumMeshesHint * sizeof(TMdfMesh));
+   166                  m_nMeshArrayLength = nNumMeshesHint;
+   167
+   168                  m_vpAnimations = (TMdfAnimation*)malloc(nNumMeshesHint * sizeof(TMdfAnimation));
+   169                  m_nAnimArrayLength = nNumMeshesHint;
+   170          }
+   171
+   172          return true;
+   173  }
+   174
+   175
+   176  MdfHandle MdfFormat::AddMesh(const MdfFullMesh &newMesh)
+   177  {
+   178          TMdfMesh *pMesh = 0;
+   179          unsigned int nMesh = 0;
+   180
+   181          // reallocate mesh pointer array if needed
+   182          if((m_tMdfHeader.nMeshCount + 1) > m_nMeshArrayLength) {
+   183
+   184                  m_vpMeshes = (TMdfMesh*)realloc(m_vpMeshes, (m_tMdfHeader.nMeshCount+1)*sizeof(TMdfMesh));
+   185                  m_nMeshArrayLength++;
+   186          }
+   187
+   188          // allocate new mesh, set up variables
+   189          nMesh = m_tMdfHeader.nMeshCount;
+   190          pMesh = &m_vpMeshes[nMesh];
+   191          m_tMdfHeader.nMeshCount++;
+   192          ZeroMemory(pMesh, sizeof(TMdfMesh));
+   193
+   194          if(newMesh.numBindPoseElements > 0 && newMesh.parentInfo) {
+   195                  pMesh->meshType = TMdfMesh::MESH_SKINNED;
+   196          } else {
+   197                  pMesh->meshType = TMdfMesh::MESH_STATIC;
+   198          }
+   199
+   200          size_t numVerts = newMesh.finalVerts.size();
+   201          size_t numInds = newMesh.finalIndices.size();
+   202
+   203          // set up the mesh structure
+   204          pMesh->nNumVerts = (unsigned int)newMesh.finalVerts.size();
+   205          pMesh->nNumIndices = (unsigned int)newMesh.finalIndices.size();
+   206
+   207          // allocate vertices and indices
+   208
+   209          if(pMesh->meshType == TMdfMesh::MESH_SKINNED) {
+   210                  pMesh->uVtxs.pVertices = malloc(sizeof(TMdfVertSkn) * pMesh->nNumVerts);
+   211          } else {
+   212                  pMesh->uVtxs.pVertices = malloc(sizeof(TMdfVertSta) * pMesh->nNumVerts);
+   213          }
+   214
+   215
+   216          pMesh->uIdxs.pIndices = (unsigned short*)malloc(sizeof(unsigned short) * pMesh->nNumIndices);
+   217
+   218          //
+   219          // copy vertex data
+   220          //
+   221          FullVertList::const_iterator li = newMesh.finalVerts.begin();
+   222          int i = 0;
+   223          if(pMesh->meshType == TMdfMesh::MESH_SKINNED) {
+   224                  TMdfVertSkn *v;
+   225                  while (li != newMesh.finalVerts.end()) {
+   226                           v = &((TMdfVertSkn*)pMesh->uVtxs.pVertices)[i];
+   227
+   228                          v->pos.x = li->pos[0];
+   229                          v->pos.y = li->pos[1];
+   230                          v->pos.z = li->pos[2];
+   231
+   232                          v->weights[0] = li->weights[0];
+   233                          v->weights[1] = li->weights[1];
+   234                          v->weights[2] = li->weights[2];
+   235
+   236                          v->bones[0] = li->bones[0];
+   237                          v->bones[1] = li->bones[1];
+   238                          v->bones[2] = li->bones[2];
+   239                          v->bones[3] = li->bones[3];
+   240
+   241                          v->normal.x = li->normal[0];
+   242                          v->normal.y = li->normal[1];
+   243                          v->normal.z = li->normal[2];
+   244
+   245                          v->texcoord.u = li->u;
+   246                          v->texcoord.v = li->v;
+   247
+   248                          i++;
+   249                          li++;
+   250                  }
+   251          } else {
+   252                  TMdfVertSta *v;
+   253                  while (li != newMesh.finalVerts.end()) {
+   254                          v = &((TMdfVertSta*)pMesh->uVtxs.pVertices)[i];
+   255
+   256                          v->pos.x = li->pos[0];
+   257                          v->pos.y = li->pos[1];
+   258                          v->pos.z = li->pos[2];
+   259                          v->normal.x = li->normal[0];
+   260                          v->normal.y = li->normal[1];
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba MdfFormat.cpp | sed -n '260,620p'
+   260                          v->normal.y = li->normal[1];
+   261                          v->normal.z = li->normal[2];
+   262                          v->texcoord.u = li->u;
+   263                          v->texcoord.v = li->v;
+   264
+   265                          i++;
+   266                          li++;
+   267                  }
+   268          }
+   269
+   270          //
+   271          // copy index data
+   272          //
+   273          FullIndexList::const_iterator liIdx = newMesh.finalIndices.begin();
+   274
+   275          int dstIdx = 0;
+   276          while(liIdx != newMesh.finalIndices.end()) {
+   277                  pMesh->uIdxs.pIndices[dstIdx] = *liIdx;
+   278                  dstIdx++;
+   279                  liIdx++;
+   280          }
+   281
+   282          //
+   283          // copy bind-pose and hierarchy data if needed
+   284          //
+   285          if(pMesh->meshType == TMdfMesh::MESH_SKINNED) {
+   286                  pMesh->uBnd.pBindMats = (TMdfMatrix4 *)malloc(newMesh.numBindPoseElements * sizeof(TMdfMatrix4));
+   287                  pMesh->nNumJoints = newMesh.numBindPoseElements;
+   288
+   289                  // copy bind-pose data
+   290                  memcpy(pMesh->uBnd.pBindMats, newMesh.finalBindPose, newMesh.numBindPoseElements * sizeof(TMdfMatrix4));
+   291
+   292
+   293                  // copy parent info
+   294                  pMesh->uPrnt.pParentInfo = (int *)malloc(newMesh.numBindPoseElements * sizeof(int));
+   295                  memcpy(pMesh->uPrnt.pParentInfo, newMesh.parentInfo, newMesh.numBindPoseElements * sizeof(int));
+   296          }
+   297
+   298          //
+   299          // handle texture
+   300          //
+   301          if(!newMesh.textureFilename.empty()) {
+   302                  pMesh->hTexture = AddTexture(newMesh.textureFilename.c_str());
+   303          } else {
+   304                  pMesh->hTexture = -1;
+   305          }
+   306
+   307          return nMesh;
+   308  }
+   309
+   310  MdfHandle MdfFormat::AddAnimation(const MdfFullAnimation &newAnimation)
+   311  {
+   312          TMdfAnimation *pAnim = 0;
+   313          unsigned int nAnim = 0;
+   314
+   315          // reallocate animation pointer array if needed
+   316          if((m_tMdfHeader.nAnimCount + 1) > m_nAnimArrayLength) {
+   317
+   318                  m_vpAnimations = (TMdfAnimation*)realloc(m_vpAnimations, (m_tMdfHeader.nAnimCount+1)*sizeof(TMdfAnimation));
+   319                  m_nAnimArrayLength++;
+   320          }
+   321
+   322          // allocate new animation, set up variables
+   323          nAnim = m_tMdfHeader.nAnimCount;
+   324          pAnim = &m_vpAnimations[nAnim];
+   325          m_tMdfHeader.nAnimCount++;
+   326          ZeroMemory(pAnim, sizeof(TMdfAnimation));
+   327
+   328          //
+   329          // copy animation data
+   330          //
+   331
+   332          pAnim->hMeshId = newAnimation.hMeshId;
+   333          pAnim->fTimeLength = newAnimation.fTimeLength;
+   334          pAnim->nNumTimelines = (int) newAnimation.vTimelines.size();
+   335          pAnim->uTls.pTimeline = (TMdfTimeline*)malloc(pAnim->nNumTimelines * sizeof(TMdfTimeline));
+   336
+   337          ZeroMemory(pAnim->uTls.pTimeline, pAnim->nNumTimelines * sizeof(TMdfTimeline));
+   338
+   339          TMdfTimeline *pTimeline;
+   340          for(int i = 0; i < pAnim->nNumTimelines; i++) {
+   341                  pTimeline = &pAnim->uTls.pTimeline[i];
+   342                  pTimeline->nKeyFrames = (int)newAnimation.vTimelines[i].vKeyframes.size();
+   343
+   344                  pTimeline->uKfs.pKeyframes = (TMdfKeyframe*)malloc(pTimeline->nKeyFrames * sizeof(TMdfKeyframe));
+   345
+   346                  for(int k = 0; k < pTimeline->nKeyFrames; k++) {
+   347                          pTimeline->uKfs.pKeyframes[k] = newAnimation.vTimelines[i].vKeyframes[k];
+   348                  }
+   349
+   350          }
+   351
+   352          return nAnim;
+   353  }
+   354
+   355
+   356  bool MdfFormat::CreateFromFile(const char *szFilename)
+   357  {
+   358          MdfFileStream stream;
+   359          if(!stream.Open(szFilename)) {
+   360                  return false;
+   361          }
+   362
+   363          bool bResult = LoadFromStream(stream);
+   364
+   365          stream.Close();
+   366
+   367          return bResult;
+   368  }
+   369
+   370  bool MdfFormat::CreateFromFileInMemory(Byte *pData, size_t nDataSize)
+   371  {
+   372          MdfMemStream stream(pData, (int)nDataSize);
+   373          return LoadFromStream(stream);
+   374  }
+   375
+   376  bool MdfFormat::SaveToFile(const char *szFilename) const
+   377  {
+   378          FILE *fp;
+   379
+   380          if(m_tMdfHeader.nMeshCount == 0) {
+   381                  return false;
+   382          }
+   383
+   384          fp = fopen(szFilename, "wb");
+   385          if(!fp) {
+   386                  return false;
+   387          }
+   388
+   389
+   390
+   391          TMdfMesh *pHeaderMeshes = (TMdfMesh*)malloc(sizeof(TMdfMesh) * m_tMdfHeader.nMeshCount);
+   392          TMdfAnimation *pHeaderAnims = (TMdfAnimation*)malloc(sizeof(TMdfAnimation) * m_tMdfHeader.nAnimCount);
+   393
+   394          //
+   395          // skip the header info for now, we'll write it later
+   396          //
+   397          int skipOffset = sizeof(MdfHeader);
+   398          skipOffset += sizeof(TMdfMesh) * m_tMdfHeader.nMeshCount; // skip main mesh header
+   399          skipOffset += sizeof(TMdfAnimation) * m_tMdfHeader.nAnimCount; // skip the animation headers
+   400          skipOffset += sizeof(char *) * m_tMdfHeader.nTextureCount;  // skip the texture headers
+   401          fseek(fp, skipOffset, SEEK_CUR);
+   402
+   403          int *pHeaderTextures = (int*)malloc(m_tMdfHeader.nTextureCount * sizeof(int));
+   404          //
+   405          // for each texture, save the name
+   406          //
+   407          for(unsigned int i = 0; i < m_tMdfHeader.nTextureCount; i++) {
+   408                  size_t texLen = strlen(m_vpTextures[i]);
+   409                  pHeaderTextures[i] = (int)ftell(fp);
+   410                  fwrite(m_vpTextures[i], texLen+1, 1, fp);
+   411          }
+   412
+   413          //
+   414          // for each mesh, save the data
+   415          //
+   416          for(unsigned int i = 0; i < m_tMdfHeader.nMeshCount; i++) {
+   417                  const TMdfMesh *pMesh = &m_vpMeshes[i];
+   418                  pHeaderMeshes[i] = *pMesh;
+   419
+   420
+   421                  // write out the vertices based on their type
+   422                  // write the verts
+   423                  ByteAlignFile(fp);
+   424                  pHeaderMeshes[i].uVtxs.nDataOffset = ftell(fp);
+   425
+   426                  if(pMesh->meshType == TMdfMesh::MESH_SKINNED) {
+   427                          fwrite(pMesh->uVtxs.pVertices, sizeof(TMdfVertSkn), pMesh->nNumVerts, fp);
+   428                  } else if(pMesh->meshType == TMdfMesh::MESH_STATIC) {
+   429                          fwrite(pMesh->uVtxs.pVertices, sizeof(TMdfVertSta), pMesh->nNumVerts, fp);
+   430                  }
+   431
+   432                  // write the indices
+   433                  ByteAlignFile(fp);
+   434                  pHeaderMeshes[i].uIdxs.nDataOffset = ftell(fp);
+   435                  fwrite(pMesh->uIdxs.pIndices, sizeof(unsigned short), pMesh->nNumIndices, fp);
+   436
+   437                  if(pMesh->meshType == TMdfMesh::MESH_SKINNED) {
+   438                          ByteAlignFile(fp);
+   439                          // write the bind-pose skin data
+   440                          pHeaderMeshes[i].uBnd.nDataOffset = ftell(fp);
+   441                          fwrite(pMesh->uBnd.pBindMats, sizeof(TMdfMatrix4), pMesh->nNumJoints, fp);
+   442
+   443                          ByteAlignFile(fp);
+   444                          // write out the parenting info
+   445                          pHeaderMeshes[i].uPrnt.nDataOffset = ftell(fp);
+   446                          fwrite(pMesh->uPrnt.pParentInfo, sizeof(int), pMesh->nNumJoints, fp);
+   447                  }
+   448          }
+   449
+   450          //
+   451          // for each animation, save the data
+   452          //
+   453          for(unsigned int i = 0; i < m_tMdfHeader.nAnimCount; i++) {
+   454                  const TMdfAnimation *pAnim = &m_vpAnimations[i];
+   455                  pHeaderAnims[i] = *pAnim;
+   456
+   457                  TMdfTimeline *pHeaderTimelines = (TMdfTimeline *)malloc(pAnim->nNumTimelines * sizeof(TMdfTimeline));
+   458
+   459                  // for each time-line
+   460                  for(int t = 0; t < pAnim->nNumTimelines; t++) {
+   461
+   462                          const TMdfTimeline *pTimeline = &pAnim->uTls.pTimeline[t];
+   463                          pHeaderTimelines[t] = *pTimeline;
+   464
+   465                          // write out the keyframes
+   466                          ByteAlignFile(fp);
+   467                          pHeaderTimelines[t].uKfs.nDataOffset = ftell(fp);
+   468                          fwrite(pTimeline->uKfs.pKeyframes, sizeof(TMdfKeyframe), pTimeline->nKeyFrames, fp);
+   469                  }
+   470
+   471                  // write out the timelines
+   472                  ByteAlignFile(fp);
+   473                  pHeaderAnims[i].uTls.nDataOffset = ftell(fp);
+   474                  fwrite(pHeaderTimelines, sizeof(TMdfTimeline), pAnim->nNumTimelines, fp);
+   475                  free(pHeaderTimelines);
+   476          }
+   477
+   478          m_tMdfHeader.nTotalDataSize = (unsigned int)ftell(fp) - sizeof(MdfHeader);
+   479
+   480          //
+   481          // go back and write out the headers
+   482          //
+   483          fseek(fp, 0, SEEK_SET);
+   484
+   485          // write the main header
+   486          fwrite(&m_tMdfHeader, sizeof(m_tMdfHeader), 1, fp);
+   487
+   488          // used textures header
+   489          fwrite(pHeaderTextures, sizeof(int), m_tMdfHeader.nTextureCount, fp);
+   490
+   491          // mesh headers
+   492          fwrite(pHeaderMeshes, sizeof(TMdfMesh), m_tMdfHeader.nMeshCount, fp);
+   493
+   494          // animation headers
+   495          fwrite(pHeaderAnims, sizeof(TMdfAnimation), m_tMdfHeader.nAnimCount, fp);
+   496
+   497          fclose(fp);
+   498
+   499          free(pHeaderMeshes);
+   500          free(pHeaderAnims);
+   501          free(pHeaderTextures);
+   502
+   503          return true;
+   504  }
+   505
+   506  bool MdfFormat::LoadFromStream(MdfStream &stream)
+   507  {
+   508          if(m_vpMeshes || m_pData) {
+   509                  return false;
+   510          }
+   511          int nHeaderLength = sizeof(m_tMdfHeader);
+   512
+   513          stream.Read(&m_tMdfHeader, nHeaderLength);
+   514
+   515          // read the entire file
+   516          m_nDataSize = stream.Length() - nHeaderLength;
+   517          m_pData = (Byte*)malloc(m_nDataSize);
+   518          stream.Read(m_pData, (int)m_nDataSize);
+   519
+   520          int dataPos = 0;
+   521
+   522          // check for textures and set their pointer
+   523          if(m_tMdfHeader.nTextureCount > 0) {
+   524                  m_vpTextures = (char**)&m_pData[dataPos];
+   525                  dataPos += m_tMdfHeader.nTextureCount * sizeof(int);
+   526          }
+   527
+   528          // check for meshes and set their pointer
+   529          if(m_tMdfHeader.nMeshCount > 0) {
+   530                  m_vpMeshes = (TMdfMesh*)&m_pData[dataPos];
+   531                  dataPos += m_tMdfHeader.nMeshCount * sizeof(TMdfMesh);
+   532          }
+   533
+   534          // check for animations and set their pointer
+   535          if(m_tMdfHeader.nAnimCount > 0) {
+   536                  m_vpAnimations = (TMdfAnimation*)&m_pData[dataPos];
+   537          }
+   538
+   539          //
+   540          // for each texture, fix up the pointers
+   541          //
+   542          for(size_t i = 0; i < m_tMdfHeader.nTextureCount; i++) {
+   543                  m_vpTextures[i] = (char*)(m_pData  + ((int)m_vpTextures[i]) - nHeaderLength);
+   544          }
+   545
+   546          //
+   547          // for each mesh fix up the pointers
+   548          //
+   549          for(size_t i = 0; i < m_tMdfHeader.nMeshCount; i++) {
+   550                  m_vpMeshes[i].uVtxs.pVertices = m_pData + m_vpMeshes[i].uVtxs.nDataOffset - nHeaderLength;
+   551                  m_vpMeshes[i].uIdxs.pIndices = (unsigned short*)(m_pData + m_vpMeshes[i].uIdxs.nDataOffset - nHeaderLength);
+   552
+   553                  if(m_vpMeshes[i].nNumJoints > 0) {
+   554                          m_vpMeshes[i].uBnd.pBindMats = (TMdfMatrix4*)(m_pData + m_vpMeshes[i].uBnd.nDataOffset - nHeaderLength);
+   555                          m_vpMeshes[i].uPrnt.pParentInfo = (int*)(m_pData + m_vpMeshes[i].uPrnt.nDataOffset - nHeaderLength);
+   556                  } else {
+   557                          m_vpMeshes[i].uBnd.pBindMats = 0;
+   558                          m_vpMeshes[i].uPrnt.pParentInfo = 0;
+   559                  }
+   560                  dataPos += sizeof(TMdfMesh);
+   561          }
+   562
+   563          //
+   564          // for each animation, fix up the pointers
+   565          //
+   566          for(size_t i = 0; i < m_tMdfHeader.nAnimCount; i++) {
+   567                  m_vpAnimations[i].uTls.pTimeline = (TMdfTimeline*)(m_pData + m_vpAnimations[i].uTls.nDataOffset - nHeaderLength);
+   568
+   569                  // fix up the time-line pointers
+   570                  for(int t = 0; t < m_vpAnimations[i].nNumTimelines; t++) {
+   571                          m_vpAnimations[i].uTls.pTimeline[t].uKfs.pKeyframes = (TMdfKeyframe*)(m_pData + m_vpAnimations[i].uTls.pTimeline[t].uKfs.nDataOf
+fset - nHeaderLength);
+   572                  }
+   573          }
+   574
+   575          return true;
+   576  }
+   577
+   578  void MdfFormat::Destroy()
+   579  {
+   580          // clean up any additional memory and
+   581          // reset all the internal state to default
+   582
+   583          if(m_pData) {
+   584                  free(m_pData);
+   585
+   586          } else {
+   587                  // release meshes
+   588                  for(unsigned int i = 0; i < m_nMeshArrayLength; i++) {
+   589                          free(m_vpMeshes[i].uVtxs.pVertices);
+   590                          free(m_vpMeshes[i].uIdxs.pIndices);
+   591                          free(m_vpMeshes[i].uBnd.pBindMats);
+   592                          free(m_vpMeshes[i].uPrnt.pParentInfo);
+   593                  }
+   594
+   595                  // release animations
+   596                  for(unsigned int i = 0; i < m_nAnimArrayLength; i++) {
+   597
+   598                          // release timelines
+   599                          for(int t = 0; t < m_vpAnimations[i].nNumTimelines; t++) {
+   600                                  // release keyframes
+   601                                  free(m_vpAnimations[i].uTls.pTimeline[t].uKfs.pKeyframes);
+   602                          }
+   603                          free(m_vpAnimations[i].uTls.pTimeline);
+   604
+   605                  }
+   606
+   607                  free(m_vpMeshes);
+   608                  free(m_vpAnimations);
+   609
+   610                  // release textures
+   611                  for(unsigned i = 0; i < m_tMdfHeader.nTextureCount; i++) {
+   612                          free(m_vpTextures[i]);
+   613                  }
+   614                  free(m_vpTextures);
+   615
+   616          } // if(m_pData)
+   617
+   618          m_pData = 0;
+   619          m_vpMeshes = 0;
+   620          m_vpAnimations = 0;
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba mdftypes.h | sed -n '1,120p'
+     1  #pragma once
+     2  #include "types.h"
+     3  #include <math.h>
+     4  #include <vector>
+     5  #include <string>
+     6
+     7  #define MFDVERT_EPSILON 0.0001f
+     8
+     9
+    10  typedef int MdfHandle;
+    11
+    12  //////////////////////////////////////////////////////////////////////////
+    13  /// \brief MDF File Header
+    14  /// \author Ivgeni Segal
+    15  /// \date January 20, 2007
+    16  ///
+    17  /// MDF File header is the structure stored at the beginning
+    18  /// of the file and identifies its version and contents
+    19  ///
+    20  //////////////////////////////////////////////////////////////////////////
+    21  struct MdfHeader
+    22  {
+    23          char cId[8]; // 'MDF v1.0'
+    24
+    25          unsigned int nMeshCount;                ///< Number of meshes in this file
+    26          unsigned int nAnimCount;                ///< Number of animations in this file
+    27          unsigned int nTextureCount;             ///< Total number of texture names
+    28          unsigned int nByteAlignment;    ///< Current byte alignment of the file
+    29          unsigned int nNumHierarchies;   ///< Unused
+    30
+    31          unsigned int nTotalDataSize;    ///< Total size of the data excluding
+    32                                                                          ///< the header
+    33  };
+    34
+    35  //////////////////////////////////////////////////////////////////////////
+    36
+    37  //
+    38
+    39  //
+    40
+    41  //////////////////////////////////////////////////////////////////////////
+    42  /// \brief Transitional vertex format
+    43  /// \author Ivgeni Segal
+    44  /// \date January 20, 2007
+    45  ///
+    46  /// transitional vertex format for use with exporters.
+    47  /// This structure is used by the mesh-building functions of the MDF
+    48  /// format object. do not use for loading.
+    49  ///
+    50  ///
+    51  //////////////////////////////////////////////////////////////////////////
+    52  struct MdfFullVertex {
+    53          float pos[3];
+    54
+    55          float weights[3];
+    56          unsigned char bones[4];
+    57
+    58          float normal[3];
+    59          float u, v;
+    60
+    61          bool operator==(const MdfFullVertex &b) const {
+    62                  if(bones[0] != b.bones[0]){
+    63                          return false;
+    64                  }
+    65                  if(bones[1] != b.bones[1]){
+    66                          return false;
+    67                  }
+    68                  if(bones[2] != b.bones[2]){
+    69                          return false;
+    70                  }
+    71                  if(bones[3] != b.bones[3]){
+    72                          return false;
+    73                  }
+    74                  if(fabs(pos[0] - b.pos[0]) > MFDVERT_EPSILON) {
+    75                          return false;
+    76                  }
+    77                  if(fabs(pos[1] - b.pos[1]) > MFDVERT_EPSILON) {
+    78                          return false;
+    79                  }
+    80                  if(fabs(pos[2] - b.pos[2]) > MFDVERT_EPSILON) {
+    81                          return false;
+    82                  }
+    83                  if(fabs(weights[0] - b.weights[0]) > MFDVERT_EPSILON) {
+    84                          return false;
+    85                  }
+    86                  if(fabs(weights[1] - b.weights[1]) > MFDVERT_EPSILON) {
+    87                          return false;
+    88                  }
+    89                  if(fabs(weights[2] - b.weights[2]) > MFDVERT_EPSILON) {
+    90                          return false;
+    91                  }
+    92                  if(fabs(normal[0] - b.normal[0]) > MFDVERT_EPSILON) {
+    93                          return false;
+    94                  }
+    95                  if(fabs(normal[1] - b.normal[1]) > MFDVERT_EPSILON) {
+    96                          return false;
+    97                  }
+    98                  if(fabs(normal[2] - b.normal[2]) > MFDVERT_EPSILON) {
+    99                          return false;
+   100                  }
+   101                  if(fabs(u - b.u) > MFDVERT_EPSILON) {
+   102                          return false;
+   103                  }
+   104                  if(fabs(v - b.v) > MFDVERT_EPSILON) {
+   105                          return false;
+   106                  }
+   107
+   108                  return true;
+   109          }
+   110
+   111  };
+   112
+   113  //////////////////////////////////////////////////////////////////////////
+   114  /// \brief Generic 4x4 matrix
+   115  /// \author Ivgeni Segal
+   116  /// \date January 20, 2007
+   117  ///
+   118  /// Generic matrix used in the MDF format
+   119  ///
+   120  /// \remarks MDF uses row-major matrices, if you need to use MDF in a
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba mdftypes.h | sed -n '120,220p'
+   120  /// \remarks MDF uses row-major matrices, if you need to use MDF in a
+   121  ///                      column-major environment such as OpenGL don't forget to
+   122  ///                      transpose them.
+   123  ///
+   124  //////////////////////////////////////////////////////////////////////////
+   125  struct TMdfMatrix4
+   126  {
+   127          float   e[16];
+   128  };
+   129
+   130  //////////////////////////////////////////////////////////////////////////
+   131  /// \brief Skinned vertex for animation
+   132  /// \author Ivgeni Segal
+   133  /// \date January 20, 2007
+   134  ///
+   135  /// \remarks Skinned vertex is present in animated meshes and supports
+   136  ///     up to four bones per vertex
+   137  ///
+   138  //////////////////////////////////////////////////////////////////////////
+   139  struct TMdfVertSkn
+   140  {
+   141          Float3 pos;
+   142          float weights[3];
+   143          unsigned char bones[4];
+   144
+   145          Float3 normal;
+   146          Float2 texcoord;
+   147  };
+   148
+   149  //////////////////////////////////////////////////////////////////////////
+   150  /// \brief Vertex for static meshes
+   151  /// \author Ivgeni Segal
+   152  /// \date January 20, 2007
+   153  ///
+   154  /// \remarks All static geometry in MDF uses this vertex format,
+   155  ///                      he UV coordinates are in DirectX form
+   156  ///
+   157  //////////////////////////////////////////////////////////////////////////
+   158  struct TMdfVertSta
+   159  {
+   160          Float3 pos;                     ///< Vertex position in model space
+   161
+   162          Float3 normal;          ///< Vertex normal
+   163          Float2 texcoord;        ///< UV Texture coordinate
+   164
+   165          TMdfVertSta & operator=(const TMdfVertSkn &rhs) {
+   166                  pos.x = rhs.pos.x;
+   167                  pos.y = rhs.pos.y;
+   168                  pos.z = rhs.pos.z;
+   169
+   170                  normal.x = rhs.normal.x;
+   171                  normal.y = rhs.normal.y;
+   172                  normal.z = rhs.normal.z;
+   173
+   174                  texcoord.u = rhs.texcoord.u;
+   175                  texcoord.v = rhs.texcoord.v;
+   176                  return *this;
+   177          }
+   178  };
+   179
+   180
+   181
+   182  //////////////////////////////////////////////////////////////////////////
+   183  /// \brief A single Mesh Object
+   184  /// \author Ivgeni Segal
+   185  /// \date January 20, 2007
+   186  ///
+   187  /// \remarks The nDataOffset elements are the positions
+   188  /// relative to the beginning of the MDF file.
+   189  /// once the file is loaded they are converted into memory locations.
+   190  /// \par
+   191  /// The TMdfMesh Object contains all the information needed to display a mesh
+   192  /// In addition to vertex information, the Mesh Object stores optional
+   193  /// bind-pose matrix array for animation as well as parenting information
+   194  /// for the joints. All joints are stored in depth-first order of the joint hierarchy.
+   195  /// \par
+   196  /// Both of the arrays are parallel to the joint-keyframe
+   197  /// arrays in the the TMdfAnimation Object that corresponds to this mesh.
+   198  ///
+   199  ///
+   200  //////////////////////////////////////////////////////////////////////////
+   201  struct TMdfMesh
+   202  {
+   203          unsigned int    nNumVerts;              ///< Number of vertices in this mesh
+   204          unsigned int    nNumIndices;    ///< Number of vertex indexes
+   205          unsigned int    nNumJoints;             ///< Number of joints in stored bind
+   206                                                                          ///< pose and parenting arrays
+   207          MdfHandle               hTexture;               ///< Index of the texture name
+   208          int meshType;                                   ///< Mesh type (See MeshType enum)
+   209
+   210          ///
+   211          /// Mesh vertex array
+   212          ///
+   213          union UVerts_t {        // reference to the vertices
+   214                  void *pVertices;                        ///< Vertexes when in memory
+   215                  int nDataOffset;                        ///< Offset to vertexes when in file
+   216          } uVtxs;
+   217
+   218          ///
+   219          /// Mesh index array
+   220          ///
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba MdfFormat.h | sed -n '1,220p'
+     1
+     2  #pragma once
+     3
+     4  #include "mdftypes.h"
+     5
+     6  #define MDF_BYTE_ALIGNMENT 16
+     7
+     8  class MdfStream;
+     9
+    10  class MdfFormat
+    11  {
+    12          enum MdfElements {
+    13                  MDF_NONE                =       0,
+    14                  MDF_MESHES              =       1,
+    15                  MDF_TEXTURES    =       2,
+    16                  MDF_BINDMATS    =       4,
+    17                  MDF_PARENTINFO  =       8,
+    18                  MDF_ANIMATIONS  =       16,
+    19                  MDF_TRANSFORMS  =       32,
+    20                  MDF_ALL                 = (MDF_MESHES|MDF_TEXTURES|MDF_BINDMATS|MDF_PARENTINFO|MDF_ANIMATIONS|MDF_TRANSFORMS)
+    21          };
+    22
+    23          /************************************************************************/
+    24          /* DATA MEMBERS                                                         */
+    25          /************************************************************************/
+    26  protected:
+    27          size_t m_nDataSize;                                     ///< Size of the memory pool
+    28          Byte *m_pData;                                          ///< Memory pool for this MDF
+    29
+    30
+    31          TMdfMesh *m_vpMeshes;                           ///< All the meshes in the file
+    32          unsigned int m_nMeshArrayLength;        ///< Length of the meshes array
+    33
+    34          TMdfAnimation *m_vpAnimations;          ///< All the animations in the file
+    35          unsigned int m_nAnimArrayLength;        ///< Size of the animations array
+    36
+    37          char **m_vpTextures;                            ///< Array of texture strings
+    38
+    39          mutable MdfHeader m_tMdfHeader;                         ///< Master MDF header
+    40
+    41
+    42          /************************************************************************/
+    43          /* CONSTRUCTION                                                         */
+    44          /************************************************************************/
+    45  public:
+    46          MdfFormat(void);
+    47  public:
+    48          virtual ~MdfFormat(void);
+    49
+    50          /************************************************************************/
+    51          /* CLASS METHODS                                                        */
+    52          /************************************************************************/
+    53  public:
+    54          //////////////////////////////////////////////////////////////////////////
+    55          /// Create a new MDF file
+    56          ///
+    57          /// \param nNumMeshesHint - number of meshes this file might store
+    58          /// \return true if successful
+    59          ///
+    60          /// \remarks To recreate a new MDF on the same object, Destroy() must
+    61          ///                      be called first
+    62          //////////////////////////////////////////////////////////////////////////
+    63          bool Create(unsigned int nNumMeshesHint=0);
+    64
+    65          //////////////////////////////////////////////////////////////////////////
+    66          /// Create a new MDF by loading its data from a file
+    67          ///
+    68          /// \param szFilename - the path of the file to load
+    69          /// \return true if successful
+    70          //////////////////////////////////////////////////////////////////////////
+    71          bool CreateFromFile(const char *szFilename);
+    72
+    73          //////////////////////////////////////////////////////////////////////////
+    74          /// Create a new MDF from raw MDF data in memory
+    75          ///
+    76          /// \param pData - location of the raw MDF data to load
+    77          /// \param nDataSize - size of the data buffer in bytes
+    78          /// \return true if successful
+    79          //////////////////////////////////////////////////////////////////////////
+    80          bool CreateFromFileInMemory(Byte *pData, size_t nDataSize);
+    81
+    82          //////////////////////////////////////////////////////////////////////////
+    83          /// Destroy the MDF and free all the memory
+    84          ///
+    85          /// \remarks Once destroyed, this object is available for any of the
+    86          ///                      Create* calls to create a new MDF
+    87          ///
+    88          //////////////////////////////////////////////////////////////////////////
+    89          void Destroy();
+    90
+    91          //////////////////////////////////////////////////////////////////////////
+    92          /// Save MDF data to a file
+    93          ///
+    94          /// \param szFilename - path of the file to save to
+    95          /// \return true if successful
+    96          //////////////////////////////////////////////////////////////////////////
+    97          bool SaveToFile(const char *szFilename) const;
+    98
+    99
+   100          //////////////////////////////////////////////////////////////////////////
+   101          /// Add a new mesh to this MDF
+   102          ///
+   103          /// \param newMesh - mesh information to add
+   104          /// \return index of the newly-added mesh
+   105          //////////////////////////////////////////////////////////////////////////
+   106          MdfHandle AddMesh(const MdfFullMesh &newMesh);
+   107
+   108          //////////////////////////////////////////////////////////////////////////
+   109          /// Add a new animation to this MDF
+   110          ///
+   111          /// \param newAnimation - animation information to add
+   112          /// \return index of the newly-added animation
+   113          //////////////////////////////////////////////////////////////////////////
+   114          MdfHandle AddAnimation(const MdfFullAnimation &newAnimation);
+   115
+   116          /************************************************************************/
+   117          /* ACCESSORS                                                            */
+   118          /************************************************************************/
+   119  public:
+   120
+   121          //////////////////////////////////////////////////////////////////////////
+   122          /// Get the number of meshes that are stored in this MDF
+   123          ///
+   124          /// \return total number of meshes
+   125          //////////////////////////////////////////////////////////////////////////
+   126          unsigned int GetNumMeshes() const { return m_tMdfHeader.nMeshCount; }
+   127
+   128          //////////////////////////////////////////////////////////////////////////
+   129          /// Obtain a read-only mesh object given by the index
+   130          ///
+   131          /// \param hMeshId index of the mesh object to obtain
+   132          /// \return Mesh object of the given index
+   133          ///
+   134          /// \warning Invalid indexes are not checked, use GetNumMeshes() to find
+   135          ///                      the maximum index
+   136          //////////////////////////////////////////////////////////////////////////
+   137          const TMdfMesh & GetMesh(MdfHandle hMeshId) const { return m_vpMeshes[hMeshId]; }
+   138
+   139          //////////////////////////////////////////////////////////////////////////
+   140          /// Get number of animations that are stored in this MDF
+   141          ///
+   142          /// \return number of animations in this MDF
+   143          //////////////////////////////////////////////////////////////////////////
+   144          unsigned int GetNumAnimations() const { return m_tMdfHeader.nAnimCount; }
+   145
+   146          //////////////////////////////////////////////////////////////////////////
+   147          /// Obtain a read-only animation object given by the index
+   148          ///
+   149          /// \param hAnimId - animation index
+   150          /// \return Mesh animation of the given index
+   151          ///
+   152          /// \warning Invalid indexes are not checked, use GetNumAnimations() to find
+   153          ///                      the maximum index
+   154          //////////////////////////////////////////////////////////////////////////
+   155          const TMdfAnimation & GetAnimation(MdfHandle hAnimId) const { return m_vpAnimations[hAnimId]; }
+   156
+   157          //////////////////////////////////////////////////////////////////////////
+   158          /// Get texture that is assigned to the given mesh
+   159          ///
+   160          /// \param hMeshId - index of the mesh
+   161          /// \return index of the texture
+   162          //////////////////////////////////////////////////////////////////////////
+   163          MdfHandle GetTextureId(MdfHandle hMeshId) const {
+   164                  return m_vpMeshes[hMeshId].hTexture;
+   165          }
+   166
+   167          //////////////////////////////////////////////////////////////////////////
+   168          /// Get the number of texture names that are stored in this MDF
+   169          ///
+   170          /// \return total number of texture names
+   171          //////////////////////////////////////////////////////////////////////////
+   172          unsigned int GetNumTextures() const { return m_tMdfHeader.nTextureCount; }
+   173
+   174          //////////////////////////////////////////////////////////////////////////
+   175          /// Get texture name from the specified texture index value
+   176          ///
+   177          /// \param hTextureId - texture index
+   178          /// \return name of the texture
+   179          ///
+   180          /// \warning The string memory is maintained by the MDF object.
+   181          ///                      Always use deep-copying if you want to store the
+   182          ///                      string elsewhere.
+   183          ///                      The string is destroyed when this MDF is destroyed.
+   184          ///
+   185          //////////////////////////////////////////////////////////////////////////
+   186          const char * GetTextureName(MdfHandle hTextureId) const { return m_vpTextures[hTextureId]; }
+   187
+   188          //////////////////////////////////////////////////////////////////////////
+   189          /// Get the header of this MDF
+   190          ///
+   191          /// \return the header of this MDF
+   192          //////////////////////////////////////////////////////////////////////////
+   193          const MdfHeader & GetHeader() const { return m_tMdfHeader; }
+   194
+   195          bool HasAnimations() const {
+   196                  return(m_vpAnimations != 0);
+   197          }
+   198
+   199          bool HasMeshes() const {
+   200                  return(m_vpMeshes != 0);
+   201          }
+   202
+   203          /************************************************************************/
+   204          /* PRIVATE METHODS                                                      */
+   205          /************************************************************************/
+   206  protected:
+   207
+   208          //////////////////////////////////////////////////////////////////////////
+   209          /// Loads an MDF from a given stream
+   210          ///
+   211          /// \param stream - the stream to load from
+   212          /// \return true if successful
+   213          //////////////////////////////////////////////////////////////////////////
+   214          bool LoadFromStream(MdfStream &stream);
+   215
+   216          //////////////////////////////////////////////////////////////////////////
+   217          /// Add a texture name to this MDF
+   218          ///
+   219          /// \remarks Adding duplicate names will waste memory. It is up to the
+   220          ///                      caller to ensure that no duplicate texture names are added.
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba mdftypes.h | sed -n '220,300p'
+   220          ///
+   221          union UIdxs_t {
+   222                  unsigned short *pIndices;       ///< Index array in memory
+   223                  int nDataOffset;                        ///< Offset to index array in file
+   224          } uIdxs;
+   225
+   226          ///
+   227          /// Mesh bind-pose matrices (Animated Meshes only)
+   228          ///
+   229          union UBind_t {
+   230                  TMdfMatrix4 *pBindMats;         ///< Bind matrix array in memory
+   231                                                                          ///< will be NULL if no bind information
+   232
+   233                  int nDataOffset;                        ///< Offset to bind matrix array in file
+   234          } uBnd;
+   235
+   236          ///
+   237          /// Parent index map (Animated Meshes only)
+   238          ///
+   239          union UPrnt_t {         // reference to the (optional) hierarchy (parent info)
+   240                  int *pParentInfo;                       ///< Parent index array in memory
+   241                                                                          ///< this array is parallel to the joint
+   242                                                                          ///< arrays of this mesh. The index values
+   243                                                                          ///< correspond to all of the joint arrays:
+   244                                                                          ///< pParentInfo[jointIndex] = parentIndex
+   245                                                                          ///< If a joint has no parent, it's
+   246                                                                          ///< index value is -1
+   247
+   248                  int nDataOffset;                        ///< Offset to parent index array in file
+   249          } uPrnt;
+   250
+   251          ///
+   252          /// Mesh Type used by TMdfMesh::meshType value
+   253          ///
+   254          enum MeshType {
+   255                  MESH_STATIC = 0,        /// Static meshes use TMdfVertSta vertices
+   256                  MESH_SKINNED,           /// Skinned meshes use TMdfVertSkn vertices
+   257                  NUM_TYPES
+   258          };
+   259
+   260          unsigned int VertexSize() const {
+   261                  switch(meshType) {
+   262                          case MESH_STATIC:
+   263                                  return sizeof(TMdfVertSta);
+   264                                  break;
+   265                          case MESH_SKINNED:
+   266                                  return sizeof(TMdfVertSkn);
+   267                                  break;
+   268
+   269                          default:
+   270                                  return 0;
+   271                  }
+   272          }
+   273
+   274  };
+   275
+   276  //////////////////////////////////////////////////////////////////////////
+   277  /// \brief A single joint keyframe
+   278  /// \author Ivgeni Segal
+   279  /// \date January 20, 2007
+   280  ///
+   281  /// Stores information about a single key-frame of a joint
+   282  ///
+   283  /// \remarks All transformation values are relative to their parent.
+   284  ///                      In other words, if joint A is parent of joint B, B's
+   285  ///                      transformation values represent the values that take
+   286  ///                      the joint from location/orientation/scale of A to B
+   287  //////////////////////////////////////////////////////////////////////////
+   288  struct TMdfKeyframe
+   289  {
+   290          float fKeyTime;                 ///< Time of start of this keyframe
+   291          Float3 vecTranslation;  ///< Relative translation at this keyframe
+   292          Float4 qRotation;               ///< Relative rotation at this keyframe
+   293          Float3 vecScale;                        ///< Relative joint scale at this keyframe
+   294  };
+   295
+   296  //////////////////////////////////////////////////////////////////////////
+   297  /// \brief A collection of keyframes for a single joint
+   298  /// \author Ivgeni Segal
+   299  /// \date January 20, 2007
+   300  ///
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba MdfFormat.h | sed -n '80,220p'
+    80          bool CreateFromFileInMemory(Byte *pData, size_t nDataSize);
+    81
+    82          //////////////////////////////////////////////////////////////////////////
+    83          /// Destroy the MDF and free all the memory
+    84          ///
+    85          /// \remarks Once destroyed, this object is available for any of the
+    86          ///                      Create* calls to create a new MDF
+    87          ///
+    88          //////////////////////////////////////////////////////////////////////////
+    89          void Destroy();
+    90
+    91          //////////////////////////////////////////////////////////////////////////
+    92          /// Save MDF data to a file
+    93          ///
+    94          /// \param szFilename - path of the file to save to
+    95          /// \return true if successful
+    96          //////////////////////////////////////////////////////////////////////////
+    97          bool SaveToFile(const char *szFilename) const;
+    98
+    99
+   100          //////////////////////////////////////////////////////////////////////////
+   101          /// Add a new mesh to this MDF
+   102          ///
+   103          /// \param newMesh - mesh information to add
+   104          /// \return index of the newly-added mesh
+   105          //////////////////////////////////////////////////////////////////////////
+   106          MdfHandle AddMesh(const MdfFullMesh &newMesh);
+   107
+   108          //////////////////////////////////////////////////////////////////////////
+   109          /// Add a new animation to this MDF
+   110          ///
+   111          /// \param newAnimation - animation information to add
+   112          /// \return index of the newly-added animation
+   113          //////////////////////////////////////////////////////////////////////////
+   114          MdfHandle AddAnimation(const MdfFullAnimation &newAnimation);
+   115
+   116          /************************************************************************/
+   117          /* ACCESSORS                                                            */
+   118          /************************************************************************/
+   119  public:
+   120
+   121          //////////////////////////////////////////////////////////////////////////
+   122          /// Get the number of meshes that are stored in this MDF
+   123          ///
+   124          /// \return total number of meshes
+   125          //////////////////////////////////////////////////////////////////////////
+   126          unsigned int GetNumMeshes() const { return m_tMdfHeader.nMeshCount; }
+   127
+   128          //////////////////////////////////////////////////////////////////////////
+   129          /// Obtain a read-only mesh object given by the index
+   130          ///
+   131          /// \param hMeshId index of the mesh object to obtain
+   132          /// \return Mesh object of the given index
+   133          ///
+   134          /// \warning Invalid indexes are not checked, use GetNumMeshes() to find
+   135          ///                      the maximum index
+   136          //////////////////////////////////////////////////////////////////////////
+   137          const TMdfMesh & GetMesh(MdfHandle hMeshId) const { return m_vpMeshes[hMeshId]; }
+   138
+   139          //////////////////////////////////////////////////////////////////////////
+   140          /// Get number of animations that are stored in this MDF
+   141          ///
+   142          /// \return number of animations in this MDF
+   143          //////////////////////////////////////////////////////////////////////////
+   144          unsigned int GetNumAnimations() const { return m_tMdfHeader.nAnimCount; }
+   145
+   146          //////////////////////////////////////////////////////////////////////////
+   147          /// Obtain a read-only animation object given by the index
+   148          ///
+   149          /// \param hAnimId - animation index
+   150          /// \return Mesh animation of the given index
+   151          ///
+   152          /// \warning Invalid indexes are not checked, use GetNumAnimations() to find
+   153          ///                      the maximum index
+   154          //////////////////////////////////////////////////////////////////////////
+   155          const TMdfAnimation & GetAnimation(MdfHandle hAnimId) const { return m_vpAnimations[hAnimId]; }
+   156
+   157          //////////////////////////////////////////////////////////////////////////
+   158          /// Get texture that is assigned to the given mesh
+   159          ///
+   160          /// \param hMeshId - index of the mesh
+   161          /// \return index of the texture
+   162          //////////////////////////////////////////////////////////////////////////
+   163          MdfHandle GetTextureId(MdfHandle hMeshId) const {
+   164                  return m_vpMeshes[hMeshId].hTexture;
+   165          }
+   166
+   167          //////////////////////////////////////////////////////////////////////////
+   168          /// Get the number of texture names that are stored in this MDF
+   169          ///
+   170          /// \return total number of texture names
+   171          //////////////////////////////////////////////////////////////////////////
+   172          unsigned int GetNumTextures() const { return m_tMdfHeader.nTextureCount; }
+   173
+   174          //////////////////////////////////////////////////////////////////////////
+   175          /// Get texture name from the specified texture index value
+   176          ///
+   177          /// \param hTextureId - texture index
+   178          /// \return name of the texture
+   179          ///
+   180          /// \warning The string memory is maintained by the MDF object.
+   181          ///                      Always use deep-copying if you want to store the
+   182          ///                      string elsewhere.
+   183          ///                      The string is destroyed when this MDF is destroyed.
+   184          ///
+   185          //////////////////////////////////////////////////////////////////////////
+   186          const char * GetTextureName(MdfHandle hTextureId) const { return m_vpTextures[hTextureId]; }
+   187
+   188          //////////////////////////////////////////////////////////////////////////
+   189          /// Get the header of this MDF
+   190          ///
+   191          /// \return the header of this MDF
+   192          //////////////////////////////////////////////////////////////////////////
+   193          const MdfHeader & GetHeader() const { return m_tMdfHeader; }
+   194
+   195          bool HasAnimations() const {
+   196                  return(m_vpAnimations != 0);
+   197          }
+   198
+   199          bool HasMeshes() const {
+   200                  return(m_vpMeshes != 0);
+   201          }
+   202
+   203          /************************************************************************/
+   204          /* PRIVATE METHODS                                                      */
+   205          /************************************************************************/
+   206  protected:
+   207
+   208          //////////////////////////////////////////////////////////////////////////
+   209          /// Loads an MDF from a given stream
+   210          ///
+   211          /// \param stream - the stream to load from
+   212          /// \return true if successful
+   213          //////////////////////////////////////////////////////////////////////////
+   214          bool LoadFromStream(MdfStream &stream);
+   215
+   216          //////////////////////////////////////////////////////////////////////////
+   217          /// Add a texture name to this MDF
+   218          ///
+   219          /// \remarks Adding duplicate names will waste memory. It is up to the
+   220          ///                      caller to ensure that no duplicate texture names are added.
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba MdfFormat.cpp | sed -n '1,120p'
+     1  #include "stdafx.h"
+     2  #include "MdfFormat.h"
+     3  #include <stdint.h>
+     4  #include <stdlib.h>
+     5
+     6  const char MDF_VER_STR[8] = {
+     7          'M',
+     8          'D',
+     9          'F',
+    10          ' ',
+    11          'v',
+    12          '1',
+    13          '.',
+    14          '2'
+    15  };
+    16
+    17  class MdfMemStream
+    18          : public MdfStream
+    19  {
+    20  public:
+    21          MdfMemStream(Byte *pData, int nDataLen) : pData(pData), nDataLen(nDataLen), nPos(0) {}
+    22          virtual ~MdfMemStream() {}
+    23
+    24          virtual bool Seek(int offset, int origin);
+    25          virtual int Tell();
+    26          virtual int Read(void *pDest, int nLength);
+    27          virtual int Length();
+    28
+    29  private:
+    30          Byte *pData;
+    31          int nDataLen;
+    32          int nPos;
+    33
+    34  };
+    35
+    36  bool MdfMemStream::Seek(int offset, int origin)
+    37  {
+    38          switch(origin) {
+    39                  case SEEK_SET:
+    40                  {
+    41                          if(offset < 0 || offset > nDataLen) {
+    42                                  return false;
+    43                          }
+    44                          nPos = offset;
+    45                  } break;
+    46                  case SEEK_CUR:
+    47                  {
+    48                          register int test = nPos += offset;
+    49                          if(test < 0 || test > nDataLen) {
+    50                                  return false;
+    51                          }
+    52                          nPos += offset;
+    53                  } break;
+    54                  case SEEK_END:
+    55                  {
+    56                          register int test = nPos += offset;
+    57                          if(test < 0 || test > nDataLen) {
+    58                                  return false;
+    59                          }
+    60                          nPos = nDataLen - origin;
+    61                  } break;
+    62          }
+    63          return true;
+    64  }
+    65
+    66  int MdfMemStream::Tell()
+    67  {
+    68          return nPos;
+    69  }
+    70
+    71  int MdfMemStream::Read(void *pDest, int nLength)
+    72  {
+    73          if(nPos + nLength >= nDataLen) {
+    74                  nLength = nDataLen - nPos;
+    75          }
+    76          memcpy(pDest, &pData[nPos], nLength);
+    77          nPos += nLength;
+    78          return nLength;
+    79  }
+    80
+    81  int MdfMemStream::Length()
+    82  {
+    83          return nDataLen;
+    84  }
+    85
+    86  //////////////////////////////////////////////////////////////////////////
+    87
+    88  class MdfFileStream
+    89          : public MdfStream
+    90  {
+    91  public:
+    92          MdfFileStream() : fp(0), nDataLen(0) {}
+    93          virtual ~MdfFileStream() { Close(); }
+    94
+    95          bool Open(const char *szFilename) {
+    96                  fp = fopen(szFilename, "rb");
+    97                  if(fp) {
+    98                          fseek(fp, 0, SEEK_END);
+    99                          nDataLen = (int)ftell(fp);
+   100                          fseek(fp, 0, SEEK_SET);
+   101                          return true;
+   102                  } else {
+   103                          return false;
+   104                  }
+   105          }
+   106
+   107          void Close() {
+   108                  if(fp) {
+   109                          fclose(fp);
+   110                  }
+   111                  fp = 0;
+   112                  nDataLen = 0;
+   113          }
+   114
+   115          virtual bool Seek(int offset, int origin) {
+   116                  return(fseek(fp, offset, origin) == 0);
+   117          }
+   118
+   119          virtual int Tell() { return (int)ftell(fp); }
+   120
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && grep -n "GetMesh\|GetAnimation\|GetTextureCount\|GetMeshCount\|GetAnimationCount" -n MdfFormat.h
+137:    const TMdfMesh & GetMesh(MdfHandle hMeshId) const { return m_vpMeshes[hMeshId]; }
+155:    const TMdfAnimation & GetAnimation(MdfHandle hAnimId) const { return m_vpAnimations[hAnimId]; }
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && nl -ba MdfFormat.h | sed -n '120,210p'
+   120
+   121          //////////////////////////////////////////////////////////////////////////
+   122          /// Get the number of meshes that are stored in this MDF
+   123          ///
+   124          /// \return total number of meshes
+   125          //////////////////////////////////////////////////////////////////////////
+   126          unsigned int GetNumMeshes() const { return m_tMdfHeader.nMeshCount; }
+   127
+   128          //////////////////////////////////////////////////////////////////////////
+   129          /// Obtain a read-only mesh object given by the index
+   130          ///
+   131          /// \param hMeshId index of the mesh object to obtain
+   132          /// \return Mesh object of the given index
+   133          ///
+   134          /// \warning Invalid indexes are not checked, use GetNumMeshes() to find
+   135          ///                      the maximum index
+   136          //////////////////////////////////////////////////////////////////////////
+   137          const TMdfMesh & GetMesh(MdfHandle hMeshId) const { return m_vpMeshes[hMeshId]; }
+   138
+   139          //////////////////////////////////////////////////////////////////////////
+   140          /// Get number of animations that are stored in this MDF
+   141          ///
+   142          /// \return number of animations in this MDF
+   143          //////////////////////////////////////////////////////////////////////////
+   144          unsigned int GetNumAnimations() const { return m_tMdfHeader.nAnimCount; }
+   145
+   146          //////////////////////////////////////////////////////////////////////////
+   147          /// Obtain a read-only animation object given by the index
+   148          ///
+   149          /// \param hAnimId - animation index
+   150          /// \return Mesh animation of the given index
+   151          ///
+   152          /// \warning Invalid indexes are not checked, use GetNumAnimations() to find
+   153          ///                      the maximum index
+   154          //////////////////////////////////////////////////////////////////////////
+   155          const TMdfAnimation & GetAnimation(MdfHandle hAnimId) const { return m_vpAnimations[hAnimId]; }
+   156
+   157          //////////////////////////////////////////////////////////////////////////
+   158          /// Get texture that is assigned to the given mesh
+   159          ///
+   160          /// \param hMeshId - index of the mesh
+   161          /// \return index of the texture
+   162          //////////////////////////////////////////////////////////////////////////
+   163          MdfHandle GetTextureId(MdfHandle hMeshId) const {
+   164                  return m_vpMeshes[hMeshId].hTexture;
+   165          }
+   166
+   167          //////////////////////////////////////////////////////////////////////////
+   168          /// Get the number of texture names that are stored in this MDF
+   169          ///
+   170          /// \return total number of texture names
+   171          //////////////////////////////////////////////////////////////////////////
+   172          unsigned int GetNumTextures() const { return m_tMdfHeader.nTextureCount; }
+   173
+   174          //////////////////////////////////////////////////////////////////////////
+   175          /// Get texture name from the specified texture index value
+   176          ///
+   177          /// \param hTextureId - texture index
+   178          /// \return name of the texture
+   179          ///
+   180          /// \warning The string memory is maintained by the MDF object.
+   181          ///                      Always use deep-copying if you want to store the
+   182          ///                      string elsewhere.
+   183          ///                      The string is destroyed when this MDF is destroyed.
+   184          ///
+   185          //////////////////////////////////////////////////////////////////////////
+   186          const char * GetTextureName(MdfHandle hTextureId) const { return m_vpTextures[hTextureId]; }
+   187
+   188          //////////////////////////////////////////////////////////////////////////
+   189          /// Get the header of this MDF
+   190          ///
+   191          /// \return the header of this MDF
+   192          //////////////////////////////////////////////////////////////////////////
+   193          const MdfHeader & GetHeader() const { return m_tMdfHeader; }
+   194
+   195          bool HasAnimations() const {
+   196                  return(m_vpAnimations != 0);
+   197          }
+   198
+   199          bool HasMeshes() const {
+   200                  return(m_vpMeshes != 0);
+   201          }
+   202
+   203          /************************************************************************/
+   204          /* PRIVATE METHODS                                                      */
+   205          /************************************************************************/
+   206  protected:
+   207
+   208          //////////////////////////////////////////////////////////////////////////
+   209          /// Loads an MDF from a given stream
+   210          ///
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && ls -1
+LICENSE
+MdfFormat.cpp
+MdfFormat.h
+MdfLib.vcproj
+MdfLib.vcxproj
+MdfLib.vcxproj.filters
+MdfLib.vcxproj.user
+MdfLib_2005.vcproj
+Readme.md
+a.out
+mdftypes.h
+stdafx.cpp
+stdafx.h
+test_models
+types.h
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && find test_models -maxdepth 2 -type f | sort
+test_models/bunbun.mdf
+test_models/dragon.mdf
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && sed -n '1,220p' Readme.md
+# MDF: Model Definition Format
+
+MDF is a custom high performance 3D mesh+animation file format library originally used in some DirectX and OpenGL
+projects that I wrote back in 2006-2007, including games.
+
+## Features
+
+- Multiple meshes per model
+- Textures (externally referenced filenames)
+- Skeletal animation and animation timelines
+- Efficient loading (single malloc + read for the entire file)
+
+## Platform support
+
+- Originally developed and tested on Win32
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && sed -n '1,220p' JSON_FORMAT.md && printf '\n---\n' && sed -n '1,220p' app/JSON_FORMAT.md
+sed: can't read JSON_FORMAT.md: No such file or directory
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && find . -maxdepth 3 -name 'JSON_FORMAT.md' -o -name 'json_format.md' -o -name '*.json' | sort
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && find . -maxdepth 2 -type d | sort
+.
+./test_models
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# cd /app/MdfLib && sed -n '1,260p' stdafx.h && printf '\n---\n' && sed -n '1,260p' stdafx.cpp
+// Cross-platform replacement for the original Visual Studio precompiled header.
+#pragma once
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <cstdint>
+#ifndef ZeroMemory
+#define ZeroMemory(Destination, Length) std::memset((Destination), 0, (Length))
+#endif
+#endif
+
+---
+// stdafx.cpp : source file that includes just the standard includes
+// MdfLib.pch will be the pre-compiled header
+// stdafx.obj will contain the pre-compiled type information
+
+#include "stdafx.h"
+
+// TODO: reference any additional headers you need in STDAFX.H
+// and not in this file
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogIk1kZkZvcm1hdFxccypcXCgiLCAicGF0aCI6ICIvYXBw
+L01kZkxpYiIsICJjb250ZXh0IjogMiwgImZpbGVfcGF0dGVybiI6ICIqLmgiLCAiY2FzZV9zZW5zaXRpdmUiOiB0cnVlfQ=='"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBmbm1hdGNoL
+CBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhpc3RzKCk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCLplJnor
+686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5piv55uu5b2VICIgKyBhcmdzWyJwY
+XRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJlLklHTk9SRUNBU0UpCmV4Y2VwdCByZS5lcnJvciBhcyBlc
+nJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0IiwgIl9fcHljYWNoZV9fIiwgIi52ZW52IiwgIm5vZGVfbW9kd
+WxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFyZ3NbImZpbGVfcGF0dGVybiJdKToKICAgIGlmIGFueShwY
+XJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGludWUKICAgIHRyeToKICAgICAgICBsaW5lcyA9IGZpbGVfc
+GF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAgICAgIGNvbnRpbnVlCiAgICBmaWxlcyArPSAxCiAgICBtY
+XRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6CiAgICAgICAgICAgIGJlZm9yZSA9IFtmIntpKzE6NGR9I
+Hwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAgYWZ0ZXIgPSBbZiJ7aSsxOjRkfSB8IHtsaW5lc1tpXX0iI
+GZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5hcHBlbmQoKG51bWJlciwgbGluZSwgYmVmb3JlLCBhZnRlc
+ikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogICAgc
+HJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9I
+OWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHByaW50K
+GYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgICAgI
+CAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0Z
+H0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmludChmI
+ltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-tool>'
+"'"','"'"'exec'"'"'))'
+[SEARCH] 搜索结果: 共找到 3 处匹配，分布在 1 个文件中
+================================================================================
+\n[FILE] MdfFormat.h (3 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n      44 |        /************************************************************************/\n      45 | public:
+>>>   46 |      MdfFormat(void);
+      47 | public:\n      48 |  virtual ~MdfFormat(void);
+    [上下文]\n      46 |        MdfFormat(void);\n      47 | public:
+>>>   48 |      virtual ~MdfFormat(void);
+      49 | \n      50 |         /************************************************************************/
+    [上下文]\n     229 | private:\n     230 |   // disable copy and assignment operator
+>>>  231 |      MdfFormat(MdfFormat &) {};
+     232 |      MdfFormat & operator=(MdfFormat &) {}\n     233 |
+\n================================================================================
+[DONE] 搜索完成: 3 处匹配，1 个文件，共搜索 4 个文件
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogIkxvYWRGaWxlXFwoIiwgInBhdGgiOiAiL2FwcC9NZGZM
+aWIiLCAiY29udGV4dCI6IDIsICJmaWxlX3BhdHRlcm4iOiAiTWRmRm9ybWF0LmgiLCAiY2FzZV9zZW5zaXRpdmUiOiB0cnVlfQ=='"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBmbm1hd
+GNoLCBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhpc3RzKCk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCLpl
+Jnor686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5piv55uu5b2VICIgKyBhcmdzW
+yJwYXRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJlLklHTk9SRUNBU0UpCmV4Y2VwdCByZS5lcnJvciBhc
+yBlcnJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0IiwgIl9fcHljYWNoZV9fIiwgIi52ZW52IiwgIm5vZGVfb
+W9kdWxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFyZ3NbImZpbGVfcGF0dGVybiJdKToKICAgIGlmIGFue
+ShwYXJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGludWUKICAgIHRyeToKICAgICAgICBsaW5lcyA9IGZpb
+GVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAgICAgIGNvbnRpbnVlCiAgICBmaWxlcyArPSAxCiAgI
+CBtYXRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6CiAgICAgICAgICAgIGJlZm9yZSA9IFtmIntpKzE6N
+GR9IHwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAgYWZ0ZXIgPSBbZiJ7aSsxOjRkfSB8IHtsaW5lc1tpX
+X0iIGZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5hcHBlbmQoKG51bWJlciwgbGluZSwgYmVmb3JlLCBhZ
+nRlcikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogI
+CAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90Y
+Wx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHBya
+W50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgI
+CAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlc
+jo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmlud
+ChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-to
+ol>'"'"','"'"'exec'"'"'))'
+未找到匹配项。已搜索 1 个文件。
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogIlNhdmVGaWxlXFwoIiwgInBhdGgiOiAiL2FwcC9NZGZM
+aWIiLCAiY29udGV4dCI6IDIsICJmaWxlX3BhdHRlcm4iOiAiTWRmRm9ybWF0LmgiLCAiY2FzZV9zZW5zaXRpdmUiOiB0cnVlfQ=='"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBmbm1hd
+GNoLCBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhpc3RzKCk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCLpl
+Jnor686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5piv55uu5b2VICIgKyBhcmdzW
+yJwYXRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJlLklHTk9SRUNBU0UpCmV4Y2VwdCByZS5lcnJvciBhc
+yBlcnJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0IiwgIl9fcHljYWNoZV9fIiwgIi52ZW52IiwgIm5vZGVfb
+W9kdWxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFyZ3NbImZpbGVfcGF0dGVybiJdKToKICAgIGlmIGFue
+ShwYXJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGludWUKICAgIHRyeToKICAgICAgICBsaW5lcyA9IGZpb
+GVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAgICAgIGNvbnRpbnVlCiAgICBmaWxlcyArPSAxCiAgI
+CBtYXRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6CiAgICAgICAgICAgIGJlZm9yZSA9IFtmIntpKzE6N
+GR9IHwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAgYWZ0ZXIgPSBbZiJ7aSsxOjRkfSB8IHtsaW5lc1tpX
+X0iIGZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5hcHBlbmQoKG51bWJlciwgbGluZSwgYmVmb3JlLCBhZ
+nRlcikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogI
+CAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90Y
+Wx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHBya
+W50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgI
+CAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlc
+jo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmlud
+ChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-to
+ol>'"'"','"'"'exec'"'"'))'
+未找到匹配项。已搜索 1 个文件。
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@09247f3a7949:/app/MdfLib# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJtb2RlIjogImxpc3QiLCAicGF0aCI6ICIvYXBwL01kZkxpYiIsICJzeW1i
+b2xfdHlwZSI6ICJmdW5jdGlvbiJ9'"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBhc3QsIG9zCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAphcmdzID0gQVJHUwpyb290ID0gUGF0aChhc
+mdzWyJwYXRoIl0pLnJlc29sdmUoKQppZiBub3Qgcm9vdC5leGlzdHMoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5a2Y5ZyoICIgKyBhcmdzWyJwYXRoIl0pCmlmIG5vdCByb290L
+mlzX2RpcigpOgogICAgcmFpc2UgU3lzdGVtRXhpdCgi6ZSZ6K+vOiDot6/lvoTkuI3mmK/nm67lvZUgIiArIGFyZ3NbInBhdGgiXSkKaXRlbXMgPSBbXQpmb3IgY3VycmVudCwgZGlycywgZmlsZXMgaW4gb3Mud
+2Fsayhyb290KToKICAgIGRpcnNbOl0gPSBbZCBmb3IgZCBpbiBkaXJzIGlmIGQgbm90IGluIHsiLmdpdCIsICJfX3B5Y2FjaGVfXyIsICJub2RlX21vZHVsZXMiLCAidmVudiIsICIudmVudiIsICJlbnYiLCAiL
+mVudiJ9XQogICAgZm9yIGZpbGVuYW1lIGluIGZpbGVzOgogICAgICAgIGlmIG5vdCBmaWxlbmFtZS5lbmRzd2l0aCgiLnB5Iik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgZmlsZV9wYXRoID0gUGF0a
+ChjdXJyZW50KSAvIGZpbGVuYW1lCiAgICAgICAgdHJ5OgogICAgICAgICAgICB0cmVlID0gYXN0LnBhcnNlKGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKSwgZ
+mlsZW5hbWU9c3RyKGZpbGVfcGF0aCkpCiAgICAgICAgZXhjZXB0IChTeW50YXhFcnJvciwgT1NFcnJvciwgVmFsdWVFcnJvcik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgcmVsYXRpdmUgPSBzdHIoZ
+mlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKQogICAgICAgIGZvciBub2RlIGluIGFzdC53YWxrKHRyZWUpOgogICAgICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUsIGFzdC5DbGFzc0RlZik6CiAgICAgICAgI
+CAgICAgICBpdGVtcy5hcHBlbmQoKG5vZGUubmFtZSwgImNsYXNzIiwgcmVsYXRpdmUsIG5vZGUubGluZW5vLCBnZXRhdHRyKG5vZGUsICJlbmRfbGluZW5vIiwgbm9kZS5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0c
+mluZyhub2RlKSwgTm9uZSkpCiAgICAgICAgICAgICAgICBmb3IgY2hpbGQgaW4gbm9kZS5ib2R5OgogICAgICAgICAgICAgICAgICAgIGlmIGlzaW5zdGFuY2UoY2hpbGQsIChhc3QuRnVuY3Rpb25EZWYsIGFzd
+C5Bc3luY0Z1bmN0aW9uRGVmKSk6CiAgICAgICAgICAgICAgICAgICAgICAgIGl0ZW1zLmFwcGVuZCgoY2hpbGQubmFtZSwgImZ1bmN0aW9uIiwgcmVsYXRpdmUsIGNoaWxkLmxpbmVubywgZ2V0YXR0cihjaGlsZ
+CwgImVuZF9saW5lbm8iLCBjaGlsZC5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhjaGlsZCksIG5vZGUubmFtZSkpCiAgICAgICAgICAgIGVsaWYgaXNpbnN0YW5jZShub2RlLCAoYXN0LkZ1bmN0aW9uRGVmL
+CBhc3QuQXN5bmNGdW5jdGlvbkRlZikpIGFuZCBub3QgYW55KGlzaW5zdGFuY2UocGFyZW50LCBhc3QuQ2xhc3NEZWYpIGFuZCBub2RlIGluIHBhcmVudC5ib2R5IGZvciBwYXJlbnQgaW4gYXN0LndhbGsodHJlZ
+SkpOgogICAgICAgICAgICAgICAgaXRlbXMuYXBwZW5kKChub2RlLm5hbWUsICJmdW5jdGlvbiIsIHJlbGF0aXZlLCBub2RlLmxpbmVubywgZ2V0YXR0cihub2RlLCAiZW5kX2xpbmVubyIsIG5vZGUubGluZW5vK
+SwgYXN0LmdldF9kb2NzdHJpbmcobm9kZSksIE5vbmUpKQppZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBhcmdzWyJuYW1lIl0gaW4gaXRlb
+VswXV0KaWYgYXJncy5nZXQoInN5bWJvbF90eXBlIiwgImFsbCIpICE9ICJhbGwiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBpdGVtWzFdID09IGFyZ3NbInN5bWJvbF90eXBlIl1dC
+mlmIG5vdCBpdGVtczoKICAgIHByaW50KCLmnKrmib7liLDnrKblj7c6ICIgKyBhcmdzLmdldCgibmFtZSIsICLku7vkvZUiKSkKZWxpZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgcHJpbnQoZiLwn5SNI
+OaJvuWIsCB7bGVuKGl0ZW1zKX0g5Liq5Yy56YWN6aG5IikKICAgIHByaW50KCI9IiAqIDgwKQogICAgZm9yIGluZGV4LCBpdGVtIGluIGVudW1lcmF0ZShpdGVtcywgMSk6CiAgICAgICAgbmFtZSwga2luZCwgZ
+mlsZW5hbWUsIHN0YXJ0LCBlbmQsIGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoI
+iAgICDniLbnsbs6ICIgKyBwYXJlbnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kf
+SIpCiAgICAgICAgaWYgZG9jOiBwcmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsa
+W5lcygpWzo1XSkpCmVsc2U6CiAgICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpb
+iBzb3J0ZWQoaXRlbXMsIGtleT1sYW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxhe
+SA9IChwYXJlbnQgKyAiLiIgaWYgcGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gI
+CB7ZGlzcGxheX0gKEx7c3RhcnR9LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKClbMF0pCg=='"'"'),'"'"'<workspace-tool>'
+"'"','"'"'exec'"'"'))'
+未找到符号: 任何
+root@09247f3a7949:/app/MdfLib# true; tmux wait -S done
+root@09247f3a7949:/app/MdfLib#

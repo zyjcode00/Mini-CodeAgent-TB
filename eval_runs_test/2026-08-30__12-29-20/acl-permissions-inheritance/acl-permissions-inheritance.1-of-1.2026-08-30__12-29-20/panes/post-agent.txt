@@ -1,0 +1,151 @@
+root@2d29cc59047a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@2d29cc59047a:/app# set +e
+root@2d29cc59047a:/app#
+root@2d29cc59047a:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@2d29cc59047a:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@2d29cc59047a:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@2d29cc59047a:/app#
+root@2d29cc59047a:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@2d29cc59047a:/app#
+root@2d29cc59047a:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@2d29cc59047a:/app#
+root@2d29cc59047a:/app# mkdir -p /root/.config/uv
+root@2d29cc59047a:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@2d29cc59047a:/app#
+root@2d29cc59047a:/app# apt-get update || true
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1200 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:7 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:9 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1527 kB]
+Get:10 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1525 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1842 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2149 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Fetched 32.4 MB in 37s (866 kB/s)
+Reading package lists... Done
+root@2d29cc59047a:/app# true; tmux wait -S done
+root@2d29cc59047a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@2d29cc59047a:/app# id && printf '\nUsers:\n' && getent passwd alice && getent passwd bob && printf '\nGroups:\n' && getent group research && printf '\nDire
+ctory state:\n' && stat -c '%A %a %U %G %n' /srv/shared 2>&1 || true && printf '\nACL state:\n' && getfacl -p /srv/shared 2>&1 || true
+uid=0(root) gid=0(root) groups=0(root)
+
+Users:
+alice:x:1001:1002::/home/alice:/bin/bash
+bob:x:1002:1003::/home/bob:/bin/bash
+
+Groups:
+research:x:1001:alice,bob
+
+Directory state:
+stat: cannot statx '/srv/shared': No such file or directory
+
+ACL state:
+getfacl: /srv/shared: No such file or directory
+root@2d29cc59047a:/app# true; tmux wait -S done
+root@2d29cc59047a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@2d29cc59047a:/app# command -v setfacl && command -v getfacl && command -v stat
+/usr/bin/setfacl
+/usr/bin/getfacl
+/usr/bin/stat
+root@2d29cc59047a:/app# true; tmux wait -S done
+root@2d29cc59047a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@2d29cc59047a:/app# set -euo pipefail
+root@2d29cc59047a:/app# install -d -m 2770 -o root -g research /srv/shared
+root@2d29cc59047a:/app# setfacl -m g:research:rwx,u:alice:rwx,u:bob:rwx,o:---,m:rwx /srv/shared
+root@2d29cc59047a:/app# setfacl -d -m g:research:rwx,u:alice:rwx,u:bob:rwx,o:---,m:rwx /srv/shared
+root@2d29cc59047a:/app# stat -c '%A %a %U %G %n' /srv/shared
+drwxrws--- 2770 root research /srv/shared
+root@2d29cc59047a:/app# getfacl -p /srv/shared
+# file: /srv/shared
+# owner: root
+# group: research
+# flags: -s-
+user::rwx
+user:alice:rwx
+user:bob:rwx
+group::rwx
+group:research:rwx
+mask::rwx
+other::---
+default:user::rwx
+default:user:alice:rwx
+default:user:bob:rwx
+default:group::rwx
+default:group:research:rwx
+default:mask::rwx
+default:other::---
+
+root@2d29cc59047a:/app# true; tmux wait -S done
+root@2d29cc59047a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@2d29cc59047a:/app# set -euo pipefail
+root@2d29cc59047a:/app# printf 'ls -ld /srv/shared:\n'
+ls -ld /srv/shared:
+root@2d29cc59047a:/app# ls -ld /srv/shared
+drwxrws---+ 2 root research 4096 Aug 30 04:32 /srv/shared
+root@2d29cc59047a:/app# printf '\ngetfacl -p /srv/shared:\n'
+
+getfacl -p /srv/shared:
+root@2d29cc59047a:/app# getfacl -p /srv/shared
+# file: /srv/shared
+# owner: root
+# group: research
+# flags: -s-
+user::rwx
+user:alice:rwx
+user:bob:rwx
+group::rwx
+group:research:rwx
+mask::rwx
+other::---
+default:user::rwx
+default:user:alice:rwx
+default:user:bob:rwx
+default:group::rwx
+default:group:research:rwx
+default:mask::rwx
+default:other::---
+
+root@2d29cc59047a:/app# printf '\nDirectory contents count:\n'
+
+Directory contents count:
+root@2d29cc59047a:/app# find /srv/shared -mindepth 1 -maxdepth 1 | wc -l
+0
+root@2d29cc59047a:/app# true; tmux wait -S done
+root@2d29cc59047a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@2d29cc59047a:/app# set -euo pipefail
+root@2d29cc59047a:/app# namei -l /srv/shared
+f: /srv/shared
+drwxr-xr-x root root     /
+drwxr-xr-x root root     srv
+drwxrws--- root research shared
+root@2d29cc59047a:/app# true; tmux wait -S done
+root@2d29cc59047a:/app#
