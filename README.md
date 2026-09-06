@@ -268,6 +268,31 @@ uv run tb run \
 
 > 评测记录见 [`TB评测记录.md`](TB评测记录.md)，运行产物见 `eval_runs_test/`。
 
+### 数据集与复现
+
+- **数据集来源**：Terminal-Bench 官方评测集（[laude-institute/terminal-bench](https://github.com/laude-institute/terminal-bench)），共 241 个真实终端任务，难度覆盖 easy / medium / hard
+- **复现步骤**：
+
+```bash
+# 1. 克隆官方数据集
+git clone https://github.com/laude-institute/terminal-bench.git
+
+# 2. 安装评测框架（建议 conda 环境）
+cd terminal-bench && pip install -e .
+
+# 3. 返回本项目目录，运行单任务评测
+cd Mini-CodeAgent-TB
+uv run tb run \
+  --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
+  --dataset-path <terminal-bench/original-tasks> \
+  --agent-kwarg max_turns=10 \
+  --task-id <task-id> \
+  --output-path ./eval_runs_test
+```
+
+- **环境要求**：Docker（评测沙箱）、WSL/Linux（容器内执行）
+- **国内网络适配**：`TB评测记录.md` 中各任务记录了前置修复（apt USTC 源 / uv 走 gh-proxy / Docker Hub 镜像代理），供复现时参考
+
 ---
 
 ## 🛠️ 技术栈
