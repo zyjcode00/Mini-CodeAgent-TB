@@ -152,7 +152,7 @@ def task_session_id(
         # <run>/<task_id>/<task_id>.1-of-1.<run>/agent-logs
         # 取父目录并提取任务名（.1-of-1. 之前的部分），避免落到通用目录名 agent-logs
         parent = Path(str(logging_dir)).parent.name
-        derived = (re.split(r".1-of-1.", parent)[0] if ".1-of-1." in parent else parent)
+        derived = re.split(r".1-of-1.", parent)[0] if ".1-of-1." in parent else Path(str(logging_dir)).name
         if derived and derived not in ("agent-logs", "sessions", "panes"):
             candidates.append(derived)
         else:

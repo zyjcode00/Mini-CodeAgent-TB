@@ -59,6 +59,13 @@ class AgentEngine:
             ContextBudget(memory=self.memory_token_budget)
         )
 
+        # OpenAI-compatible 请求体预算（防 413 payload too large）
+        self.llm_request_max_bytes = int(os.getenv("LLM_REQUEST_MAX_BYTES", str(4 * 1024 * 1024)))
+        self.llm_request_retry_bytes = int(os.getenv("LLM_REQUEST_RETRY_BYTES", str(1024 * 1024)))
+
+        # read_file 防空转台账：随 session 持久化，跨会话恢复重复读取检测
+        self.read_ledger = RuntimeReadLedger()
+
         self.is_openai_compat = base_url is not None or "claude" not in model.lower()
 
         # --- 异步适配：使用 Async 客户端 ---
@@ -77,6 +84,88 @@ class AgentEngine:
         self.load_session()
 
 
+
+    @staticmethod
+    def _is_request_too_large_error(exc: Exception) -> bool:
+        """Recognise proxy/provider payload-limit failures without SDK coupling."""
+        status = getattr(exc, "status_code", None)
+        response = getattr(exc, "response", None)
+        response_status = getattr(response, "status_code", None)
+        text = str(exc).lower()
+        return status == 413 or response_status == 413 or (
+            "413" in text and any(marker in text for marker in (
+                "request entity too large", "payload too large", "content too large"
+            ))
+        )
+
+    @staticmethod
+    def _request_size_bytes(messages, tools=None) -> int:
+        """Return the UTF-8 size of the relevant serialized request payload."""
+        return len(json.dumps(
+            {"messages": messages, "tools": tools or []},
+            ensure_ascii=False,
+            default=str,
+            separators=(",", ":"),
+        ).encode("utf-8"))
+
+    def _sanitize_openai_tool_pairs(self, messages):
+        """删除 OpenAI strict tools 不接受的半截工具调用消息。"""
+        return self.context.compression_engine._sanitize_openai_tool_pairs(messages)
+
+    def _fit_openai_request_budget(
+        self, base_system_prompt, memory_context, compressed_state, messages,
+        oa_tools, provider="openai", target_bytes=None,
+    ):
+        """Assemble a provider-safe request and progressively shed old context."""
+        target = max(512, int(target_bytes or self.llm_request_max_bytes))
+        safe_messages = self._sanitize_openai_tool_pairs(messages)
+
+        # ContextAssembler remains the single place that orders system/memory
+        # sections. Byte fitting happens afterwards because nginx limits bytes.
+        assembled = self.context_assembler.assemble(
+            base_system_prompt=base_system_prompt,
+            memory_context=memory_context,
+            compressed_state=compressed_state,
+            messages=safe_messages,
+            provider=provider,
+        )
+        size = self._request_size_bytes(assembled.messages, oa_tools)
+        if size <= target:
+            return assembled, size
+
+        # Drop optional injected context before conversation history.
+        assembled = self.context_assembler.assemble(
+            base_system_prompt=base_system_prompt,
+            memory_context="",
+            compressed_state="",
+            messages=safe_messages,
+            provider=provider,
+        )
+        size = self._request_size_bytes(assembled.messages, oa_tools)
+        if size <= target:
+            return assembled, size
+
+        # Retain newest complete semantic turns. Never slice an assistant tool
+        # call away from its contiguous tool responses.
+        turn_builder = self.context_assembler.turn_builder
+        turns = turn_builder.complete_turns_only(turn_builder.build(safe_messages))
+        selected = []
+        for turn in reversed(turns):
+            candidate = turn_builder.flatten([turn] + selected)
+            fitted = self.context_assembler.assemble(
+                base_system_prompt=base_system_prompt,
+                memory_context="",
+                compressed_state="",
+                messages=candidate,
+                provider=provider,
+            )
+            candidate_size = self._request_size_bytes(fitted.messages, oa_tools)
+            if selected and candidate_size > target:
+                break
+            selected.insert(0, turn)
+            assembled, size = fitted, candidate_size
+
+        return assembled, size
 
     async def _call_llm(self, relevant_history: str = "", user_input: str = ""):
         """核心推理：改为异步调用"""
@@ -131,16 +220,29 @@ class AgentEngine:
         if self.is_openai_compat:
             oa_tools = [{"type": "function", "function": {"name": t["name"], "description": t["description"], "parameters": t["input_schema"]}} for t in self.tool_specs]
 
-            # 使用 await 调用异步客户端（带超时保护 + 自动重试一次）
+            # 预裁剪请求体到代理限制内，避免 413 payload too large
+            fitted, request_bytes = self._fit_openai_request_budget(
+                base_system_prompt=system_ptr,
+                memory_context="",
+                compressed_state="",
+                messages=messages_snapshot,
+                oa_tools=oa_tools,
+                target_bytes=self.llm_request_max_bytes,
+            )
+
+            async def _create_completion(context):
+                return await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[{"role": "system", "content": context.system_prompt}] + context.messages,
+                    tools=oa_tools if oa_tools else None,
+                )
+
+            # 使用 await 调用异步客户端（带超时保护 + 自动重试一次 + 413 裁剪重试）
             timeout_seconds = float(os.getenv("MAIN_LLM_TIMEOUT", "120"))
             for _attempt in range(3):
                 try:
                     resp = await asyncio.wait_for(
-                        self.client.chat.completions.create(
-                            model=self.model,
-                            messages=[{"role": "system", "content": system_ptr}] + messages_snapshot,
-                            tools=oa_tools if oa_tools else None
-                        ),
+                        _create_completion(fitted),
                         timeout=timeout_seconds
                     )
                     break
@@ -148,6 +250,20 @@ class AgentEngine:
                     if _attempt == 1:
                         raise
                     print(f"[⚠️] 主 LLM 调用超时 ({timeout_seconds:g}s)，自动重试...")
+                except Exception as exc:
+                    if not self._is_request_too_large_error(exc):
+                        raise
+                    # 413：裁剪到更小预算后重试一次
+                    retry_target = min(self.llm_request_retry_bytes, max(512, request_bytes // 2))
+                    fitted, _ = self._fit_openai_request_budget(
+                        base_system_prompt=system_ptr,
+                        memory_context="",
+                        compressed_state="",
+                        messages=messages_snapshot,
+                        oa_tools=oa_tools,
+                        target_bytes=retry_target,
+                    )
+                    print(f"[⚠️] 请求体过大 (413)，裁剪到 {retry_target} bytes 后重试...")
 
             msg = resp.choices[0].message
             # 🔥 修复：转换为字典格式，避免后续 .get() 报错
@@ -214,7 +330,7 @@ class AgentEngine:
 
         await self.compress_messages()
 
-        read_ledger = RuntimeReadLedger()
+        self.read_ledger = RuntimeReadLedger()
         read_only_guard = ReadOnlyStreakGuard.for_user_input(user_input)
 
         step = 0
@@ -283,7 +399,7 @@ class AgentEngine:
                     t_id, t_name, t_input = block["id"], block["name"], block["input"]
                     tool_obj = self.tool_map[t_name]
                     if t_name == "read_file":
-                        read_decision = read_ledger.before_read(t_input)
+                        read_decision = self.read_ledger.before_read(t_input)
                         if read_decision.reminders:
                             deferred_memory_contexts.extend(read_decision.reminders)
                         if read_decision.should_skip:
@@ -771,7 +887,9 @@ class AgentEngine:
             "messages": self.context.get_serializable_messages(),
             "plan": self.plan_manager.to_dict(),  # 🔥 保存计划状态
             # 🔥 新增：保存三层记忆数据（Phase 2/3）
-            "memories": self.context.export_memories()
+            "memories": self.context.export_memories(),
+            # read_file 防空转台账（__new__ 直构场景可能未初始化，防御性读取）
+            "read_ledger": self.read_ledger.to_dict() if hasattr(self, "read_ledger") else {},
         }
         data = replace_lone_surrogates(data)
         with open(self.session_path, "w", encoding="utf-8") as f:
@@ -812,6 +930,11 @@ class AgentEngine:
                     else:
                         # 兼容旧版 session 文件（没有 memories 字段）
                         print("[兼容模式] 旧版 session 文件，跳过三层记忆恢复")
+
+                    # read_file 防空转台账恢复
+                    self.read_ledger = RuntimeReadLedger.from_dict(
+                        data.get("read_ledger") or {}
+                    )
 
                     # 🔥🔥🔥 新增：自动清理孤立消息（GPT-5.5 严格要求）
                     self._clean_orphaned_tool_calls()

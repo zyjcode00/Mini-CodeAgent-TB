@@ -1,6 +1,7 @@
 """Runtime read ledger and anti-spin guard for AgentEngine."""
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -182,6 +183,14 @@ class RuntimeReadLedger:
         self._record_allowed_range(current)
         return ReadDecision(should_skip=False)
 
+    def record(self, tool_input: Dict[str, Any]) -> List[str]:
+        """Backward-compatible reminder API: returns reminders list only.
+
+        New code should call :meth:`before_read` and inspect the returned
+        ``ReadDecision``; this alias keeps older call sites (and tests) working.
+        """
+        return self.before_read(tool_input).reminders
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize read coverage so duplicate detection survives reload."""
         return {
@@ -267,19 +276,109 @@ class ReadOnlyStreakGuard:
             return cls(checkpoint_threshold=4)
         return cls(checkpoint_threshold=3)
 
-    def record_round(self, tool_names: List[str]) -> Optional[str]:
-        if not tool_names:
+    signature_reminder_threshold: int = 3
+    signature_stop_threshold: int = 5
+    failure_reminder_threshold: int = 2
+    failure_stop_threshold: int = 3
+
+    def record_round(self, round_data: Any) -> Optional[str]:
+        """Record one tool round; returns a reminder / terminal message or None.
+
+        Accepts either the legacy list of tool names (``["read_file", ...]``)
+        or a list of ``(tool_name, kwargs, output)`` tuples.  Detects:
+        - consecutive read-only rounds (checkpoint / stop thresholds);
+        - repeated identical tool calls with no progress;
+        - repeated identical tool failures.
+        """
+        if not round_data:
             return None
-        if all(name in self.READ_ONLY_TOOLS for name in tool_names):
-            self.streak += 1
-        else:
-            self.streak = 0
+        # 兼容旧调用：List[str] → (name, {}, "")
+        if isinstance(round_data[0], str):
+            round_data = [(n, {}, "") for n in round_data]
+
+        tool_names = [n for n, _, _ in round_data]
+        is_read_only = all(n in self.READ_ONLY_TOOLS for n in tool_names)
+        is_failure = any(self._looks_like_failure(o) for _, _, o in round_data)
+
+        # 轮签名（工具名 + kwargs），用于重复/失败检测
+        signature = tuple(sorted(
+            (n, json.dumps(kw, sort_keys=True, ensure_ascii=False, default=str))
+            for n, kw, _ in round_data
+        ))
+
+        # 相同失败检测（独立于只读判定：任何工具连续失败都应更快停止）
+        if is_failure:
+            if signature == self._last_signature and self._last_signature is not None:
+                self._same_failure_streak += 1
+            else:
+                self._last_signature = signature
+                self._same_failure_streak = 1
+            self._same_signature_streak = 0
+            if self._same_failure_streak >= self.failure_stop_threshold:
+                self.should_stop = True
+                return (
+                    f"⛔ 无进展：已连续 {self._same_failure_streak} 次相同工具失败，"
+                    "请改变策略或总结结论后停止本轮。"
+                )
+            if self._same_failure_streak >= self.failure_reminder_threshold:
+                return (
+                    f"⚠️ 相同工具失败：已连续 {self._same_failure_streak} 次执行相同工具且失败，"
+                    "请更换方法或先分析错误原因。"
+                )
             return None
 
+        if not is_read_only:
+            # 写入/其他工具成功轮：重置所有游标
+            self.streak = 0
+            self._same_signature_streak = 0
+            self._same_failure_streak = 0
+            self._last_signature = None
+            self.should_stop = False
+            return None
+
+        self.streak += 1
+
+        # 只读连续轮：checkpoint → stop（防空转优先于重复签名检测）
+        if self.streak >= self.stop_threshold:
+            self.should_stop = True
+            return (
+                f"⛔ 无进展：已连续 {self.streak} 轮只执行读取/搜索类工具，停止本轮。"
+            )
         if self.streak >= self.checkpoint_threshold:
             return (
                 f"⚠️ 只读工具防空转检查点：已连续 {self.streak} 轮只执行读取/搜索类工具。"
                 "下一步请先用简短文字总结已读文件、关键结论和明确的下一步动作；"
                 "如果信息已足够，请停止继续读取并开始修改或回答。"
             )
+
+        # 相同签名无进展 → 提醒后停止
+        if signature == self._last_signature and self._last_signature is not None:
+            self._same_signature_streak += 1
+        else:
+            self._last_signature = signature
+            self._same_signature_streak = 1
+        self._same_failure_streak = 0
+
+        if self._same_signature_streak >= self.signature_stop_threshold:
+            self.should_stop = True
+            return (
+                f"⛔ 无进展：已连续 {self._same_signature_streak} 次相同工具调用且无进展，"
+                "请基于已有信息总结结论或执行下一步。"
+            )
+        if self._same_signature_streak >= self.signature_reminder_threshold:
+            return (
+                f"⚠️ 重复工具调用：已连续 {self._same_signature_streak} 次执行相同工具，"
+                "结果无变化，请停止重复调用。"
+            )
         return None
+
+    @staticmethod
+    def _looks_like_failure(output: Any) -> bool:
+        text = str(output or "").lower()
+        return any(marker in text for marker in (
+            "错误", "失败", "error", "failed", "exception", "traceback",
+        ))
+
+    def record_tool_round(self, round_data: Any) -> Optional[str]:
+        """Alias of :meth:`record_round` kept for backward compatibility."""
+        return self.record_round(round_data)
