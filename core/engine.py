@@ -429,6 +429,14 @@ class AgentEngine:
                     return ("会话执行后端已关闭，任务在此终止。"
                             "已完成的文件改动已保留在容器中。")
                 except Exception as tool_exec_error:
+                    # 执行器已关闭（cannot schedule new futures after shutdown）：
+                    # 任何工具调用都不可能再成功，继续重试必然死循环直到 harness 超时。
+                    # 有些工具路径会抛未包装的 RuntimeError，需在此兜底识别。
+                    if "cannot schedule new futures after shutdown" in str(tool_exec_error):
+                        print(f" [🛑] 会话执行后端已关闭，终止 Agent 循环: {tool_exec_error}")
+                        self.save_session()
+                        return ("会话执行后端已关闭，任务在此终止。"
+                                "已完成的文件改动已保留在容器中。")
                     print(f" [❌] 工具执行异常: {tool_exec_error}")
 
                     # 🔥🔥🔥 关键：删除刚才添加的 assistant 消息（避免孤立）
