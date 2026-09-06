@@ -1,0 +1,202 @@
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# set +e
+root@a185e70be15e:/app#
+root@a185e70be15e:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@a185e70be15e:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@a185e70be15e:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@a185e70be15e:/app#
+root@a185e70be15e:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@a185e70be15e:/app#
+root@a185e70be15e:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@a185e70be15e:/app#
+root@a185e70be15e:/app# mkdir -p /root/.config/uv
+root@a185e70be15e:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@a185e70be15e:/app#
+root@a185e70be15e:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian trixie InRelease [140 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian trixie-updates InRelease [47.3 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security trixie-security InRelease [43.4 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian trixie/main amd64 Packages [9673 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian trixie-updates/main amd64 Packages [4412 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security trixie-security/main amd64 Packages [251 kB]
+Fetched 10.2 MB in 3s (4027 kB/s)
+Reading package lists... Done
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# pwd && printf '%s\n' '--- files ---' && find /data -maxdepth 1 -type f -name '*.csv' -print | sort && printf '%s\n' '--- app output ---'
+ && ls -l /app/flood_summary.json 2>/dev/null || true
+/app
+--- files ---
+/data/station_A.csv
+/data/station_B.csv
+/data/station_C.csv
+--- app output ---
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# for f in /data/station_A.csv /data/station_B.csv /data/station_C.csv; do printf '%s\n' "--- $f ---"; sed -n '1,8p' "$f"; done
+--- /data/station_A.csv ---
+timestamp,water_level_m
+2024-01-01 00:00,
+2024-01-01 01:00,2.3
+2024-01-01 02:00,2.5
+2024-01-01 03:00,2.8
+2024-01-01 04:00,3.2
+2024-01-01 05:00,
+2024-01-01 06:00,3.7
+--- /data/station_B.csv ---
+timestamp,water_level_m
+2024-01-01 00:00,1.8
+2024-01-01 01:00,2.0
+2024-01-01 02:00,2.2
+2024-01-01 03:00,2.4
+2024-01-01 04:00,2.6
+2024-01-01 05:00,2.8
+2024-01-01 06:00,3.0
+--- /data/station_C.csv ---
+timestamp,water_level_m
+2024-01-01 00:00,1.5
+2024-01-01 01:00,1.6
+2024-01-01 02:00,1.7
+2024-01-01 03:00,1.8
+2024-01-01 04:00,1.9
+2024-01-01 05:00,2.0
+2024-01-01 06:00,2.1
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# find /app -maxdepth 2 -type f -not -path '*/.git/*' -print | sort | head -100 && printf '%s\n' '--- row/missing counts ---' && awk -F, '
+FNR==1 {next} {n[FILENAME]++; if ($2=="") m[FILENAME]++} END {for (f in n) print f, "rows=" n[f], "missing=" (m[f]+0)}' /data/station_*.csv
+--- row/missing counts ---
+/data/station_B.csv rows=48 missing=2
+/data/station_C.csv rows=48 missing=0
+/data/station_A.csv rows=48 missing=5
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# python3 - /app/complete_water_levels.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Fill station water-level CSVs and summarize flood events."""\n\nimport csv\nimport json\nfrom pathlib import Path\nfrom
+typing import List, Optional, Tuple\n\nDATA_DIR = Path("/data")\nOUTPUT_PATH = Path("/app/flood_summary.json")\nTHRESHOLD = 3.5\nMIN_EVENT_HOURS = 3\n\n\ndef in
+terpolate(values: List[Optional[float]]) -> List[float]:\n    """Fill missing values using endpoint carry-forward/backward and linear interpolation."""\n    ava
+ilable = [i for i, value in enumerate(values) if value is not None]\n    if not available:\n        raise ValueError("cannot interpolate a series with no availa
+ble values")\n\n    result = [0.0] * len(values)\n    first, last = available[0], available[-1]\n    for i in range(0, first):\n        result[i] = values[first
+]  # type: ignore[assignment]\n    for i in range(last + 1, len(values)):\n        result[i] = values[last]  # type: ignore[assignment]\n\n    for left, right i
+n zip(available, available[1:]):\n        left_value = values[left]\n        right_value = values[right]\n        result[left] = left_value  # type: ignore[assi
+gnment]\n        step = (right_value - left_value) / (right - left)  # type: ignore[operator]\n        for i in range(left + 1, right):\n            result[i] =
+ left_value + step * (i - left)  # type: ignore[operator]\n    result[last] = values[last]  # type: ignore[assignment]\n    return result\n\n\ndef flood_event_c
+ount(levels: List[float]) -> int:\n    """Count separate runs of at least three consecutive levels at or above 3.5m."""\n    events = 0\n    run_length = 0\n
+ for level in levels + [0.0]:\n        if level >= THRESHOLD:\n            run_length += 1\n        else:\n            if run_length >= MIN_EVENT_HOURS:\n
+          events += 1\n            run_length = 0\n    return events\n\n\ndef process_station(path: Path) -> int:\n    with path.open(newline="") as handle:\n
+      rows = list(csv.DictReader(handle))\n    if not rows or any("timestamp" not in row or "water_level_m" not in row for row in rows):\n        raise ValueErr
+or(f"invalid CSV schema: {path}")\n\n    values = [float(row["water_level_m"]) if row["water_level_m"].strip() else None for row in rows]\n    completed = inter
+polate(values)\n    for row, value in zip(rows, completed):\n        row["water_level_m"] = format(value, ".10g")\n\n    with path.open("w", newline="") as hand
+le:\n        writer = csv.DictWriter(handle, fieldnames=["timestamp", "water_level_m"])\n        writer.writeheader()\n        writer.writerows(rows)\n    retur
+n flood_event_count(completed)\n\n\ndef main() -> None:\n    summary = {}\n    for path in sorted(DATA_DIR.glob("station_*.csv")):\n        summary[path.stem] =
+ process_station(path)\n    OUTPUT_PATH.write_text(json.dumps(summary, indent=2) + "\\n")\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/complete_water_levels.py
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# python3 - /app/test_complete_water_levels.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Focused tests for water-level interpolation and flood event counting."""\n\nfrom complete_water_levels import flood_even
+t_count, interpolate\n\n\ndef assert_almost_equal_list(actual, expected):\n    assert len(actual) == len(expected)\n    for i, (left, right) in enumerate(zip(ac
+tual, expected)):\n        assert abs(left - right) < 1e-9, f"index {i}: {left} != {right}"\n\n\ndef test_interpolate_edges_and_middle():\n    values = [None, N
+one, 2.0, None, None, 5.0, None]\n    assert_almost_equal_list(interpolate(values), [2.0, 2.0, 2.0, 3.0, 4.0, 5.0, 5.0])\n\n\ndef test_flood_event_count_require
+s_three_consecutive_hours():\n    levels = [3.5, 3.6, 3.4, 3.5, 3.7, 3.9, 3.4, 3.5, 3.5, 3.5, 3.6]\n    assert flood_event_count(levels) == 2\n\n\ndef test_shor
+t_threshold_run_is_not_event():\n    assert flood_event_count([3.5, 3.6, 3.4, 3.7, 3.8]) == 0\n\n\nif __name__ == "__main__":\n    test_interpolate_edges_and_mi
+ddle()\n    test_flood_event_count_requires_three_consecutive_hours()\n    test_short_threshold_run_is_not_event()\n    print("tests passed")\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_complete_water_levels.py
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# python3 /app/test_complete_water_levels.py && python3 /app/complete_water_levels.py && printf '%s\n' '--- summary ---' && cat /app/flood
+_summary.json && printf '%s\n' '--- post counts ---' && awk -F, 'FNR==1 {next} {n[FILENAME]++; if ($2=="") m[FILENAME]++} END {for (f in n) print f, "rows=" n[f
+], "missing=" (m[f]+0)}' /data/station_*.csv
+tests passed
+--- summary ---
+{
+  "station_A": 2,
+  "station_B": 1,
+  "station_C": 0
+}
+--- post counts ---
+/data/station_B.csv rows=48 missing=0
+/data/station_C.csv rows=48 missing=0
+/data/station_A.csv rows=48 missing=0
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@a185e70be15e:/app# python3 - <<'PY'
+> import csv
+> import json
+> from pathlib import Path
+>
+> summary_path = Path('/app/flood_summary.json')
+> summary = json.loads(summary_path.read_text())
+> expected_stations = {'station_A', 'station_B', 'station_C'}
+> assert set(summary) == expected_stations
+> assert all(isinstance(value, int) and value >= 0 for value in summary.values())
+> for path in sorted(Path('/data').glob('station_*.csv')):
+>     with path.open(newline='') as handle:
+>         rows = list(csv.DictReader(handle))
+>     assert len(rows) == 48, (path, len(rows))
+>     assert all(row['water_level_m'].strip() for row in rows), path
+>     levels = [float(row['water_level_m']) for row in rows]
+>     events = 0
+>     run = 0
+>     for level in levels + [0.0]:
+>         if level >= 3.5:
+>             run += 1
+>         else:
+>             events += run >= 3
+>             run = 0
+>     assert summary[path.stem] == events, (path, summary[path.stem], events)
+> print('validation passed')
+> print(json.dumps(summary, indent=2))
+> PY
+validation passed
+{
+  "station_A": 2,
+  "station_B": 1,
+  "station_C": 0
+}
+root@a185e70be15e:/app# true; tmux wait -S done
+root@a185e70be15e:/app#

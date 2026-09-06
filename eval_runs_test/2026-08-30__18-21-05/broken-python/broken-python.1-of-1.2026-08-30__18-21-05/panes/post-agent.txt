@@ -1,0 +1,354 @@
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set +e
+root@d73d585fbb7a:/app#
+root@d73d585fbb7a:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@d73d585fbb7a:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@d73d585fbb7a:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@d73d585fbb7a:/app#
+root@d73d585fbb7a:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@d73d585fbb7a:/app#
+root@d73d585fbb7a:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@d73d585fbb7a:/app#
+root@d73d585fbb7a:/app# mkdir -p /root/.config/uv
+root@d73d585fbb7a:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@d73d585fbb7a:/app#
+root@d73d585fbb7a:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (4631 kB/s)
+Reading package lists... Done
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 --version
+Python 3.13.1
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# python3 -m pip --version
+/usr/local/bin/python3: No module named pip
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# which python3 || true
+/usr/local/bin/python3
+root@d73d585fbb7a:/app# which pip3 || true
+/usr/local/bin/pip3
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# python3 -c 'import sys,site,sysconfig; print("executable=",sys.executable); print("prefix=",sys.prefix); print("base_prefix=",sys.base_p
+refix); print("usersite=",site.getusersitepackages()); print("platlib=",sysconfig.get_paths().get("platlib")); print("purelib=",sysconfig.get_paths().get("purel
+ib"))'
+executable= /usr/local/bin/python3
+prefix= /usr/local
+base_prefix= /usr/local
+usersite= /root/.local/lib/python3.13/site-packages
+platlib= /usr/local/lib/python3.13/site-packages
+purelib= /usr/local/lib/python3.13/site-packages
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# pip3 --version || true
+Traceback (most recent call last):
+  File "/usr/local/bin/pip3", line 5, in <module>
+    from pip._internal.cli.main import main
+ModuleNotFoundError: No module named 'pip'
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# python3 -m site || true
+sys.path = [
+    '/app',
+    '/usr/local/lib/python313.zip',
+    '/usr/local/lib/python3.13',
+    '/usr/local/lib/python3.13/lib-dynload',
+    '/usr/local/lib/python3.13/site-packages',
+]
+USER_BASE: '/root/.local' (doesn't exist)
+USER_SITE: '/root/.local/lib/python3.13/site-packages' (doesn't exist)
+ENABLE_USER_SITE: True
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 - <<'PY'
+> import ensurepip, sys
+> print('ensurepip_available=', True)
+> print('ensurepip_module=', ensurepip.__file__)
+> PY
+ensurepip_available= True
+ensurepip_module= /usr/local/lib/python3.13/ensurepip/__init__.py
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# ls -l /usr/local/bin/pip3 /usr/local/bin/pip || true
+lrwxrwxrwx 1 root root   4 Jan 14  2025 /usr/local/bin/pip -> pip3
+-rwxr-xr-x 1 root root 230 Jan 14  2025 /usr/local/bin/pip3
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# python3 -c 'import importlib.util; print("pip_spec=", importlib.util.find_spec("pip"))'
+pip_spec= None
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 -m ensurepip --upgrade
+Looking in links: /tmp/tmpe59ssng6
+Requirement already satisfied: pip in /usr/local/lib/python3.13/site-packages (24.3.1)
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your syst
+em unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you ar
+e doing and want to suppress this warning.
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# python3 -m pip --version
+/usr/local/bin/python3: No module named pip
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# pip3 --version
+Traceback (most recent call last):
+  File "/usr/local/bin/pip3", line 5, in <module>
+    from pip._internal.cli.main import main
+ModuleNotFoundError: No module named 'pip'
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 - <<'PY'
+> import os, sys, site
+> paths = [p for p in sys.path if 'site-packages' in p or 'dist-packages' in p]
+> print('paths=', paths)
+> for p in paths:
+>     print('DIR', p)
+>     try:
+>         print('contains pip dir=', os.path.isdir(os.path.join(p, 'pip')))
+>         print('contains pip dist-info=', any(name.startswith('pip-') and name.endswith('.dist-info') for name in os.listdir(p)))
+>         if os.path.isdir(p):
+>             print('entries=', sorted([n for n in os.listdir(p) if n.startswith('pip')])[:20])
+>     except Exception as e:
+>         print('ERR', e)
+> PY
+paths= ['/usr/local/lib/python3.13/site-packages']
+DIR /usr/local/lib/python3.13/site-packages
+contains pip dir= False
+contains pip dist-info= True
+entries= ['pip-24.3.1.dist-info']
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# head -n 20 /usr/local/bin/pip3
+#!/usr/local/bin/python3.13
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pip._internal.cli.main import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
+root@d73d585fbb7a:/app# printf '\n---\n'
+
+---
+root@d73d585fbb7a:/app# python3 - <<'PY'
+> import importlib.util, sys
+> print('find_spec pip ->', importlib.util.find_spec('pip'))
+> print('meta_path=', sys.meta_path)
+> PY
+find_spec pip -> None
+meta_path= [<class '_frozen_importlib.BuiltinImporter'>, <class '_frozen_importlib.FrozenImporter'>, <class '_frozen_importlib_external.PathFinder'>]
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 -m ensurepip --help
+usage: python -m ensurepip [-h] [--version] [-v] [-U] [--user] [--root ROOT] [--altinstall] [--default-pip]
+
+options:
+  -h, --help     show this help message and exit
+  --version      Show the version of pip that is bundled with this Python.
+  -v, --verbose  Give more output. Option is additive, and can be used up to 3 times.
+  -U, --upgrade  Upgrade pip and dependencies, even if already installed.
+  --user         Install using the user scheme.
+  --root ROOT    Install everything relative to this alternate root directory.
+  --altinstall   Make an alternate install, installing only the X.Y versioned scripts (Default: pipX, pipX.Y).
+  --default-pip  Make a default pip install, installing the unqualified pip in addition to the versioned scripts.
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 - <<'PY'
+> import ensurepip, os, glob
+> base = os.path.dirname(ensurepip.__file__)
+> print(base)
+> print(glob.glob(os.path.join(base, '_bundled', '*')))
+> PY
+/usr/local/lib/python3.13/ensurepip
+['/usr/local/lib/python3.13/ensurepip/_bundled/pip-24.3.1-py3-none-any.whl']
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 - <<'PY'
+> import zipfile, ensurepip, os
+> wheel = os.path.join(os.path.dirname(ensurepip.__file__), '_bundled', 'pip-24.3.1-py3-none-any.whl')
+> with zipfile.ZipFile(wheel) as z:
+>     names = z.namelist()
+>     for n in names[:40]:
+>         print(n)
+> PY
+pip/__init__.py
+pip/__main__.py
+pip/__pip-runner__.py
+pip/py.typed
+pip/_internal/__init__.py
+pip/_internal/build_env.py
+pip/_internal/cache.py
+pip/_internal/configuration.py
+pip/_internal/exceptions.py
+pip/_internal/main.py
+pip/_internal/pyproject.py
+pip/_internal/self_outdated_check.py
+pip/_internal/wheel_builder.py
+pip/_internal/cli/__init__.py
+pip/_internal/cli/autocompletion.py
+pip/_internal/cli/base_command.py
+pip/_internal/cli/cmdoptions.py
+pip/_internal/cli/command_context.py
+pip/_internal/cli/index_command.py
+pip/_internal/cli/main.py
+pip/_internal/cli/main_parser.py
+pip/_internal/cli/parser.py
+pip/_internal/cli/progress_bars.py
+pip/_internal/cli/req_command.py
+pip/_internal/cli/spinners.py
+pip/_internal/cli/status_codes.py
+pip/_internal/commands/__init__.py
+pip/_internal/commands/cache.py
+pip/_internal/commands/check.py
+pip/_internal/commands/completion.py
+pip/_internal/commands/configuration.py
+pip/_internal/commands/debug.py
+pip/_internal/commands/download.py
+pip/_internal/commands/freeze.py
+pip/_internal/commands/hash.py
+pip/_internal/commands/help.py
+pip/_internal/commands/index.py
+pip/_internal/commands/inspect.py
+pip/_internal/commands/install.py
+pip/_internal/commands/list.py
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 - <<'PY'
+> import site, sys
+> print(site.getsitepackages())
+> print(sys.path)
+> PY
+['/usr/local/lib/python3.13/site-packages']
+['', '/usr/local/lib/python313.zip', '/usr/local/lib/python3.13', '/usr/local/lib/python3.13/lib-dynload', '/usr/local/lib/python3.13/site-packages']
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# python3 -m ensurepip --upgrade --default-pip --verbose
+Using pip 24.3.1 from /tmp/tmp8jbyxch9/pip-24.3.1-py3-none-any.whl/pip (python 3.13)
+Looking in links: /tmp/tmp8jbyxch9
+Requirement already satisfied: pip in /usr/local/lib/python3.13/site-packages (24.3.1)
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your syst
+em unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you ar
+e doing and want to suppress this warning.
+root@d73d585fbb7a:/app# python3 -m pip --version
+/usr/local/bin/python3: No module named pip
+root@d73d585fbb7a:/app# pip3 --version
+Traceback (most recent call last):
+  File "/usr/local/bin/pip3", line 5, in <module>
+    from pip._internal.cli.main import main
+ModuleNotFoundError: No module named 'pip'
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# ls -la /usr/local/lib/python3.13/site-packages/pip-24.3.1.dist-info
+total 108
+drwxr-xr-x 2 root root  4096 Jan 14  2025 .
+drwxr-xr-x 1 root root  4096 Aug 30 10:21 ..
+-rw-r--r-- 1 root root 10925 Jan 14  2025 AUTHORS.txt
+-rw-r--r-- 1 root root     4 Jan 14  2025 INSTALLER
+-rw-r--r-- 1 root root  1093 Jan 14  2025 LICENSE.txt
+-rw-r--r-- 1 root root  3677 Jan 14  2025 METADATA
+-rw-r--r-- 1 root root 65525 Jan 14  2025 RECORD
+-rw-r--r-- 1 root root     0 Jan 14  2025 REQUESTED
+-rw-r--r-- 1 root root    91 Jan 14  2025 WHEEL
+-rw-r--r-- 1 root root    87 Jan 14  2025 entry_points.txt
+-rw-r--r-- 1 root root     4 Jan 14  2025 top_level.txt
+root@d73d585fbb7a:/app# printf '\n--- RECORD summary ---\n'
+
+--- RECORD summary ---
+root@d73d585fbb7a:/app# wc -l /usr/local/lib/python3.13/site-packages/pip-24.3.1.dist-info/RECORD 2>/dev/null || true
+852 /usr/local/lib/python3.13/site-packages/pip-24.3.1.dist-info/RECORD
+root@d73d585fbb7a:/app# head -n 5 /usr/local/lib/python3.13/site-packages/pip-24.3.1.dist-info/RECORD 2>/dev/null || true
+../../../bin/pip3,sha256=0b9s6uF-112mlJv1gtUrMFJh6BKXbpJf0_WlXw7hrMo,230
+../../../bin/pip3.13,sha256=0b9s6uF-112mlJv1gtUrMFJh6BKXbpJf0_WlXw7hrMo,230
+pip-24.3.1.dist-info/AUTHORS.txt,sha256=Cbb630k8EL9FkBzX9Vpi6hpYWrLSlh08eXodL5u0eLI,10925
+pip-24.3.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+pip-24.3.1.dist-info/LICENSE.txt,sha256=Y0MApmnUmurmWxLGxIySTFGkzfPR_whtw0VtyLyqIQQ,1093
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# backup="/usr/local/lib/python3.13/site-packages/pip-24.3.1.dist-info.incomplete-backup"
+root@d73d585fbb7a:/app# if [ -e "$backup" ]; then rm -rf -- "$backup"; fi
+root@d73d585fbb7a:/app# mv -- /usr/local/lib/python3.13/site-packages/pip-24.3.1.dist-info "$backup"
+root@d73d585fbb7a:/app# python3 -m ensurepip --upgrade --default-pip --verbose
+Using pip 24.3.1 from /tmp/tmp01g09ph3/pip-24.3.1-py3-none-any.whl/pip (python 3.13)
+Looking in links: /tmp/tmp01g09ph3
+Processing /tmp/tmp01g09ph3/pip-24.3.1-py3-none-any.whl
+Installing collected packages: pip
+  changing mode of /usr/local/bin/pip to 755
+  changing mode of /usr/local/bin/pip3 to 755
+  changing mode of /usr/local/bin/pip3.13 to 755
+Successfully installed pip-24.3.1
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your syst
+em unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you ar
+e doing and want to suppress this warning.
+root@d73d585fbb7a:/app# python3 -m pip --version
+pip 24.3.1 from /usr/local/lib/python3.13/site-packages/pip (python 3.13)
+root@d73d585fbb7a:/app# pip3 --version
+pip 24.3.1 from /usr/local/lib/python3.13/site-packages/pip (python 3.13)
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@d73d585fbb7a:/app# set -o pipefail
+root@d73d585fbb7a:/app# rm -rf /tmp/pip-repair-check
+root@d73d585fbb7a:/app# python3 -m pip install --no-cache-dir --target /tmp/pip-repair-check six==1.16.0
+Collecting six==1.16.0
+  Downloading six-1.16.0-py2.py3-none-any.whl.metadata (1.8 kB)
+Downloading six-1.16.0-py2.py3-none-any.whl (11 kB)
+Installing collected packages: six
+Successfully installed six-1.16.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your syst
+em unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you ar
+e doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 24.3.1 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip
+root@d73d585fbb7a:/app# PYTHONPATH=/tmp/pip-repair-check python3 -c 'import six; print("six_version=", six.__version__)'
+six_version= 1.16.0
+root@d73d585fbb7a:/app# python3 -m pip check
+No broken requirements found.
+root@d73d585fbb7a:/app# true; tmux wait -S done
+root@d73d585fbb7a:/app#

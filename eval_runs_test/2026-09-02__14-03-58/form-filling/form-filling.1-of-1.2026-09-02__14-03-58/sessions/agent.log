@@ -1,0 +1,1122 @@
+[?2004hroot@eccddd84ce73:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@eccddd84ce73:/app# clear
+[?2004l[H[J[3J[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# set +e
+[?2004l[?2004hroot@eccddd84ce73:/app# 
+[?2004l[?2004hroot@eccddd84ce73:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@eccddd84ce73:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@eccddd84ce73:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@eccddd84ce73:/app# 
+[?2004l[?2004hroot@eccddd84ce73:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@eccddd84ce73:/app# 
+[?2004l[?2004hroot@eccddd84ce73:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@eccddd84ce73:/app# 
+[?2004l[?2004hroot@eccddd84ce73:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@eccddd84ce73:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@eccddd84ce73:/app# 
+[?2004l[?2004hroot@eccddd84ce73:/app# apt-get update || true
+[?2004l0% [Working]            Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+0% [1 InRelease 7240 B/151 kB 5%]                                 0% [Waiting for headers]                        Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+0% [2 InRelease 11.6 kB/55.4 kB 21%]                                    0% [Waiting for headers]                        Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+0% [3 InRelease 2896 B/34.8 kB 8%]                                  0% [Working]0% [Working]            Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+0% [4 Packages 4344 B/8790 kB 0%]0% [4 Packages 120 kB/8790 kB 1%]22% [4 Packages 831 kB/8790 kB 9%]66% [4 Packages 5905 kB/8790 kB 67%]85% [4 Packages 8148 kB/8790 kB 93%]                                    90% [Working]90% [4 Packages store 0 B] [Waiting for headers]                                                Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+90% [4 Packages store 0 B] [5 Packages 4344 B/6924 B 63%]                                                         90% [4 Packages store 0 B]                          Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+91% [4 Packages store 0 B] [6 Packages 4344 B/335 kB 1%]                                                        93% [4 Packages store 0 B]93% [4 Packages store 0 B]                          96% [Working]96% [5 Packages store 0 B]                          98% [Working]98% [6 Packages store 0 B]                          100% [Working]              Fetched 9374 kB in 3s (3538 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+[?2004l.
+./documents
+./documents/sample_application.txt
+./documents/sample_personal_info.txt
+./documents/sample_resume.txt
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# git rev-parse --is-inside-work-tree
+[?2004lbash: git: command not found
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004ljZShub2RlLCAoYXN0LkZ1bmN0aW9uRGVmLCBhc3QuQXN5bmNGdW5jdGlvbkRlZikpIGFuZCBub3QgYW55KGlzaW5zdGFuY2UocGFyZW50LCBhc3QuQ2xhc3NEZWYpIGFuZCBub2RlIGluIHBhcmVudC5ib2R5IGZvciBwYXJlbnQgaW4gYXN0LndhbGsodHJlZSkpOgogICAgICAgICAgICAgICAgaXRlbXMuYXBwZW5kKChub2RlLm5hbWUsICJmdW5jdGlvbiIsIHJlbGF0aXZlLCBub2RlLmxpbmVubywgZ2V0YXR0cihub2RlLCAiZW5kX2xpbmVubyIsIG5vZGUubGluZW5vKSwgYXN0LmdldF9kb2NzdHJpbmcobm9kZSksIE5vbmUpKQppZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBhcmdzWyJuYW1lIl0gaW4gaXRlbVswXV0KaWYgYXJncy5nZXQoInN5bWJvbF90eXBlIiwgImFsbCIpICE9ICJhbGwiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBpdGVtWzFdID09IGFyZ3NbInN5bWJvbF90eXBlIl1dCmlmIG5vdCBpdGVtczoKICAgIHByaW50KCLmnKrmib7liLDnrKblj7c6ICIgKyBhcmdzLmdldCgibmFtZSIsICLku7vkvZUiKSkKZWxpZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgcHJpbnQoZiLwn5SNIOaJvuWIsCB7bGVuKGl0ZW1zKX0g5Liq5Yy56YWN6aG5IikKICAgIHByaW50KCI9IiAqIDgwKQogICAgZm9yIGluZGV4LCBpdGVtIGluIGVudW1lcmF0ZShpdGVtcywgMSk6CiAgICAgICAgbmFtZSwga2luZCwgZmlsZW5hbWUsIHN0YXJ0LCBlbmQsIGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoIiAgICDniLbnsbs6ICIgKyBwYXJlbnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kfSIpCiAgICAgICAgaWYgZG9jOiBwcmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsaW5lcygpWzo1XSkpCmVsc2U6CiAgICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpbiBzb3J0ZWQoaXRlbXMsIGtleT1sYW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxheSA9IChwYXJlbnQgKyAiLiIgaWYgcGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gICB7ZGlzcGxheX0gKEx7c3RhcnR9LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKClbMF0pCg=='"'"'),'"'"'<wo[?2004hroot@eccddd84ce73:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJtb2RlIjogImxpc3QiLCAicGF0aCI6ICIuIiwgInN5bWJvbF90eXBlIjogImFsbCJ9'"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBhc3QsIG9zCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAphcmdzID0gQVJHUwpyb290ID0gUGF0aChhcmdzWyJwYXRoIl0pLnJlc29sdmUoKQppZiBub3Qgcm9vdC5leGlzdHMoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5a2Y5ZyoICIgKyBhcmdzWyJwYXRoIl0pCmlmIG5vdCByb290LmlzX2RpcigpOgogICAgcmFpc2UgU3lzdGVtRXhpdCgi6ZSZ6K+vOiDot6/lvoTkuI3mmK/nm67lvZUgIiArIGFyZ3NbInBhdGgiXSkKaXRlbXMgPSBbXQpmb3IgY3VycmVudCwgZGlycywgZmlsZXMgaW4gb3Mud2Fsayhyb290KToKICAgIGRpcnNbOl0gPSBbZCBmb3IgZCBpbiBkaXJzIGlmIGQgbm90IGluIHsiLmdpdCIsICJfX3B5Y2FjaGVfXyIsICJub2RlX21vZHVsZXMiLCAidmVudiIsICIudmVudiIsICJlbnYiLCAiLmVudiJ9XQogICAgZm9yIGZpbGVuYW1lIGluIGZpbGVzOgogICAgICAgIGlmIG5vdCBmaWxlbmFtZS5lbmRzd2l0aCgiLnB5Iik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgZmlsZV9wYXRoID0gUGF0aChjdXJyZW50KSAvIGZpbGVuYW1lCiAgICAgICAgdHJ5OgogICAgICAgICAgICB0cmVlID0gYXN0LnBhcnNlKGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKSwgZmlsZW5hbWU9c3RyKGZpbGVfcGF0aCkpCiAgICAgICAgZXhjZXB0IChTeW50YXhFcnJvciwgT1NFcnJvciwgVmFsdWVFcnJvcik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgcmVsYXRpdmUgPSBzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKQogICAgICAgIGZvciBub2RlIGluIGFzdC53YWxrKHRyZWUpOgogICAgICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUsIGFzdC5DbGFzc0RlZik6CiAgICAgICAgICAgICAgICBpdGVtcy5hcHBlbmQoKG5vZGUubmFtZSwgImNsYXNzIiwgcmVsYXRpdmUsIG5vZGUubGluZW5vLCBnZXRhdHRyKG5vZGUsICJlbmRfbGluZW5vIiwgbm9kZS5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhub2RlKSwgTm9uZSkpCiAgICAgICAgICAgICAgICBmb3IgY2hpbGQgaW4gbm9kZS5ib2R5OgogICAgICAgICAgICAgICAgICAgIGlmIGlzaW5zdGFuY2UoY2hpbGQsIChhc3QuRnVuY3Rpb25EZWYsIGFzdC5Bc3luY0Z1bmN0aW9uRGVmKSk6CiAgICAgICAgICAgICAgICAgICAgICAgIGl0ZW1zLmFwcGVuZCgoY2hpbGQubmFtZSwgImZ1bmN0aW9uIiwgcmVsYXRpdmUsIGNoaWxkLmxpbmVubywgZ2V0YXR0cihjaGlsZCwgImVuZF9saW5lbm8iLCBjaGlsZC5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhjaGlsZCksIG5vZGUubmFtZSkpCiAgICAgICAgICAgIGVsaWYgaXNpbnN0YW5jZShub2RlLCAoYXN0LkZ1bmN0aW9uRGVmLCBhc3QuQXN5bmNGdW5jdGlvbkRlZikpIGFuZCBub3QgYW55KGlzaW5zdGFuY2UocGFyZW50LCBhc3QuQ2xhc3NEZWYpIGFuZCBub2RlIGluIHBhcmVudC5ib2R5IGZvciBwYXJlbnQgaW4gYXN0LndhbGsodHJlZSkpOgogICAgICAgICAgICAgICAgaXRlbXMuYXBwZW5kKChub2RlLm5hbWUsICJmdW5jdGlvbiIsIHJlbGF0aXZlLCBub2RlLmxpbmVubywgZ2V0YXR0cihub2RlLCAiZW5kX2xpbmVubyIsIG5vZGUubGluZW5vKSwgYXN0LmdldF9kb2NzdHJpbmcobm9kZSksIE5vbmUpKQppZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBhcmdzWyJuYW1lIl0gaW4gaXRlbVswXV0KaWYgYXJncy5nZXQoInN5bWJvbF90eXBlIiwgImFsbCIpICE9ICJhbGwiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBpdGVtWzFdID09IGFyZ3NbInN5bWJvbF90eXBlIl1dCmlmIG5vdCBpdGVtczoKICAgIHByaW50KCLmnKrmib7liLDnrKblj7c6ICIgKyBhcmdzLmdldCgibmFtZSIsICLku7vkvZUiKSkKZWxpZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgcHJpbnQoZiLwn5SNIOaJvuWIsCB7bGVuKGl0ZW1zKX0g5Liq5Yy56YWN6aG5IikKICAgIHByaW50KCI9IiAqIDgwKQogICAgZm9yIGluZGV4LCBpdGVtIGluIGVudW1lcmF0ZShpdGVtcywgMSk6CiAgICAgICAgbmFtZSwga2luZCwgZmlsZW5hbWUsIHN0YXJ0LCBlbmQsIGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoIiAgICDniLbnsbs6ICIgKyBwYXJlbnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kfSIpCiAgICAgICAgaWYgZG9jOiBwcmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsaW5lcygpWzo1XSkpCmVsc2U6CiAgICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpbiBzb3J0ZWQoaXRlbXMsIGtleT1sYW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxheSA9IChwYXJlbnQgKyAiLiIgaWYgcGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gICB7ZGlzcGxheX0gKEx7c3RhcnR9LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKClbMF0pCg=='"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+[?2004l未找到符号: 任何
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# git status --porcelain
+[?2004lbash: git: command not found
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# git branch --show-current
+[?2004lbash: git: command not found
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# git log -1 --oneline
+[?2004lbash: git: command not found
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# if [ -f /app/documents/sample_application.txt ]; then cat -- /app/documents/sample_application.txt; else echo '错误: 找不到文件 /app/documents/sample_application.txt'; fi
+[?2004lAPPLICATION FOR EMPLOYMENT
+-----------------------------
+
+PERSONAL INFORMATION:
+--------------------
+Full Name: Alex Johnson
+Date of Birth: 05/12/1991
+Gender: Male
+Nationality: American
+
+CONTACT INFORMATION:
+-------------------
+Current Address: 123 Tech Lane, San Francisco, CA 94105
+Phone Number: (555) 123-4567
+Email Address: alex.johnson@example.com
+
+POSITION APPLIED FOR:
+--------------------
+Job Title: Senior Software Engineer
+Department: Engineering[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# if [ -f /app/documents/sample_personal_info.txt ]; then cat -- /app/documents/sample_personal_info.txt; else echo '错误: 找不到文件 /app/documents/sample_personal_info.txt'; fi
+[?2004lPERSONAL INFORMATION DOCUMENT
+==========================
+
+CONTACT DETAILS:
+--------------
+Name: Alex Johnson
+Email: alex.johnson@example.com
+Phone (Home): (555) 123-4567
+Phone (Mobile): (555) 987-6543
+Address: 123 Tech Lane, San Francisco, CA 94105
+
+IDENTIFICATION:
+-------------
+Date of Birth: May 12, 1991
+Nationality: American
+
+EMPLOYMENT STATUS:
+----------------
+Current Employer: TechCorp Inc.
+Position: Senior Software Engineer[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# if [ -f /app/documents/sample_resume.txt ]; then cat -- /app/documents/sample_resume.txt; else echo '错误: 找不到文件 /app/documents/sample_resume.txt'; fi
+[?2004l# ALEX JOHNSON
+## Software Engineer
+
+**Contact:**
+- Email: alex.johnson@example.com
+- Phone: (555) 123-4567
+- Address: 123 Tech Lane, San Francisco, CA 94105
+
+**Work Experience:**
+
+### Senior Software Engineer
+**TechCorp Inc.** | San Francisco, CA
+*Jan 2020 - Present*
+
+- Led development of a microservices architecture
+- Implemented machine learning models
+- Technologies: Python, Go, AWS, Kubernetes
+
+**Education:**
+
+### Master of Science in Computer Science
+**University of California, Berkeley**
+*2013 - 2015*
+- GPA: 3.8/4.0
+
+**Skills:**
+- Programming Languages: Python, Java, Go, JavaScript
+- Frameworks: React, Spring Boot, Django
+- Tools: Docker, Kubernetes, AWS, Git[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> for name in ('pypdf','sklearn'):
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         module=__import__(name)
+[?2004l[?2004h>         print(name, getattr(module, '__version__', 'available'))
+[?2004l[?2004h>     except Exception as exc:
+[?2004l[?2004h>         print(name, 'ERROR:', exc)
+[?2004l[?2004h> PY
+[?2004lpypdf 5.6.1
+sklearn 1.7.0
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004llbmQsIGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoIiAgICDniLbnsbs6ICIgKyBwYXJlbnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kfSIpCiAgICAgICAgaWYgZG9jOiBwcmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsaW5lcygpWzo1XSkpCmVsc2U6CiAgICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpbiBzb3J0ZWQoaXRlbXMsIGtleT1sYW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxheSA9IChwYXJlbnQgKyAiLiIgaWYgcGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gICB7ZGlzcGxheX0gKEx7c3RhcnR9LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKClbMF0pCg=='"'"'),[?2004hroot@eccddd84ce73:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJtb2RlIjogImZpbmQiLCAicGF0aCI6ICIvYXBwIiwgIm5hbWUiOiAiZm9ybV9maWxsZXIifQ=='"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBhc3QsIG9zCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAphcmdzID0gQVJHUwpyb290ID0gUGF0aChhcmdzWyJwYXRoIl0pLnJlc29sdmUoKQppZiBub3Qgcm9vdC5leGlzdHMoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5a2Y5ZyoICIgKyBhcmdzWyJwYXRoIl0pCmlmIG5vdCByb290LmlzX2RpcigpOgogICAgcmFpc2UgU3lzdGVtRXhpdCgi6ZSZ6K+vOiDot6/lvoTkuI3mmK/nm67lvZUgIiArIGFyZ3NbInBhdGgiXSkKaXRlbXMgPSBbXQpmb3IgY3VycmVudCwgZGlycywgZmlsZXMgaW4gb3Mud2Fsayhyb290KToKICAgIGRpcnNbOl0gPSBbZCBmb3IgZCBpbiBkaXJzIGlmIGQgbm90IGluIHsiLmdpdCIsICJfX3B5Y2FjaGVfXyIsICJub2RlX21vZHVsZXMiLCAidmVudiIsICIudmVudiIsICJlbnYiLCAiLmVudiJ9XQogICAgZm9yIGZpbGVuYW1lIGluIGZpbGVzOgogICAgICAgIGlmIG5vdCBmaWxlbmFtZS5lbmRzd2l0aCgiLnB5Iik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgZmlsZV9wYXRoID0gUGF0aChjdXJyZW50KSAvIGZpbGVuYW1lCiAgICAgICAgdHJ5OgogICAgICAgICAgICB0cmVlID0gYXN0LnBhcnNlKGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKSwgZmlsZW5hbWU9c3RyKGZpbGVfcGF0aCkpCiAgICAgICAgZXhjZXB0IChTeW50YXhFcnJvciwgT1NFcnJvciwgVmFsdWVFcnJvcik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgcmVsYXRpdmUgPSBzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKQogICAgICAgIGZvciBub2RlIGluIGFzdC53YWxrKHRyZWUpOgogICAgICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUsIGFzdC5DbGFzc0RlZik6CiAgICAgICAgICAgICAgICBpdGVtcy5hcHBlbmQoKG5vZGUubmFtZSwgImNsYXNzIiwgcmVsYXRpdmUsIG5vZGUubGluZW5vLCBnZXRhdHRyKG5vZGUsICJlbmRfbGluZW5vIiwgbm9kZS5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhub2RlKSwgTm9uZSkpCiAgICAgICAgICAgICAgICBmb3IgY2hpbGQgaW4gbm9kZS5ib2R5OgogICAgICAgICAgICAgICAgICAgIGlmIGlzaW5zdGFuY2UoY2hpbGQsIChhc3QuRnVuY3Rpb25EZWYsIGFzdC5Bc3luY0Z1bmN0aW9uRGVmKSk6CiAgICAgICAgICAgICAgICAgICAgICAgIGl0ZW1zLmFwcGVuZCgoY2hpbGQubmFtZSwgImZ1bmN0aW9uIiwgcmVsYXRpdmUsIGNoaWxkLmxpbmVubywgZ2V0YXR0cihjaGlsZCwgImVuZF9saW5lbm8iLCBjaGlsZC5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhjaGlsZCksIG5vZGUubmFtZSkpCiAgICAgICAgICAgIGVsaWYgaXNpbnN0YW5jZShub2RlLCAoYXN0LkZ1bmN0aW9uRGVmLCBhc3QuQXN5bmNGdW5jdGlvbkRlZikpIGFuZCBub3QgYW55KGlzaW5zdGFuY2UocGFyZW50LCBhc3QuQ2xhc3NEZWYpIGFuZCBub2RlIGluIHBhcmVudC5ib2R5IGZvciBwYXJlbnQgaW4gYXN0LndhbGsodHJlZSkpOgogICAgICAgICAgICAgICAgaXRlbXMuYXBwZW5kKChub2RlLm5hbWUsICJmdW5jdGlvbiIsIHJlbGF0aXZlLCBub2RlLmxpbmVubywgZ2V0YXR0cihub2RlLCAiZW5kX2xpbmVubyIsIG5vZGUubGluZW5vKSwgYXN0LmdldF9kb2NzdHJpbmcobm9kZSksIE5vbmUpKQppZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBhcmdzWyJuYW1lIl0gaW4gaXRlbVswXV0KaWYgYXJncy5nZXQoInN5bWJvbF90eXBlIiwgImFsbCIpICE9ICJhbGwiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBpdGVtWzFdID09IGFyZ3NbInN5bWJvbF90eXBlIl1dCmlmIG5vdCBpdGVtczoKICAgIHByaW50KCLmnKrmib7liLDnrKblj7c6ICIgKyBhcmdzLmdldCgibmFtZSIsICLku7vkvZUiKSkKZWxpZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgcHJpbnQoZiLwn5SNIOaJvuWIsCB7bGVuKGl0ZW1zKX0g5Liq5Yy56YWN6aG5IikKICAgIHByaW50KCI9IiAqIDgwKQogICAgZm9yIGluZGV4LCBpdGVtIGluIGVudW1lcmF0ZShpdGVtcywgMSk6CiAgICAgICAgbmFtZSwga2luZCwgZmlsZW5hbWUsIHN0YXJ0LCBlbmQsIGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoIiAgICDniLbnsbs6ICIgKyBwYXJlbnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kfSIpCiAgICAgICAgaWYgZG9jOiBwcmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsaW5lcygpWzo1XSkpCmVsc2U6CiAgICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpbiBzb3J0ZWQoaXRlbXMsIGtleT1sYW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxheSA9IChwYXJlbnQgKyAiLiIgaWYgcGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gICB7ZGlzcGxheX0gKEx7c3RhcnR9LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKClbMF0pCg=='"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+[?2004l未找到符号: form_filler
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004loZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogICAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHByaW50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgICAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmludChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+true; tmux wait -S done
+[?2004hroot@eccddd84ce73:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogIlBkZlJlYWRlcnxUZmlkZlZlY3Rvcml6ZXJ8ZmllbGRfbWFwcGluZ3xkZWYgIiwgInBhdGgiOiAiL2FwcCIsICJjb250ZXh0IjogMiwgImZpbGVfcGF0dGVybiI6ICIqLnB5IiwgImNhc2Vfc2Vuc2l0aXZlIjogdHJ1ZX0='"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBmbm1hdGNoLCBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhpc3RzKCk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCLplJnor686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5piv55uu5b2VICIgKyBhcmdzWyJwYXRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJlLklHTk9SRUNBU0UpCmV4Y2VwdCByZS5lcnJvciBhcyBlcnJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0IiwgIl9fcHljYWNoZV9fIiwgIi52ZW52IiwgIm5vZGVfbW9kdWxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFyZ3NbImZpbGVfcGF0dGVybiJdKToKICAgIGlmIGFueShwYXJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGludWUKICAgIHRyeToKICAgICAgICBsaW5lcyA9IGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAgICAgIGNvbnRpbnVlCiAgICBmaWxlcyArPSAxCiAgICBtYXRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6CiAgICAgICAgICAgIGJlZm9yZSA9IFtmIntpKzE6NGR9IHwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAgYWZ0ZXIgPSBbZiJ7aSsxOjRkfSB8IHtsaW5lc1tpXX0iIGZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5hcHBlbmQoKG51bWJlciwgbGluZSwgYmVmb3JlLCBhZnRlcikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogICAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHByaW50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgICAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmludChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+[?2004l未找到匹配项。已搜索 0 个文件。
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# find /app -maxdepth 3 -type f -printf '%p\n' | sort; find / -type f -name 'fillable-form.pdf' 2>/dev/null | head
+[?2004l/app/documents/sample_application.txt
+/app/documents/sample_personal_info.txt
+/app/documents/sample_resume.txt
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> import urllib.request
+[?2004l[?2004h> url='https://sample-files.com/downloads/documents/pdf/fillable-form.pdf'
+[?2004l[?2004h> out='/app/fillable_form.pdf'
+[?2004l[?2004h> urllib.request.urlretrieve(url, out)
+[?2004l[?2004h> print(out)
+[?2004l[?2004h> PY
+[?2004l/app/fillable_form.pdf
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> from pypdf import PdfReader
+[?2004l[?2004h> pdf = Path('/app/fillable_form.pdf')
+[?2004l[?2004h> print('exists', pdf.exists())
+[?2004l[?2004h> if pdf.exists():
+[?2004l[?2004h>     reader = PdfReader(str(pdf))
+[?2004l[?2004h>     fields = reader.get_fields() or {}
+[?2004l[?2004h>     print('field_count', len(fields))
+[?2004l[?2004h>     for k, v in fields.items():
+[?2004l[?2004h>         print(k, '=>', v.get('/T'), v.get('/FT'), v.get('/TU'))
+[?2004l[?2004h> PY
+[?2004lexists True
+field_count 0
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> from pypdf import PdfReader
+[?2004l[?2004h> reader = PdfReader('/app/fillable_form.pdf')
+[?2004l[?2004h> for i, page in enumerate(reader.pages, 1):
+[?2004l[?2004h>     annots = page.get('/Annots') or []
+[?2004l[?2004h>     print('page', i, 'annots', len(annots))
+[?2004l[?2004h>     for annot in annots:
+[?2004l[?2004h>         obj = annot.get_object()
+[?2004l[?2004h>         print('  subtype', obj.get('/Subtype'), 'T', obj.get('/T'), 'TU', obj.get('/TU'), 'FT', obj.get('/FT'))
+[?2004l[?2004h> PY
+[?2004lpage 1 annots 1
+  subtype /Link T None TU None FT None
+page 2 annots 1
+  subtype /Link T None TU None FT None
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> from pypdf import PdfReader
+[?2004l[?2004h> reader = PdfReader('/app/fillable_form.pdf')
+[?2004l[?2004h> for i, page in enumerate(reader.pages, 1):
+[?2004l[?2004h>     text = page.extract_text() or ''
+[?2004l[?2004h>     print('PAGE', i)
+[?2004l[?2004h>     print(text[:4000])
+[?2004l[?2004h>     print('---')
+[?2004l[?2004h> PY
+[?2004lPAGE 1
+Sample Team
+Prepared By:
+sample-files.com
+Fillable Form
+PDF
+Website:
+---
+PAGE 2
+Full Name:
+Email:
+Address:
+Personal Information
+This sample PDF file is provided by Sample-Files.com. Visit us for more sample files and resource.
+Gender: 
+Male Female
+Newsletter Subscription:
+Comments:
+Terms and Conditions:
+Please read and agree before submission.
+I agree to the terms and conditions.
+---
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> from pypdf import PdfReader
+[?2004l[?2004h> reader = PdfReader('/app/fillable_form.pdf')
+[?2004l[?2004h> print('pages', len(reader.pages))
+[?2004l[?2004h> PY
+[?2004lpages 2
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004le(path: Path) -> str:
++    return path.stem
++
++
++def analyze_pdf_fields(pdf_path: Path) -> tuple[List[FormField], str]:
++    if not pdf_path.exists():
++        raise FileNotFoundError(f"PDF file not found: {pdf_path}")
++
++    reader = PdfReader(str(pdf_path))
++    fields = reader.get_fields() or {}
++    if fields:
++        return [
++            FormField(field_id=str(field_id), field_name=str(info.get("/T") or field_id), source="acroform")
++            for field_id, info in fields.items()
++        ], "acroform"
++
++    inferred: Dict[str, FormField] = {}
++    for page in reader.pages:
++        text = page.extract_text() or ""
++        for line in text.splitlines():
++            match = FIELD_LABEL_PATTERN.match(line.strip())
++            if not match:
++                continue
++            field_name = match.group(1).strip()
++            field_id = slugify(field_name)
++            inferred.setdefault(field_id, FormField(field_id=field_id, field_name=field_name, source="pdf_text_label"))
++
++    if not inferred:
++        raise ValueError("No fillable fields or form-like labels could be identified in the PDF")
++    return list(inferred.values()), "pdf_text_label_fallback"
++
++
++def load_documents(documents_dir: Path) -> Dict[str, str]:
++    if not documents_dir.exists():
++        raise FileNotFoundError(f"Documents directory not found: {documents_dir}")
++
++    documents = {}
++    for path in sorted(documents_dir.glob("*.txt")):
++        text = path.read_text(encoding="utf-8")
++        if text.strip():
++            documents[normalize_source(path)] = text
++    if not documents:
++        raise ValueError(f"No text documents found in {documents_dir}")
++    return documents
++
++
++def first_match(patterns: Iterable[str], text: str) -> Optional[str]:
++    for pattern in patterns:
++        match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE)
++        if match:
++            return match.group(1).strip(" .,-")
++    return None
++
++
++def extract_candidates(documents: Dict[str, str]) -> List[Candidate]:
++    patterns = {
++        "full name": [r"^Full Name:\s*(.+)$", r"^Name:\s*(.+)$", r"^#\s+([A-Z][A-Z ]+)$"],
++        "email contact email email address": [r"(?:Email Address|Email):\s*([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})"],
++        "address current address mailing address": [r"(?:Current Address|Address):\s*(.+)$"],
++        "phone phone number mobile home": [r"(?:Phone Number|Phone \(Home\)|Phone):\s*(\(?\d{3}\)?[-\s]\d{3}[-\s]\d{4})"],
++        "gender sex": [r"^Gender:\s*(Male|Female|Non-binary|Other)\b"],
++        "date of birth birth dob": [r"Date of Birth:\s*(.+)$"],
++        "nationality citizenship": [r"Nationality:\s*(.+)$"],
++        "job title position applied role": [r"Job Title:\s*(.+)$", r"^Position:\s*(.+)$"],
++        "employer company current employer": [r"Current Employer:\s*(.+)$", r"\*\*([^*]+Inc\.)\*\*"],
++        "education degree university": [r"###\s*(Master of Science in Computer Science)"],
++        "skills programming languages tools frameworks": [r"Programming Languages:\s*(.+)$"],
++    }
++
++    candidates: List[Candidate] = []
++    for source,[?2004hroot@eccddd84ce73:/app# apply_patch <<'PATCH'
+[?2004l[?2004h> *** Begin Patch
+[?2004l[?2004h> *** Add File: form_filler.py
+[?2004l[?2004h> +import json
+[?2004l[?2004h> +import re
+[?2004l[?2004h> +from dataclasses import dataclass
+[?2004l[?2004h> +from pathlib import Path
+[?2004l[?2004h> +from typing import Dict, Iterable, List, Optional
+[?2004l[?2004h> +
+[?2004l  [?2004h> +from pypdf import PdfReader
+[?2004l[?2004h> +from sklearn.feature_extraction.text import TfidfVectorizer
+[?2004l[?2004h> +from sklearn.metrics.pairwise import cosine_similarity
+[?2004lur[?2004h> +
+[?2004ln [?2004h> +
+[?2004l[?2004h> +APP_DIR = Path(__file__).resolve().parent
+[?2004l[?2004h> +PDF_PATH = APP_DIR / "fillable_form.pdf"
+[?2004l[?2004h> +DOCUMENTS_DIR = APP_DIR / "documents"
+[?2004l-> Optiona[?2004h> +OUTPUT_PATH = APP_DIR / "field_mapping.json"
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +FIELD_LABEL_PATTERN = re.compile(r"^([A-Za-z][A-Za-z ]{1,80}):\s*$")
+[?2004l[?2004h> +
+[?2004ld_[?2004h> +
+[?2004l[?2004h> +@dataclass(frozen=True)
+[?2004l[?2004h> +class FormField:
+[?2004l[?2004h> +    field_id: str
+[?2004l[?2004h> +    field_name: str
+[?2004l[?2004h> +    source: str
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +@dataclass(frozen=True)
+[?2004l[?2004h> +class Candidate:
+[?2004l[?2004h> +    label: str
+[?2004l[?2004h> +    value: str
+[?2004l="[?2004h> +    source: str
+[?2004l[?2004h> +    context: str
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +def slugify(value: str) -> str:
+[?2004l[?2004h> +    slug = re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
+[?2004l[?2004h> +    return slug or "field"
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +def normalize_source(path: Path) -> str:
+[?2004l[?2004h> +    return path.stem
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004lx][?2004h> +def analyze_pdf_fields(pdf_path: Path) -> tuple[List[FormField], str]:
+[?2004l[?2004h> +    if not pdf_path.exists():
+[?2004l[?2004h> +        raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+[?2004l[?2004h> +
+[?2004l[?2004h> +    reader = PdfReader(str(pdf_path))
+[?2004l[?2004h> +    fields = reader.get_fields() or {}
+[?2004l[?2004h> +    if fields:
+[?2004l[?2004h> +        return [
+[?2004l[?2004h> +            FormField(field_id=str(field_id), field_name=str(info.get("/T") or field_id), source="acroform")
+[?2004l[?2004h> +            for field_id, info in fields.items()
+[?2004l[?2004h> +        ], "acroform"
+[?2004ll[?2004h> +
+[?2004lar[?2004h> +    inferred: Dict[str, FormField] = {}
+[?2004l[?2004h> +    for page in reader.pages:
+[?2004l[?2004h> +        text = page.extract_text() or ""
+[?2004l[?2004h> +        for line in text.splitlines():
+[?2004l[?2004h> +            match = FIELD_LABEL_PATTERN.match(line.strip())
+[?2004l[?2004h> +            if not match:
+[?2004l[?2004h> +                continue
+[?2004l[?2004h> +            field_name = match.group(1).strip()
+[?2004l[?2004h> +            field_id = slugify(field_name)
+[?2004l [?2004h> +            inferred.setdefault(field_id, FormField(field_id=field_id, field_name=field_name, source="pdf_text_label"))
+[?2004l[?2004h> +
+[?2004lie[?2004h> +    if not inferred:
+[?2004l[?2004h> +        raise ValueError("No fillable fields or form-like labels could be identified in the PDF")
+[?2004l[?2004h> +    return list(inferred.values()), "pdf_text_label_fallback"
+[?2004l[?2004h> +
+[?2004ld"[?2004h> +
+[?2004l[?2004h> +def load_documents(documents_dir: Path) -> Dict[str, str]:
+[?2004l[?2004h> +    if not documents_dir.exists():
+[?2004l[?2004h> +        raise FileNotFoundError(f"Documents directory not found: {documents_dir}")
+[?2004l[?2004h> +
+[?2004l":[?2004h> +    documents = {}
+[?2004l[?2004h> +    for path in sorted(documents_dir.glob("*.txt")):
+[?2004l[?2004h> +        text = path.read_text(encoding="utf-8")
+[?2004l[?2004h> +        if text.strip():
+[?2004l [?2004h> +            documents[normalize_source(path)] = text
+[?2004l[?2004h> +    if not documents:
+[?2004l[?2004h> +        raise ValueError(f"No text documents found in {documents_dir}")
+[?2004l[?2004h> +    return documents
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +def first_match(patterns: Iterable[str], text: str) -> Optional[str]:
+[?2004l[?2004h> +    for pattern in patterns:
+[?2004lo[?2004h> +        match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE)
+[?2004lO[?2004h> +        if match:
+[?2004l[?2004h> +            return match.group(1).strip(" .,-")
+[?2004l[?2004h> +    return None
+[?2004l[?2004h> +
+[?2004lu[?2004h> +
+[?2004lx [?2004h> +def extract_candidates(documents: Dict[str, str]) -> List[Candidate]:
+[?2004l[?2004h> +    patterns = {
+[?2004l[?2004h> +        "full name": [r"^Full Name:\s*(.+)$", r"^Name:\s*(.+)$", r"^#\s+([A-Z][A-Z ]+)$"],
+[?2004l[?2004h> +        "email contact email email address": [r"(?:Email Address|Email):\s*([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})"],
+[?2004l[?2004h> +        "address current address mailing address": [r"(?:Current Address|Address):\s*(.+)$"],
+[?2004l[?2004h> +        "phone phone number mobile home": [r"(?:Phone Number|Phone \(Home\)|Phone):\s*(\(?\d{3}\)?[-\s]\d{3}[-\s]\d{4})"],
+[?2004l[?2004h> +        "gender sex": [r"^Gender:\s*(Male|Female|Non-binary|Other)\b"],
+[?2004l[?2004h> +        "date of birth birth dob": [r"Date of Birth:\s*(.+)$"],
+[?2004l[?2004h> +        "nationality citizenship": [r"Nationality:\s*(.+)$"],
+[?2004l[?2004h> +        "job title position applied role": [r"Job Title:\s*(.+)$", r"^Position:\s*(.+)$"],
+[?2004l[?2004h> +        "employer company current employer": [r"Current Employer:\s*(.+)$", r"\*\*([^*]+Inc\.)\*\*"],
+[?2004l[?2004h> +        "education degree university": [r"###\s*(Master of Science in Computer Science)"],
+[?2004l[?2004h> +        "skills programming languages tools frameworks": [r"Programming Languages:\s*(.+)$"],
+[?2004l[?2004h> +    }
+[?2004l[?2004h> +
+[?2004l[?2004h> +    candidates: List[Candidate] = []
+[?2004l[?2004h> +    for source, text in documents.items():
+[?2004l[?2004h> +        compact_context = re.sub(r"\s+", " ", text).strip()
+[?2004l[?2004h> +        for label, label_patterns in patterns.items():
+[?2004l[?2004h> +            value = first_match(label_patterns, text)
+[?2004l[?2004h> +            if value:
+[?2004l[?2004h> +                candidates.append(Candidate(label=label, value=value, source=source, context=compact_context[:600]))
+[?2004l[?2004h> +    return candidates
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +def retrieve_best_candidate(field: FormField, candidates: List[Candidate], threshold: float = 0.08) -> Optional[tuple[Candidate, float]]:
+[?2004l[?2004h> +    if not candidates:
+[?2004l[?2004h> +        return None
+[?2004l[?2004h> +
+[?2004l[?2004h> +    query = f"{field.field_name} {field.field_id.replace('_', ' ')}"
+[?2004l[?2004h> +    candidate_texts = [f"{candidate.label} {candidate.value} {candidate.context}" for candidate in candidates]
+[?2004l[?2004h> +    vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2))
+[?2004l[?2004h> +    matrix = vectorizer.fit_transform([query] + candidate_texts)
+[?2004l[?2004h> +    scores = cosine_similarity(matrix[0:1], matrix[1:]).ravel()
+[?2004l[?2004h> +    best_index = int(scores.argmax())
+[?2004l[?2004h> +    score = float(scores[best_index])
+[?2004l[?2004h> +    if score < threshold:
+[?2004l[?2004h> +        return None
+[?2004l[?2004h> +    return candidates[best_index], score
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +def build_field_mapping(pdf_path: Path = PDF_PATH, documents_dir: Path = DOCUMENTS_DIR) -> Dict[str, object]:
+[?2004l[?2004h> +    fields, field_detection_method = analyze_pdf_fields(pdf_path)
+[?2004l[?2004h> +    documents = load_documents(documents_dir)
+[?2004l[?2004h> +    candidates = extract_candidates(documents)
+[?2004l[?2004h> +
+[?2004l[?2004h> +    mapped_fields: Dict[str, Dict[str, str]] = {}
+[?2004l[?2004h> +    unmapped_fields: List[str] = []
+[?2004l[?2004h> +    similarity_scores: Dict[str, float] = {}
+[?2004l[?2004h> +
+[?2004l[?2004h> +    for field in fields:
+[?2004l[?2004h> +        retrieved = retrieve_best_candidate(field, candidates)
+[?2004l[?2004h> +        if retrieved is None:
+[?2004l[?2004h> +            unmapped_fields.append(field.field_id)
+[?2004l[?2004h> +            continue
+[?2004l[?2004h> +        candidate, score = retrieved
+[?2004l[?2004h> +        mapped_fields[field.field_id] = {
+[?2004l[?2004h> +            "field_name": field.field_name,
+[?2004l[?2004h> +            "value": candidate.value,
+[?2004l[?2004h> +            "source": candidate.source,
+[?2004l[?2004h> +        }
+[?2004l[?2004h> +        similarity_scores[field.field_id] = round(score, 4)
+[?2004l[?2004h> +
+[?2004l[?2004h> +    return {
+[?2004l[?2004h> +        "pdf_file": pdf_path.name,
+[?2004l[?2004h> +        "mapped_fields": mapped_fields,
+[?2004l[?2004h> +        "unmapped_fields": unmapped_fields,
+[?2004l[?2004h> +        "total_mapped": len(mapped_fields),
+[?2004l[?2004h> +        "total_unmapped": len(unmapped_fields),
+[?2004l[?2004h> +        "rag_stats": {
+[?2004l[?2004h> +            "documents_processed": len(documents),
+[?2004l[?2004h> +            "total_chars_processed": sum(len(text) for text in documents.values()),
+[?2004l[?2004h> +            "retrieval_method": "regex candidate extraction + TF-IDF cosine similarity",
+[?2004l[?2004h> +            "field_detection_method": field_detection_method,
+[?2004l[?2004h> +            "candidate_count": len(candidates),
+[?2004l[?2004h> +            "similarity_scores": similarity_scores,
+[?2004l[?2004h> +        },
+[?2004l[?2004h> +    }
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +def main() -> None:
+[?2004l[?2004h> +    report = build_field_mapping()
+[?2004l[?2004h> +    OUTPUT_PATH.write_text(json.dumps(report, indent=4), encoding="utf-8")
+[?2004l[?2004h> +    print(f"Wrote field mapping report to {OUTPUT_PATH}")
+[?2004l[?2004h> +
+[?2004l[?2004h> +
+[?2004l[?2004h> +if __name__ == "__main__":
+[?2004l[?2004h> +    main()
+[?2004l[?2004h> *** End Patch
+[?2004l[?2004h> PATCH
+[?2004lbash: apply_patch: command not found
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# ls -l /app/form_filler.py /app/field_mapping.json /app/test_form_filler.py 2>/dev/null || true
+[?2004l[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - /app/form_filler.py 1 260 true <<'PY'
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> start_line = int(sys.argv[2])
+[?2004l[?2004h> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+[?2004l[?2004h> raw_mode = sys.argv[4].lower() == 'true'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+[?2004l[?2004h>         lines = f.readlines()
+[?2004l[?2004h> except FileNotFoundError:
+[?2004l[?2004h>     print(f"错误: 找不到文件 {path}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"读取失败: {exc}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> 
+[?2004l[?2004h> total_lines = len(lines)
+[?2004l[?2004h> s_idx = max(0, start_line - 1)
+[?2004l[?2004h> e_idx = end_line if end_line is not None else total_lines
+[?2004l[?2004h> selected_lines = lines[s_idx:e_idx]
+[?2004l[?2004h> if raw_mode:
+[?2004l[?2004h>     sys.stdout.write(''.join(selected_lines))
+[?2004l[?2004h> else:
+[?2004l[?2004h>     output = []
+[?2004l[?2004h>     for i, line in enumerate(selected_lines):
+[?2004l[?2004h>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+[?2004l[?2004h>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+[?2004l[?2004h>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+[?2004l[?2004h> PY
+[?2004l错误: 找不到文件 /app/form_filler.py
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> for name in ['sample_resume.txt','sample_application.txt','sample_personal_info.txt']:
+[?2004l[?2004h>     path = Path('/app/documents')/name
+[?2004l[?2004h>     print('FILE', name)
+[?2004l[?2004h>     print(path.read_text(encoding='utf-8')[:2500])
+[?2004l[?2004h>     print('---')
+[?2004l[?2004h> PY
+[?2004lFILE sample_resume.txt
+# ALEX JOHNSON
+## Software Engineer
+
+**Contact:**
+- Email: alex.johnson@example.com
+- Phone: (555) 123-4567
+- Address: 123 Tech Lane, San Francisco, CA 94105
+
+**Work Experience:**
+
+### Senior Software Engineer
+**TechCorp Inc.** | San Francisco, CA
+*Jan 2020 - Present*
+
+- Led development of a microservices architecture
+- Implemented machine learning models
+- Technologies: Python, Go, AWS, Kubernetes
+
+**Education:**
+
+### Master of Science in Computer Science
+**University of California, Berkeley**
+*2013 - 2015*
+- GPA: 3.8/4.0
+
+**Skills:**
+- Programming Languages: Python, Java, Go, JavaScript
+- Frameworks: React, Spring Boot, Django
+- Tools: Docker, Kubernetes, AWS, Git
+---
+FILE sample_application.txt
+APPLICATION FOR EMPLOYMENT
+-----------------------------
+
+PERSONAL INFORMATION:
+--------------------
+Full Name: Alex Johnson
+Date of Birth: 05/12/1991
+Gender: Male
+Nationality: American
+
+CONTACT INFORMATION:
+-------------------
+Current Address: 123 Tech Lane, San Francisco, CA 94105
+Phone Number: (555) 123-4567
+Email Address: alex.johnson@example.com
+
+POSITION APPLIED FOR:
+--------------------
+Job Title: Senior Software Engineer
+Department: Engineering
+---
+FILE sample_personal_info.txt
+PERSONAL INFORMATION DOCUMENT
+==========================
+
+CONTACT DETAILS:
+--------------
+Name: Alex Johnson
+Email: alex.johnson@example.com
+Phone (Home): (555) 123-4567
+Phone (Mobile): (555) 987-6543
+Address: 123 Tech Lane, San Francisco, CA 94105
+
+IDENTIFICATION:
+-------------
+Date of Birth: May 12, 1991
+Nationality: American
+
+EMPLOYMENT STATUS:
+----------------
+Current Employer: TechCorp Inc.
+Position: Senior Software Engineer
+---
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - <<'PY'
+[?2004l[?2004h> from pypdf import PdfReader
+[?2004l[?2004h> reader = PdfReader('/app/fillable_form.pdf')
+[?2004l[?2004h> for i, page in enumerate(reader.pages, 1):
+[?2004l[?2004h>     print('PAGE', i)
+[?2004l[?2004h>     text = page.extract_text() or ''
+[?2004l[?2004h>     print(text)
+[?2004l[?2004h>     print('---')
+[?2004l[?2004h> PY
+[?2004lPAGE 1
+Sample Team
+Prepared By:
+sample-files.com
+Fillable Form
+PDF
+Website:
+---
+PAGE 2
+Full Name:
+Email:
+Address:
+Personal Information
+This sample PDF file is provided by Sample-Files.com. Visit us for more sample files and resource.
+Gender: 
+Male Female
+Newsletter Subscription:
+Comments:
+Terms and Conditions:
+Please read and agree before submission.
+I agree to the terms and conditions.
+---
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l    return slug or "field"\n\n\ndef normalize_text(value: str) -> str:\n    return " ".join(value.split()).strip()\n\n\ndef tokenize(value: str) -> Counter:\n    tokens = [token.lower() for token in WORD_PATTERN.findall(value)]\n    return Counter(tokens)\n\n\ndef cosine_similarity(left: Counter, right: Counter) -> float:\n    if not left or not right:\n        return 0.0\n    shared = set(left) & set(right)\n    numerator = sum(left[token] * right[token] for token in shared)\n    left_norm = math.sqrt(sum(weight * weight for weight in left.values()))\n    right_norm = math.sqrt(sum(weight * weight for weight in right.values()))\n    if left_norm == 0.0 or right_norm == 0.0:\n        return 0.0\n    return numerator / (left_norm * right_norm)\n\n\ndef analyze_pdf_fields(pdf_path: Path) -> Tuple[List[FormField], str]:\n    if not pdf_path.exists():\n        raise FileNotFoundError(f"PDF file not found: {pdf_path}")\n\n    reader = PdfReader(str(pdf_path))\n    fields = reader.get_fields() or {}\n    if fields:\n        return [\n            FormField(field_id=str(field_id), field_name=str(info.get("/T") or field_id), source="acroform")\n            for field_id, info in fields.items()\n        ], "acroform"\n\n    inferred: Dict[str, FormField] = {}\n    for page in reader.pages:\n        text = page.extract_text() or ""\n        for line in text.splitlines():\n            match = FIELD_LABEL_PATTERN.match(line.strip())\n            if not match:\n                continue\n            field_name = match.group(1).strip()\n            field_id = slugify(field_name)\n            inferred.setdefault(\n                field_id,\n                FormField(field_id=field_id, field_name=field_name, source="pdf_text_label"),\n            )\n\n    if not inferred:\n        raise ValueError("No fillable fields or form-like labels could be identified in the PDF")\n    return list(inferred.values()), "pdf_text_label_fallback"\n\n\ndef load_documents(documents_dir: Path) -> Dict[str, str]:\n    if not documents_dir.exists():\n        raise FileNotFoundError(f"Documents directory not found: {documents_dir}")\n\n    documents: Dict[str, str] = {}\n    for path in sorted(documents_dir.glob("*.txt")):\n        text = path.read_text(encoding="utf-8")\n        if text.strip():\n            documents[path.stem] = text\n    if not documents:\n        raise ValueError(f"No text documents found in {documents_dir}")\n    return documents\n\n\ndef first_match(patterns: Sequence[str], text: str) -> Optional[str]:\n    for pattern in patterns:\n        match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE)\n        if match:\n            return normalize_text(match.group(1).strip(" .,-"))\n    return None\n\n\ndef extract_candidates(documents: Dict[str, str]) -> List[Candidate]:\n    patterns = {\n        "full name": [r"^Full Name:\\s*(.+)$", r"^Name:\\s*(.+)$", r"^#\\s+([A-Z][A-Z ]+)$"],\n        "email address": [r"(?:Email Address|Email):\\s*([\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,})"],\n        "address": [r"(?:Current Address|Address):\\s*(.+)$"],\n        "phone": [r"(?:Phone Number[?2004hroot@eccddd84ce73:/app# python3 - /app/form_filler.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l-[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'from __future__ import annotations\n\nimport json\nimport math\nimport re\nfrom collections import Counter\nfrom dataclasses import dataclass\nfrom pathlib import Path\nfrom typing import Dict, Iterable, List, Optional, Sequence, Tuple\n\nfrom pypdf import PdfReader\n\n\nAPP_DIR = Path(__file__).resolve().parent\nPDF_PATH = APP_DIR / "fillable_form.pdf"\nDOCUMENTS_DIR = APP_DIR / "documents"\nOUTPUT_PATH = APP_DIR / "field_mapping.json"\n\n\nFIELD_LABEL_PATTERN = re.compile(r"^([A-Za-z][A-Za-z ]{1,80}):\\s*$")\nWORD_PATTERN = re.compile(r"[A-Za-z0-9\']+")\n\n\n@dataclass(frozen=True)\nclass FormField:\n    field_id: str\n    field_name: str\n    source: str\n\n\n@dataclass(frozen=True)\nclass Candidate:\n    label: str\n    value: str\n    source: str\n    context: str\n\n\ndef slugify(value: str) -> str:\n    slug = re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")\n    return slug or "field"\n\n\ndef normalize_text(value: str) -> str:\n    return " ".join(value.split()).strip()\n\n\ndef tokenize(value: str) -> Counter:\n    tokens = [token.lower() for token in WORD_PATTERN.findall(value)]\n    return Counter(tokens)\n\n\ndef cosine_similarity(left: Counter, right: Counter) -> float:\n    if not left or not right:\n        return 0.0\n    shared = set(left) & set(right)\n    numerator = sum(left[token] * right[token] for token in shared)\n    left_norm = math.sqrt(sum(weight * weight for weight in left.values()))\n    right_norm = math.sqrt(sum(weight * weight for weight in right.values()))\n    if left_norm == 0.0 or right_norm == 0.0:\n        return 0.0\n    return numerator / (left_norm * right_norm)\n\n\ndef analyze_pdf_fields(pdf_path: Path) -> Tuple[List[FormField], str]:\n    if not pdf_path.exists():\n        raise FileNotFoundError(f"PDF file not found: {pdf_path}")\n\n    reader = PdfReader(str(pdf_path))\n    fields = reader.get_fields() or {}\n    if fields:\n        return [\n            FormField(field_id=str(field_id), field_name=str(info.get("/T") or field_id), source="acroform")\n            for field_id, info in fields.items()\n        ], "acroform"\n\n    inferred: Dict[str, FormField] = {}\n    for page in reader.pages:\n        text = page.extract_text() or ""\n        for line in text.splitlines():\n            match = FIELD_LABEL_PATTERN.match(line.strip())\n            if not match:\n                continue\n            field_name = match.group(1).strip()\n            field_id = slugify(field_name)\n            inferred.setdefault(\n                field_id,\n                FormField(field_id=field_id, field_name=field_name, source="pdf_text_label"),\n            )\n\n    if not inferred:\n        raise ValueError("No fillable fields or form-like labels could be identified in the PDF")\n    return list(inferred.values()), "pdf_text_label_fallback"\n\n\ndef load_documents(documents_dir: Path) -> Dict[str, str]:\n    if not documents_dir.exists():\n        raise FileNotFoundError(f"Documents directory not found: {documents_dir}")\n\n    documents: Dict[str, str] = {}\n    for path in sorted(documents_dir.glob("*.txt")):\n        text = path.read_text(encoding="utf-8")\n        if text.strip():\n            documents[path.stem] = text\n    if not documents:\n        raise ValueError(f"No text documents found in {documents_dir}")\n    return documents\n\n\ndef first_match(patterns: Sequence[str], text: str) -> Optional[str]:\n    for pattern in patterns:\n        match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE)\n        if match:\n            return normalize_text(match.group(1).strip(" .,-"))\n    return None\n\n\ndef extract_candidates(documents: Dict[str, str]) -> List[Candidate]:\n    patterns = {\n        "full name": [r"^Full Name:\\s*(.+)$", r"^Name:\\s*(.+)$", r"^#\\s+([A-Z][A-Z ]+)$"],\n        "email address": [r"(?:Email Address|Email):\\s*([\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,})"],\n        "address": [r"(?:Current Address|Address):\\s*(.+)$"],\n        "phone": [r"(?:Phone Number|Phone \\(Home\\)|Phone):\\s*(\\(?\\d{3}\\)?[-\\s]\\d{3}[-\\s]\\d{4})"],\n        "gender": [r"^Gender:\\s*(Male|Female|Non-binary|Other)\\b"],\n        "date of birth": [r"Date of Birth:\\s*(.+)$"],\n        "nationality": [r"Nationality:\\s*(.+)$"],\n        "job title": [r"Job Title:\\s*(.+)$", r"^Position:\\s*(.+)$"],\n        "employer": [r"Current Employer:\\s*(.+)$", r"\\*\\*([^*]+Inc\\.)\\*\\*"],\n        "education": [r"###\\s*(Master of Science in Computer Science)"],\n        "skills": [r"Programming Languages:\\s*(.+)$"],\n    }\n\n    candidates: List[Candidate] = []\n    for source, text in documents.items():\n        compact_context = normalize_text(text)\n        for label, label_patterns in patterns.items():\n            value = first_match(label_patterns, text)\n            if value:\n                candidates.append(\n                    Candidate(\n                        label=label,\n                        value=value,\n                        source=source,\n                        context=compact_context[:600],\n                    )\n                )\n    return candidates\n\n\ndef retrieve_best_candidate(\n    field: FormField,\n    candidates: Sequence[Candidate],\n    threshold: float = 0.08,\n) -> Optional[Tuple[Candidate, float]]:\n    if not candidates:\n        return None\n\n    query = tokenize(f"{field.field_name} {field.field_id.replace(\'_\', \' \')}")\n    scored: List[Tuple[float, Candidate]] = []\n    for candidate in candidates:\n        candidate_text = f"{candidate.label} {candidate.value} {candidate.context}"\n        score = cosine_similarity(query, tokenize(candidate_text))\n        scored.append((score, candidate))\n\n    scored.sort(key=lambda item: item[0], reverse=True)\n    best_score, best_candidate = scored[0]\n    if best_score < threshold:\n        return None\n    return best_candidate, best_score\n\n\ndef build_field_mapping(\n    pdf_path: Path = PDF_PATH,\n    documents_dir: Path = DOCUMENTS_DIR,\n) -> Dict[str, object]:\n    fields, field_detection_method = analyze_pdf_fields(pdf_path)\n    documents = load_documents(documents_dir)\n    candidates = extract_candidates(documents)\n\n    mapped_fields: Dict[str, Dict[str, str]] = {}\n    unmapped_fields: List[str] = []\n    similarity_scores: Dict[str, float] = {}\n\n    for field in fields:\n        retrieved = retrieve_best_candidate(field, candidates)\n        if retrieved is None:\n            unmapped_fields.append(field.field_id)\n            continue\n        candidate, score = retrieved\n        mapped_fields[field.field_id] = {\n            "field_name": field.field_name,\n            "value": candidate.value,\n            "source": candidate.source,\n        }\n        similarity_scores[field.field_id] = round(score, 4)\n\n    return {\n        "pdf_file": pdf_path.name,\n        "mapped_fields": mapped_fields,\n        "unmapped_fields": unmapped_fields,\n        "total_mapped": len(mapped_fields),\n        "total_unmapped": len(unmapped_fields),\n        "rag_stats": {\n            "documents_processed": len(documents),\n            "total_chars_processed": sum(len(text) for text in documents.values()),\n            "retrieval_method": "regex candidate extraction + cosine similarity",\n            "field_detection_method": field_detection_method,\n            "candidate_count": len(candidates),\n            "similarity_scores": similarity_scores,\n        },\n    }\n\n\ndef main() -> None:\n    report = build_field_mapping()\n    OUTPUT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")\n    print(f"Wrote field mapping report to {OUTPUT_PATH}")\n\n\nif __name__ == "__main__":\n    main()\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/form_filler.py
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004lue; tmux wait -S done
+[?2004hroot@eccddd84ce73:/app# python3 - /app/test_form_filler.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'import json\nimport unittest\nfrom pathlib import Path\n\nimport form_filler\n\n\nclass FormFillerTest(unittest.TestCase):\n    def setUp(self):\n        self.output_path = Path(form_filler.OUTPUT_PATH)\n        if self.output_path.exists():\n            self.output_path.unlink()\n\n    def test_build_field_mapping_structure(self):\n        report = form_filler.build_field_mapping()\n\n        self.assertEqual(report["pdf_file"], "fillable_form.pdf")\n        self.assertIn("mapped_fields", report)\n        self.assertIn("unmapped_fields", report)\n        self.assertIn("rag_stats", report)\n        self.assertGreater(report["rag_stats"]["documents_processed"], 0)\n        self.assertGreater(report["rag_stats"]["candidate_count"], 0)\n        self.assertEqual(report["rag_stats"]["field_detection_method"], "pdf_text_label_fallback")\n\n        mapped = report["mapped_fields"]\n        self.assertEqual(mapped["full_name"]["value"], "Alex Johnson")\n        self.assertEqual(mapped["email"]["value"], "alex.johnson@example.com")\n        self.assertEqual(mapped["address"]["value"], "123 Tech Lane, San Francisco, CA 94105")\n        self.assertEqual(mapped["gender"]["value"], "Male")\n\n    def test_main_writes_json_output(self):\n        form_filler.main()\n\n        self.assertTrue(self.output_path.exists())\n        payload = json.loads(self.output_path.read_text(encoding="utf-8"))\n        self.assertEqual(payload["pdf_file"], "fillable_form.pdf")\n        self.assertIn("mapped_fields", payload)\n        self.assertIn("rag_stats", payload)\n\n\nif __name__ == "__main__":\n    unittest.main()\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/test_form_filler.py
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# cd /app && python3 -m py_compile form_filler.py test_form_filler.py
+[?2004l[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# cd /app && python3 -m unittest -v test_form_filler.py
+[?2004ltest_build_field_mapping_structure (test_form_filler.FormFillerTest.test_build_field_mapping_structure) ... FAIL
+test_main_writes_json_output (test_form_filler.FormFillerTest.test_main_writes_json_output) ... Wrote field mapping report to /app/field_mapping.json
+ok
+
+======================================================================
+FAIL: test_build_field_mapping_structure (test_form_filler.FormFillerTest.test_build_field_mapping_structure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/test_form_filler.py", line 28, in test_build_field_mapping_structure
+    self.assertEqual(mapped["address"]["value"], "123 Tech Lane, San Francisco, CA 94105")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'alex.johnson@example.com' != '123 Tech Lane, San Francisco, CA 94105'
+- alex.johnson@example.com
++ 123 Tech Lane, San Francisco, CA 94105
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.047s
+
+FAILED (failures=1)
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# python3 - /app/test_form_filler.py 20 32 false <<'PY'
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> start_line = int(sys.argv[2])
+[?2004l[?2004h> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+[?2004l[?2004h> raw_mode = sys.argv[4].lower() == 'true'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+[?2004l[?2004h>         lines = f.readlines()
+[?2004l[?2004h> except FileNotFoundError:
+[?2004l[?2004h>     print(f"错误: 找不到文件 {path}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"读取失败: {exc}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> 
+[?2004l[?2004h> total_lines = len(lines)
+[?2004l[?2004h> s_idx = max(0, start_line - 1)
+[?2004l[?2004h> e_idx = end_line if end_line is not None else total_lines
+[?2004l[?2004h> selected_lines = lines[s_idx:e_idx]
+[?2004l[?2004h> if raw_mode:
+[?2004l[?2004h>     sys.stdout.write(''.join(selected_lines))
+[?2004l[?2004h> else:
+[?2004l[?2004h>     output = []
+[?2004l[?2004h>     for i, line in enumerate(selected_lines):
+[?2004l[?2004h>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+[?2004l[?2004h>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+[?2004l[?2004h>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+[?2004l[?2004h> PY
+[?2004l--- 文件: /app/test_form_filler.py (第 20 至 32 行，共 42 行) ---
+  20 |         self.assertIn("rag_stats", report)
+  21 |         self.assertGreater(report["rag_stats"]["documents_processed"], 0)
+  22 |         self.assertGreater(report["rag_stats"]["candidate_count"], 0)
+  23 |         self.assertEqual(report["rag_stats"]["field_detection_method"], "pdf_text_label_fallback")
+  24 | 
+  25 |         mapped = report["mapped_fields"]
+  26 |         self.assertEqual(mapped["full_name"]["value"], "Alex Johnson")
+  27 |         self.assertEqual(mapped["email"]["value"], "alex.johnson@example.com")
+  28 |         self.assertEqual(mapped["address"]["value"], "123 Tech Lane, San Francisco, CA 94105")
+  29 |         self.assertEqual(mapped["gender"]["value"], "Male")
+  30 | 
+  31 |     def test_main_writes_json_output(self):
+  32 |         form_filler.main()
+--- 读取完毕 ---[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004lgICAgIGVsaWYgaXNpbnN0YW5jZShub2RlLCAoYXN0LkZ1bmN0aW9uRGVmLCBhc3QuQXN5bmNGdW5jdGlvbkRlZikpIGFuZCBub3QgYW55KGlzaW5zdGFuY2UocGFyZW50LCBhc3QuQ2xhc3NEZWYpIGFuZCBub2RlIGluIHBhcmVudC5ib2R5IGZvciBwYXJlbnQgaW4gYXN0LndhbGsodHJlZSkpOgogICAgICAgICAgICAgICAgaXRlbXMuYXBwZW5kKChub2RlLm5hbWUsICJmdW5jdGlvbiIsIHJlbGF0aXZlLCBub2RlLmxpbmVubywgZ2V0YXR0cihub2RlLCAiZW5kX2xpbmVubyIsIG5vZGUubGluZW5vKSwgYXN0LmdldF9kb2NzdHJpbmcobm9kZSksIE5vbmUpKQppZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBhcmdzWyJuYW1lIl0gaW4gaXRlbVswXV0KaWYgYXJncy5nZXQoInN5bWJvbF90eXBlIiwgImFsbCIpICE9ICJhbGwiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBpdGVtWzFdID09IGFyZ3NbInN5bWJvbF90eXBlIl1dCmlmIG5vdCBpdGVtczoKICAgIHByaW50KCLmnKrmib7liLDnrKblj7c6ICIgKyBhcmdzLmdldCgibmFtZSIsICLku7vkvZUiKSkKZWxpZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgcHJpbnQoZiLwn5SNIOaJvuWIsCB7bGVuKGl0ZW1zKX0g5Liq5Yy56YWN6aG5IikKICAgIHByaW50KCI9IiAqIDgwKQogICAgZm9yIGluZGV4LCBpdGVtIGluIGVudW1lcmF0ZShpdGVtcywgMSk6CiAgICAgICAgbmFtZSwga2luZCwgZmlsZW5hbWUsIHN0YXJ0LCBlbmQsIGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoIiAgICDniLbnsbs6ICIgKyBwYXJlbnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kfSIpCiAgICAgICAgaWYgZG9jOiBwcmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsaW5lcygpWzo1XSkpCmVsc2U6CiAgICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpbiBzb3J0ZWQoaXRlbXMsIGtleT1sYW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxheSA9IChwYXJlbnQgKyAiLiIgaWYgcGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gICB7ZGlzcGxheX0gKEx7c3RhcnR9LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKCl[?2004hroot@eccddd84ce73:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJtb2RlIjogImZpbmQiLCAicGF0aCI6ICIvYXBwIiwgIm5hbWUiOiAicmV0cmlldmVfYmVzdF9jYW5kaWRhdGUifQ=='"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBhc3QsIG9zCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAphcmdzID0gQVJHUwpyb290ID0gUGF0aChhcmdzWyJwYXRoIl0pLnJlc29sdmUoKQppZiBub3Qgcm9vdC5leGlzdHMoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5a2Y5ZyoICIgKyBhcmdzWyJwYXRoIl0pCmlmIG5vdCByb290LmlzX2RpcigpOgogICAgcmFpc2UgU3lzdGVtRXhpdCgi6ZSZ6K+vOiDot6/lvoTkuI3mmK/nm67lvZUgIiArIGFyZ3NbInBhdGgiXSkKaXRlbXMgPSBbXQpmb3IgY3VycmVudCwgZGlycywgZmlsZXMgaW4gb3Mud2Fsayhyb290KToKICAgIGRpcnNbOl0gPSBbZCBmb3IgZCBpbiBkaXJzIGlmIGQgbm90IGluIHsiLmdpdCIsICJfX3B5Y2FjaGVfXyIsICJub2RlX21vZHVsZXMiLCAidmVudiIsICIudmVudiIsICJlbnYiLCAiLmVudiJ9XQogICAgZm9yIGZpbGVuYW1lIGluIGZpbGVzOgogICAgICAgIGlmIG5vdCBmaWxlbmFtZS5lbmRzd2l0aCgiLnB5Iik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgZmlsZV9wYXRoID0gUGF0aChjdXJyZW50KSAvIGZpbGVuYW1lCiAgICAgICAgdHJ5OgogICAgICAgICAgICB0cmVlID0gYXN0LnBhcnNlKGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKSwgZmlsZW5hbWU9c3RyKGZpbGVfcGF0aCkpCiAgICAgICAgZXhjZXB0IChTeW50YXhFcnJvciwgT1NFcnJvciwgVmFsdWVFcnJvcik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgcmVsYXRpdmUgPSBzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKQogICAgICAgIGZvciBub2RlIGluIGFzdC53YWxrKHRyZWUpOgogICAgICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUsIGFzdC5DbGFzc0RlZik6CiAgICAgICAgICAgICAgICBpdGVtcy5hcHBlbmQoKG5vZGUubmFtZSwgImNsYXNzIiwgcmVsYXRpdmUsIG5vZGUubGluZW5vLCBnZXRhdHRyKG5vZGUsICJlbmRfbGluZW5vIiwgbm9kZS5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhub2RlKSwgTm9uZSkpCiAgICAgICAgICAgICAgICBmb3IgY2hpbGQgaW4gbm9kZS5ib2R5OgogICAgICAgICAgICAgICAgICAgIGlmIGlzaW5zdGFuY2UoY2hpbGQsIChhc3QuRnVuY3Rpb25EZWYsIGFzdC5Bc3luY0Z1bmN0aW9uRGVmKSk6CiAgICAgICAgICAgICAgICAgICAgICAgIGl0ZW1zLmFwcGVuZCgoY2hpbGQubmFtZSwgImZ1bmN0aW9uIiwgcmVsYXRpdmUsIGNoaWxkLmxpbmVubywgZ2V0YXR0cihjaGlsZCwgImVuZF9saW5lbm8iLCBjaGlsZC5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhjaGlsZCksIG5vZGUubmFtZSkpCiAgICAgICAgICAgIGVsaWYgaXNpbnN0YW5jZShub2RlLCAoYXN0LkZ1bmN0aW9uRGVmLCBhc3QuQXN5bmNGdW5jdGlvbkRlZikpIGFuZCBub3QgYW55KGlzaW5zdGFuY2UocGFyZW50LCBhc3QuQ2xhc3NEZWYpIGFuZCBub2RlIGluIHBhcmVudC5ib2R5IGZvciBwYXJlbnQgaW4gYXN0LndhbGsodHJlZSkpOgogICAgICAgICAgICAgICAgaXRlbXMuYXBwZW5kKChub2RlLm5hbWUsICJmdW5jdGlvbiIsIHJlbGF0aXZlLCBub2RlLmxpbmVubywgZ2V0YXR0cihub2RlLCAiZW5kX2xpbmVubyIsIG5vZGUubGluZW5vKSwgYXN0LmdldF9kb2NzdHJpbmcobm9kZSksIE5vbmUpKQppZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBhcmdzWyJuYW1lIl0gaW4gaXRlbVswXV0KaWYgYXJncy5nZXQoInN5bWJvbF90eXBlIiwgImFsbCIpICE9ICJhbGwiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBpdGVtWzFdID09IGFyZ3NbInN5bWJvbF90eXBlIl1dCmlmIG5vdCBpdGVtczoKICAgIHByaW50KCLmnKrmib7liLDnrKblj7c6ICIgKyBhcmdzLmdldCgibmFtZSIsICLku7vkvZUiKSkKZWxpZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgcHJpbnQoZiLwn5SNIOaJvuWIsCB7bGVuKGl0ZW1zKX0g5Liq5Yy56YWN6aG5IikKICAgIHByaW50KCI9IiAqIDgwKQogICAgZm9yIGluZGV4LCBpdGVtIGluIGVudW1lcmF0ZShpdGVtcywgMSk6CiAgICAgICAgbmFtZSwga2luZCwgZmlsZW5hbWUsIHN0YXJ0LCBlbmQsIGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoIiAgICDniLbnsbs6ICIgKyBwYXJlbnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kfSIpCiAgICAgICAgaWYgZG9jOiBwcmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsaW5lcygpWzo1XSkpCmVsc2U6CiAgICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpbiBzb3J0ZWQoaXRlbXMsIGtleT1sYW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxheSA9IChwYXJlbnQgKyAiLiIgaWYgcGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gICB7ZGlzcGxheX0gKEx7c3RhcnR9LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKClbMF0pCg=='"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+[?2004l🔍 找到 1 个匹配项
+================================================================================
+\n[1] FUNCTION: retrieve_best_candidate
+    📁 文件: form_filler.py
+    📍 行号: L150 - L169
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# cd /app && sed -n '1,230p' form_filler.py
+[?2004lfrom __future__ import annotations
+
+import json
+import math
+import re
+from collections import Counter
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+
+from pypdf import PdfReader
+
+
+APP_DIR = Path(__file__).resolve().parent
+PDF_PATH = APP_DIR / "fillable_form.pdf"
+DOCUMENTS_DIR = APP_DIR / "documents"
+OUTPUT_PATH = APP_DIR / "field_mapping.json"
+
+
+FIELD_LABEL_PATTERN = re.compile(r"^([A-Za-z][A-Za-z ]{1,80}):\s*$")
+WORD_PATTERN = re.compile(r"[A-Za-z0-9']+")
+
+
+@dataclass(frozen=True)
+class FormField:
+    field_id: str
+    field_name: str
+    source: str
+
+
+@dataclass(frozen=True)
+class Candidate:
+    label: str
+    value: str
+    source: str
+    context: str
+
+
+def slugify(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
+    return slug or "field"
+
+
+def normalize_text(value: str) -> str:
+    return " ".join(value.split()).strip()
+
+
+def tokenize(value: str) -> Counter:
+    tokens = [token.lower() for token in WORD_PATTERN.findall(value)]
+    return Counter(tokens)
+
+
+def cosine_similarity(left: Counter, right: Counter) -> float:
+    if not left or not right:
+        return 0.0
+    shared = set(left) & set(right)
+    numerator = sum(left[token] * right[token] for token in shared)
+    left_norm = math.sqrt(sum(weight * weight for weight in left.values()))
+    right_norm = math.sqrt(sum(weight * weight for weight in right.values()))
+    if left_norm == 0.0 or right_norm == 0.0:
+        return 0.0
+    return numerator / (left_norm * right_norm)
+
+
+def analyze_pdf_fields(pdf_path: Path) -> Tuple[List[FormField], str]:
+    if not pdf_path.exists():
+        raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+
+    reader = PdfReader(str(pdf_path))
+    fields = reader.get_fields() or {}
+    if fields:
+        return [
+            FormField(field_id=str(field_id), field_name=str(info.get("/T") or field_id), source="acroform")
+            for field_id, info in fields.items()
+        ], "acroform"
+
+    inferred: Dict[str, FormField] = {}
+    for page in reader.pages:
+        text = page.extract_text() or ""
+        for line in text.splitlines():
+            match = FIELD_LABEL_PATTERN.match(line.strip())
+            if not match:
+                continue
+            field_name = match.group(1).strip()
+            field_id = slugify(field_name)
+            inferred.setdefault(
+                field_id,
+                FormField(field_id=field_id, field_name=field_name, source="pdf_text_label"),
+            )
+
+    if not inferred:
+        raise ValueError("No fillable fields or form-like labels could be identified in the PDF")
+    return list(inferred.values()), "pdf_text_label_fallback"
+
+
+def load_documents(documents_dir: Path) -> Dict[str, str]:
+    if not documents_dir.exists():
+        raise FileNotFoundError(f"Documents directory not found: {documents_dir}")
+
+    documents: Dict[str, str] = {}
+    for path in sorted(documents_dir.glob("*.txt")):
+        text = path.read_text(encoding="utf-8")
+        if text.strip():
+            documents[path.stem] = text
+    if not documents:
+        raise ValueError(f"No text documents found in {documents_dir}")
+    return documents
+
+
+def first_match(patterns: Sequence[str], text: str) -> Optional[str]:
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE)
+        if match:
+            return normalize_text(match.group(1).strip(" .,-"))
+    return None
+
+
+def extract_candidates(documents: Dict[str, str]) -> List[Candidate]:
+    patterns = {
+        "full name": [r"^Full Name:\s*(.+)$", r"^Name:\s*(.+)$", r"^#\s+([A-Z][A-Z ]+)$"],
+        "email address": [r"(?:Email Address|Email):\s*([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})"],
+        "address": [r"(?:Current Address|Address):\s*(.+)$"],
+        "phone": [r"(?:Phone Number|Phone \(Home\)|Phone):\s*(\(?\d{3}\)?[-\s]\d{3}[-\s]\d{4})"],
+        "gender": [r"^Gender:\s*(Male|Female|Non-binary|Other)\b"],
+        "date of birth": [r"Date of Birth:\s*(.+)$"],
+        "nationality": [r"Nationality:\s*(.+)$"],
+        "job title": [r"Job Title:\s*(.+)$", r"^Position:\s*(.+)$"],
+        "employer": [r"Current Employer:\s*(.+)$", r"\*\*([^*]+Inc\.)\*\*"],
+        "education": [r"###\s*(Master of Science in Computer Science)"],
+        "skills": [r"Programming Languages:\s*(.+)$"],
+    }
+
+    candidates: List[Candidate] = []
+    for source, text in documents.items():
+        compact_context = normalize_text(text)
+        for label, label_patterns in patterns.items():
+            value = first_match(label_patterns, text)
+            if value:
+                candidates.append(
+                    Candidate(
+                        label=label,
+                        value=value,
+                        source=source,
+                        context=compact_context[:600],
+                    )
+                )
+    return candidates
+
+
+def retrieve_best_candidate(
+    field: FormField,
+    candidates: Sequence[Candidate],
+    threshold: float = 0.08,
+) -> Optional[Tuple[Candidate, float]]:
+    if not candidates:
+        return None
+
+    query = tokenize(f"{field.field_name} {field.field_id.replace('_', ' ')}")
+    scored: List[Tuple[float, Candidate]] = []
+    for candidate in candidates:
+        candidate_text = f"{candidate.label} {candidate.value} {candidate.context}"
+        score = cosine_similarity(query, tokenize(candidate_text))
+        scored.append((score, candidate))
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+    best_score, best_candidate = scored[0]
+    if best_score < threshold:
+        return None
+    return best_candidate, best_score
+
+
+def build_field_mapping(
+    pdf_path: Path = PDF_PATH,
+    documents_dir: Path = DOCUMENTS_DIR,
+) -> Dict[str, object]:
+    fields, field_detection_method = analyze_pdf_fields(pdf_path)
+    documents = load_documents(documents_dir)
+    candidates = extract_candidates(documents)
+
+    mapped_fields: Dict[str, Dict[str, str]] = {}
+    unmapped_fields: List[str] = []
+    similarity_scores: Dict[str, float] = {}
+
+    for field in fields:
+        retrieved = retrieve_best_candidate(field, candidates)
+        if retrieved is None:
+            unmapped_fields.append(field.field_id)
+            continue
+        candidate, score = retrieved
+        mapped_fields[field.field_id] = {
+            "field_name": field.field_name,
+            "value": candidate.value,
+            "source": candidate.source,
+        }
+        similarity_scores[field.field_id] = round(score, 4)
+
+    return {
+        "pdf_file": pdf_path.name,
+        "mapped_fields": mapped_fields,
+        "unmapped_fields": unmapped_fields,
+        "total_mapped": len(mapped_fields),
+        "total_unmapped": len(unmapped_fields),
+        "rag_stats": {
+            "documents_processed": len(documents),
+            "total_chars_processed": sum(len(text) for text in documents.values()),
+            "retrieval_method": "regex candidate extraction + cosine similarity",
+            "field_detection_method": field_detection_method,
+            "candidate_count": len(candidates),
+            "similarity_scores": similarity_scores,
+        },
+    }
+
+
+def main() -> None:
+    report = build_field_mapping()
+    OUTPUT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    print(f"Wrote field mapping report to {OUTPUT_PATH}")
+
+
+if __name__ == "__main__":
+    main()
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l�一性。")
+    raise SystemExit(0)
+with open(path, 'w', encoding='utf-8', newline='\n') as f:
+    f.write(content.replace(old_str, new_str))
+print(f"成功: 已更新 {path}。修改已持久化。")
+PY
+true; tmux wait -S done
+[?2004hroot@eccddd84ce73:/app# python3 - /app/form_filler.py <<'PY'
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> old_str = '    query = tokenize(f"{field.field_name} {field.field_id.replace(\'_\', \' \')}")\n    scored: List[Tuple[float, Candidate]] = []\n    for candidate in candidates:\n        candidate_text = f"{candidate.label} {candidate.value} {candidate.context}"\n        score = cosine_similarity(query, tokenize(candidate_text))\n        scored.append((score, candidate))\n'
+[?2004l[?2004h> new_str = '    query = tokenize(f"{field.field_name} {field.field_id.replace(\'_\', \' \')}")\n    scored: List[Tuple[float, Candidate]] = []\n    for candidate in candidates:\n        # Give the extracted field label most of the weight. The document\n        # context remains useful for disambiguation without overpowering it.\n        label_score = cosine_similarity(query, tokenize(candidate.label))\n        context_score = cosine_similarity(query, tokenize(candidate.context))\n        score = (0.85 * label_score) + (0.15 * context_score)\n        scored.append((score, candidate))\n'
+[?2004l[?2004h> 
+[?2004l[?2004h> def normalize_text(text: str) -> str:
+[?2004l[?2004h>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+[?2004l[?2004h>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+[?2004l[?2004h> 
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+[?2004l[?2004h>         content = f.read()
+[?2004l[?2004h> except FileNotFoundError:
+[?2004l[?2004h>     print(f"错误: 找不到文件 {path}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"修改失败: {exc}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> 
+[?2004l[?2004h> content = normalize_text(content)
+[?2004l[?2004h> old_str = normalize_text(old_str)
+[?2004l[?2004h> new_str = normalize_text(new_str)
+[?2004l[?2004h> count = content.count(old_str)
+[?2004l[?2004h> if count == 0:
+[?2004l[?2004h>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 write_full_file 全量覆盖")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> if count > 1:
+[?2004l[?2004h>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>     f.write(content.replace(old_str, new_str))
+[?2004l[?2004h> print(f"成功: 已更新 {path}。修改已持久化。")
+[?2004l[?2004h> PY
+[?2004l成功: 已更新 /app/form_filler.py。修改已持久化。
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# cd /app && python3 -m unittest -v test_form_filler.py
+[?2004ltest_build_field_mapping_structure (test_form_filler.FormFillerTest.test_build_field_mapping_structure) ... ok
+test_main_writes_json_output (test_form_filler.FormFillerTest.test_main_writes_json_output) ... Wrote field mapping report to /app/field_mapping.json
+ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.048s
+
+OK
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# cd /app && python3 form_filler.py
+[?2004lWrote field mapping report to /app/field_mapping.json
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@eccddd84ce73:/app# cd /app && python3 - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> path = Path('field_mapping.json')
+[?2004l[?2004h> report = json.loads(path.read_text())
+[?2004l[?2004h> assert report['total_mapped'] == len(report['mapped_fields'])
+[?2004l[?2004h> assert report['total_unmapped'] == len(report['unmapped_fields'])
+[?2004l[?2004h> assert report['mapped_fields']['address']['value'] == '123 Tech Lane, San Francisco, CA 94105'
+[?2004l[?2004h> assert report['mapped_fields']['email']['value'] == 'alex.johnson@example.com'
+[?2004l[?2004h> print(json.dumps({
+[?2004l[?2004h>     'output_exists': path.exists(),
+[?2004l[?2004h>     'mapped_fields': report['mapped_fields'],
+[?2004l[?2004h>     'total_mapped': report['total_mapped'],
+[?2004l[?2004h>     'total_unmapped': report['total_unmapped'],
+[?2004l[?2004h> }, indent=2))
+[?2004l[?2004h> PY
+[?2004l{
+  "output_exists": true,
+  "mapped_fields": {
+    "full_name": {
+      "field_name": "Full Name",
+      "value": "Alex Johnson",
+      "source": "sample_application"
+    },
+    "email": {
+      "field_name": "Email",
+      "value": "alex.johnson@example.com",
+      "source": "sample_personal_info"
+    },
+    "address": {
+      "field_name": "Address",
+      "value": "123 Tech Lane, San Francisco, CA 94105",
+      "source": "sample_application"
+    },
+    "gender": {
+      "field_name": "Gender",
+      "value": "Male",
+      "source": "sample_application"
+    }
+  },
+  "total_mapped": 4,
+  "total_unmapped": 5
+}
+[?2004hroot@eccddd84ce73:/app# true; tmux wait -S done
+[?2004l[?2004hroot@eccddd84ce73:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@eccddd84ce73:/app# 

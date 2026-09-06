@@ -166,7 +166,7 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
             return TerminalCommand(
                 command=command,
                 min_timeout_sec=0.0,
-                max_timeout_sec=float("inf"),
+                max_timeout_sec=300,
                 block=True,
                 append_enter=True,
             )
@@ -174,7 +174,7 @@ class TerminalBenchSessionBackend(ToolExecutionBackend):
             return SimpleNamespace(
                 command=command,
                 min_timeout_sec=0.0,
-                max_timeout_sec=float("inf"),
+                max_timeout_sec=300,
                 block=True,
                 append_enter=True,
             )

@@ -1,0 +1,564 @@
+root@f91c95941a9c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@f91c95941a9c:/app# set +e
+root@f91c95941a9c:/app#
+root@f91c95941a9c:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@f91c95941a9c:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@f91c95941a9c:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@f91c95941a9c:/app#
+root@f91c95941a9c:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@f91c95941a9c:/app#
+root@f91c95941a9c:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@f91c95941a9c:/app#
+root@f91c95941a9c:/app# mkdir -p /root/.config/uv
+root@f91c95941a9c:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@f91c95941a9c:/app#
+root@f91c95941a9c:/app# apt-get update || true
+Hit:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease
+Hit:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease
+Hit:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease
+Reading package lists... Done
+root@f91c95941a9c:/app# true; tmux wait -S done
+root@f91c95941a9c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@f91c95941a9c:/app# set -e
+root@f91c95941a9c:/app# ls -lh /app/question.mps || true
+-rwxr-xr-x 1 root root 69K Aug 10 16:30 /app/question.mps
+root@f91c95941a9c:/app# head -40 /app/question.mps || true
+NAME          Terminal-Bench-MIP
+ROWS
+ N  r_0
+ G  R1
+ G  R2
+ G  R3
+ G  R4
+ G  R5
+ G  R6
+ G  R7
+ G  R8
+ G  R9
+ G  R10
+ G  R11
+ G  R12
+ G  R13
+ G  R14
+ G  R15
+ G  R16
+ G  R17
+ G  R18
+ G  R19
+ G  R20
+ G  R21
+ G  R22
+ G  R23
+ G  R24
+ G  R25
+ G  R26
+ G  R27
+ G  R28
+ G  R29
+ G  R30
+ G  R31
+ G  R32
+ G  R33
+ G  R34
+ G  R35
+ G  R36
+ G  R37
+root@f91c95941a9c:/app# printf '\nSolvers/checks:\n'
+
+Solvers/checks:
+root@f91c95941a9c:/app# which highs || true
+root@f91c95941a9c:/app# which glpsol || true
+root@f91c95941a9c:/app# which cbc || true
+root@f91c95941a9c:/app# python - <<'PY'
+> import importlib.util
+> mods=['scipy','pulp','mip','ortools','highspy','swiglpk','cvxpy']
+> for m in mods:
+>     print(m, bool(importlib.util.find_spec(m)))
+> PY
+scipy False
+pulp False
+mip False
+ortools False
+highspy False
+swiglpk False
+cvxpy False
+root@f91c95941a9c:/app# true; tmux wait -S done
+root@f91c95941a9c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+k)>=3 and tok[1]=='MARKER':
+                if 'INTORG' in line: inint=True
+                if 'INTEND' in line: inint=False
+                continue
+            v=tok[0]; vars.add(v)
+            if inint: intvars.add(v)
+        elif sec=='BOUNDS':
+            bound_types[tok[0]]+=1
+            if tok[0] in ('BV','LI','UI') and len(tok)>=3: intvars.add(tok[2])
+print('rows',len(rows),Counter(rows.values()))
+print('vars',len(vars),'intvars',len(intvars),'bound_types',bound_types)
+# tail bounds
+import itertools
+print('\nBOUNDS excerpt')
+inb=False; n=0
+for line in open(p):
+    if line.startswith('BOUNDS'): inb=True; print(line,end=''); continue
+    if inb:
+        print(line,end=''); n+=1
+        if n>40: break
+PY
+true; tmux wait -S done
+root@f91c95941a9c:/app# python - <<'PY'
+> from collections import Counter
+> p='/app/question.mps'
+> sec=None
+> cnt=Counter(); lines=0
+> markers=0
+> with open(p) as f:
+>     for line in f:
+>         lines+=1
+>         s=line.strip()
+>         if not s or s.startswith('*'): continue
+>         key=s.split()[0]
+>         if key in ['NAME','ROWS','COLUMNS','RHS','RANGES','BOUNDS','ENDATA']:
+>             sec=key; cnt[sec]+=1
+>         else:
+>             cnt[sec]+=1
+>             if 'MARKER' in line: markers+=1
+> print('lines',lines,'counts',cnt,'markers',markers)
+> # collect row types, vars, bounds types
+> rows={}; vars=set(); bound_types=Counter(); intvars=set(); inint=False
+> with open(p) as f:
+>     sec=None
+>     for line in f:
+>         s=line.strip()
+>         if not s or s.startswith('*'): continue
+>         tok=s.split()
+>         if tok[0] in ['NAME','ROWS','COLUMNS','RHS','RANGES','BOUNDS','ENDATA']:
+>             sec=tok[0]; continue
+>         if sec=='ROWS': rows[tok[1]]=tok[0]
+>         elif sec=='COLUMNS':
+>             if len(tok)>=3 and tok[1]=='MARKER':
+>                 if 'INTORG' in line: inint=True
+>                 if 'INTEND' in line: inint=False
+>                 continue
+>             v=tok[0]; vars.add(v)
+>             if inint: intvars.add(v)
+>         elif sec=='BOUNDS':
+>             bound_types[tok[0]]+=1
+>             if tok[0] in ('BV','LI','UI') and len(tok)>=3: intvars.add(tok[2])
+> print('rows',len(rows),Counter(rows.values()))
+> print('vars',len(vars),'intvars',len(intvars),'bound_types',bound_types)
+> # tail bounds
+> import itertools
+> print('\nBOUNDS excerpt')
+> inb=False; n=0
+> for line in open(p):
+>     if line.startswith('BOUNDS'): inb=True; print(line,end=''); continue
+>     if inb:
+>         print(line,end=''); n+=1
+>         if n>40: break
+> PY
+lines 1238 counts Counter({'COLUMNS': 1074, 'ROWS': 65, 'BOUNDS': 64, 'RHS': 33, 'NAME': 1, 'ENDATA': 1}) markers 2
+rows 64 Counter({'G': 63, 'N': 1})
+vars 65 intvars 0 bound_types Counter({'UP': 63})
+
+BOUNDS excerpt
+BOUNDS
+ UP BND       d1                   1
+ UP BND       d2                   1
+ UP BND       d3                   1
+ UP BND       d4                   1
+ UP BND       d5                   1
+ UP BND       d6                   1
+ UP BND       d7                   1
+ UP BND       d8                   1
+ UP BND       d9                   1
+ UP BND       d10                  1
+ UP BND       d11                  1
+ UP BND       d12                  1
+ UP BND       d13                  1
+ UP BND       d14                  1
+ UP BND       d15                  1
+ UP BND       d16                  1
+ UP BND       d17                  1
+ UP BND       d18                  1
+ UP BND       d19                  1
+ UP BND       d20                  1
+ UP BND       d21                  1
+ UP BND       d22                  1
+ UP BND       d23                  1
+ UP BND       d24                  1
+ UP BND       d25                  1
+ UP BND       d26                  1
+ UP BND       d27                  1
+ UP BND       d28                  1
+ UP BND       d29                  1
+ UP BND       d30                  1
+ UP BND       d31                  1
+ UP BND       d32                  1
+ UP BND       d33                  1
+ UP BND       d34                  1
+ UP BND       d35                  1
+ UP BND       d36                  1
+ UP BND       d37                  1
+ UP BND       d38                  1
+ UP BND       d39                  1
+ UP BND       d40                  1
+ UP BND       d41                  1
+root@f91c95941a9c:/app# true; tmux wait -S done
+root@f91c95941a9c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@f91c95941a9c:/app# grep -n "MARKER\|INTORG\|INTEND" /app/question.mps; sed -n '60,140p' /app/question.mps; tail -80 /app/question.mps
+68:    MARK0000  'MARKER'                 'INTORG'
+970:    MARK0001  'MARKER'                 'INTEND'
+ G  R57
+ G  R58
+ G  R59
+ G  R60
+ G  R61
+ G  R62
+ G  R63
+COLUMNS
+    MARK0000  'MARKER'                 'INTORG'
+    d1        r_0                  1   R1                   1
+    d1        R2                   1   R3                   1
+    d1        R4                   1   R5                   1
+    d1        R6                   1   R22                  1
+    d1        R23                  1   R24                  1
+    d1        R25                  1   R26                  1
+    d1        R27                  1   R28                  1
+    d1        R29                  1   R30                  1
+    d1        R31                  1   R32                  1
+    d1        R33                  1   R34                  1
+    d1        R35                  1   R36                  1
+    d1        R37                  1   R38                  1
+    d1        R39                  1   R40                  1
+    d1        R41                  1   R57                  1
+    d1        R58                  1   R59                  1
+    d1        R60                  1   R61                  1
+    d1        R62                  1
+    d2        r_0                  1   R1                   1
+    d2        R2                   1   R3                   1
+    d2        R4                   1   R5                   1
+    d2        R17                  1   R18                  1
+    d2        R19                  1   R20                  1
+    d2        R21                  1   R22                  1
+    d2        R23                  1   R24                  1
+    d2        R25                  1   R26                  1
+    d2        R27                  1   R28                  1
+    d2        R29                  1   R30                  1
+    d2        R31                  1   R47                  1
+    d2        R48                  1   R49                  1
+    d2        R50                  1   R51                  1
+    d2        R52                  1   R53                  1
+    d2        R54                  1   R55                  1
+    d2        R56                  1   R57                  1
+    d2        R63                  1
+    d3        r_0                  1   R1                   1
+    d3        R2                   1   R3                   1
+    d3        R4                   1   R6                   1
+    d3        R13                  1   R14                  1
+    d3        R15                  1   R16                  1
+    d3        R21                  1   R22                  1
+    d3        R23                  1   R24                  1
+    d3        R25                  1   R32                  1
+    d3        R33                  1   R34                  1
+    d3        R35                  1   R36                  1
+    d3        R37                  1   R43                  1
+    d3        R44                  1   R45                  1
+    d3        R46                  1   R51                  1
+    d3        R52                  1   R53                  1
+    d3        R54                  1   R55                  1
+    d3        R56                  1   R58                  1
+    d3        R63                  1
+    d4        r_0                  1   R1                   1
+    d4        R2                   1   R3                   1
+    d4        R4                   1   R13                  1
+    d4        R14                  1   R15                  1
+    d4        R16                  1   R17                  1
+    d4        R18                  1   R19                  1
+    d4        R20                  1   R22                  1
+    d4        R23                  1   R24                  1
+    d4        R25                  1   R38                  1
+    d4        R39                  1   R40                  1
+    d4        R41                  1   R43                  1
+    d4        R44                  1   R45                  1
+    d4        R46                  1   R47                  1
+    d4        R48                  1   R49                  1
+    d4        R50                  1   R59                  1
+    d4        R60                  1   R61                  1
+    d4        R62                  1
+    d5        r_0                  1   R1                   1
+    d5        R2                   1   R3                   1
+    d5        R5                   1   R6                   1
+    d5        R10                  1   R11                  1
+    RHS       R35                  6   R36                  6
+    RHS       R37                  6   R38                  6
+    RHS       R39                  6   R40                  6
+    RHS       R41                  6   R42                  5
+    RHS       R43                  5   R44                  5
+    RHS       R45                  5   R46                  5
+    RHS       R47                  5   R48                  5
+    RHS       R49                  5   R50                  5
+    RHS       R51                  5   R52                  5
+    RHS       R53                  5   R54                  5
+    RHS       R55                  5   R56                  5
+    RHS       R57                  4   R58                  4
+    RHS       R59                  4   R60                  4
+    RHS       R61                  4   R62                  4
+    RHS       R63                  3
+BOUNDS
+ UP BND       d1                   1
+ UP BND       d2                   1
+ UP BND       d3                   1
+ UP BND       d4                   1
+ UP BND       d5                   1
+ UP BND       d6                   1
+ UP BND       d7                   1
+ UP BND       d8                   1
+ UP BND       d9                   1
+ UP BND       d10                  1
+ UP BND       d11                  1
+ UP BND       d12                  1
+ UP BND       d13                  1
+ UP BND       d14                  1
+ UP BND       d15                  1
+ UP BND       d16                  1
+ UP BND       d17                  1
+ UP BND       d18                  1
+ UP BND       d19                  1
+ UP BND       d20                  1
+ UP BND       d21                  1
+ UP BND       d22                  1
+ UP BND       d23                  1
+ UP BND       d24                  1
+ UP BND       d25                  1
+ UP BND       d26                  1
+ UP BND       d27                  1
+ UP BND       d28                  1
+ UP BND       d29                  1
+ UP BND       d30                  1
+ UP BND       d31                  1
+ UP BND       d32                  1
+ UP BND       d33                  1
+ UP BND       d34                  1
+ UP BND       d35                  1
+ UP BND       d36                  1
+ UP BND       d37                  1
+ UP BND       d38                  1
+ UP BND       d39                  1
+ UP BND       d40                  1
+ UP BND       d41                  1
+ UP BND       d42                  1
+ UP BND       d43                  1
+ UP BND       d44                  1
+ UP BND       d45                  1
+ UP BND       d46                  1
+ UP BND       d47                  1
+ UP BND       d48                  1
+ UP BND       d49                  1
+ UP BND       d50                  1
+ UP BND       d51                  1
+ UP BND       d52                  1
+ UP BND       d53                  1
+ UP BND       d54                  1
+ UP BND       d55                  1
+ UP BND       d56                  1
+ UP BND       d57                  1
+ UP BND       d58                  1
+ UP BND       d59                  1
+ UP BND       d60                  1
+ UP BND       d61                  1
+ UP BND       d62                  1
+ UP BND       d63                  1
+ENDATA
+root@f91c95941a9c:/app# true; tmux wait -S done
+root@f91c95941a9c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@f91c95941a9c:/app# set -e
+root@f91c95941a9c:/app# python - <<'PY'
+> import importlib.util
+> print('highspy before', bool(importlib.util.find_spec('highspy')))
+> PY
+highspy before False
+root@f91c95941a9c:/app# python -m pip install --quiet highspy || true
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your syst
+em unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you ar
+e doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 24.3.1 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip
+root@f91c95941a9c:/app# python - <<'PY'
+> import importlib.util
+> print('highspy after', bool(importlib.util.find_spec('highspy')))
+> PY
+highspy after True
+root@f91c95941a9c:/app# true; tmux wait -S done
+root@f91c95941a9c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@f91c95941a9c:/app# python - <<'PY'
+> from highspy import Highs
+> h=Highs()
+> h.setOptionValue('output_flag', True)
+> h.setOptionValue('time_limit', 300.0)
+> status=h.readModel('/app/question.mps')
+> print('read status', status)
+> h.run()
+> print('model status', h.getModelStatus(), h.modelStatusToString(h.getModelStatus()))
+> info=h.getInfo()
+> print('objective', info.objective_function_value)
+> sol=h.getSolution()
+> print('num col', len(sol.col_value), 'sum', sum(sol.col_value))
+> print('values', sol.col_value[:70])
+> PY
+Running HiGHS 1.15.1 (git hash: 04024d7): Copyright (c) 2026 under MIT licence terms
+Includes third-party software components, see THIRD_PARTY_NOTICES.md for full details
+read status HighsStatus.kOk
+MIP question has 63 rows; 63 cols; 2016 nonzeros; 53 integer variables (53 binary)
+Coefficient ranges:
+  Matrix  [1e+00, 1e+00]
+  Cost    [1e+00, 1e+00]
+  Bound   [1e+00, 1e+00]
+  RHS     [3e+00, 8e+00]
+Presolving model
+63 rows, 63 cols, 2016 nonzeros 0s
+63 rows, 63 cols, 2016 nonzeros 0s
+Presolve reductions: rows 63(-0); columns 63(-0); nonzeros 2016(-0) - Not reduced
+
+Solving MIP model with:
+   63 rows
+   63 cols (53 binary, 0 integer, 0 implied int., 10 continuous, 0 domain fixed)
+   2016 nonzeros
+   Thread count 8 (of 16 threads). Using 1 max workers. Parallel search off
+
+Src: B => Branching; C => Central rounding; F => Feasibility pump; H => Heuristic;
+     I => Shifting; J => Feasibility jump; L => Sub-MIP; P => Empty MIP; R => Randomized rounding;
+     S => Solve LP; T => Evaluate node; U => Unbounded; X => User solution; Y => HiGHS solution;
+     Z => ZI Round; l => Trivial lower; p => Trivial point; u => Trivial upper; z => Trivial zero
+
+        Nodes      |    B&B Tree     |            Objective Bounds              |  Dynamic Constraints |       Work
+Src  Proc. InQueue |  Leaves   Expl. | BestBound       BestSol              Gap |   Cuts   InLp Confl. | LpIters     Time
+
+ J       0       0         0   0.00%   -inf            20                 Large        0      0      0         0     0.0s
+         0       0         0   0.00%   13              20                35.00%        0      0      0        58     0.0s
+ L       0       0         0   0.00%   13.31712948     15.5              14.08%      780     14      0       132     0.3s
+ L       0       0         0   0.00%   13.31712948     15.5              14.08%      780     14      0      1216     0.4s
+
+Symmetry detection completed in 0.0s
+Found 2 generator(s)
+
+ L       0       0         0   0.00%   13.31712948     15                11.22%      780     11      0      2303     0.6s
+ T     311      40       133   3.20%   13.39569241     15                10.70%     1172     13    207     14342     1.0s
+
+Restarting search from the root node
+Model after restart has 63 rows, 63 cols (53 bin., 0 int., 0 impl., 10 cont., 0 dom.fix.), and 2016 nonzeros
+
+      1108       0         0   0.00%   13.39569241     15                10.70%       13      0      0     26081     1.6s
+      1108       0         0   0.00%   13.39569241     15                10.70%       13     10      0     26099     1.6s
+
+Symmetry detection completed in 0.0s
+Found 2 generator(s)
+
+ T    2052      85       428   3.52%   13.65516769     15                 8.97%     1695     25    448     48630     3.3s
+
+Restarting search from the root node
+Model after restart has 63 rows, 63 cols (53 bin., 0 int., 0 impl., 10 cont., 0 dom.fix.), and 2016 nonzeros
+
+      4794       0         0   0.00%   13.75           15                 8.33%       25      0      0     84350     4.6s
+      4794       0         0   0.00%   13.75           15                 8.33%       25     13      0     84373     4.6s
+
+Symmetry detection completed in 0.0s
+Found 2 generator(s)
+
+ T    7950     143      1503   6.89%   13.75           15                 8.33%     2422     19   2123    128287     6.5s
+ L   10866     257      2904  10.40%   13.75           15                 8.33%     1760     19   4049    166606     8.6s
+ T   15860     418      5319  16.40%   13.8            15                 8.00%     1556     18   7308    240255    11.0s
+ T   23030     625      8796  22.01%   14              15                 6.67%     1481     17   9243    330261    14.5s
+     29458     824     11908  28.33%   14              15                 6.67%     1614     18   8903    424385    19.5s
+     39324    1122     16686  37.73%   14              15                 6.67%     1657     22   8336    547343    24.5s
+     46095    1303     19971  43.56%   14              15                 6.67%     1512     20   8202    627203    29.7s
+     56875    1548     25228  53.11%   14.08333333     15                 6.11%     1584     24   7684    778533    34.7s
+     68246    1830     30762  59.31%   14.125          15                 5.83%     1602     15   8572    918525    39.7s
+
+        Nodes      |    B&B Tree     |            Objective Bounds              |  Dynamic Constraints |       Work
+Src  Proc. InQueue |  Leaves   Expl. | BestBound       BestSol              Gap |   Cuts   InLp Confl. | LpIters     Time
+
+ L   73731    1965     33435  60.96%   14.125          15                 5.83%     1379     15   8285    980255    42.9s
+     85777    2178     39340  66.18%   14.18181818     15                 5.45%     1608     36   6051     1140k    47.9s
+     93499    2326     43126  68.67%   14.2            15                 5.33%     1215     15   5651     1232k    54.3s
+    104328    2503     48443  70.71%   14.22435897     15                 5.17%     1470     18   5554     1391k    59.3s
+    116054    2688     54206  75.97%   14.25           15                 5.00%     1440     21   5341     1529k    64.3s
+    127750    2695     60046  79.90%   14.31395349     15                 4.57%     1328     20   3633     1671k    69.3s
+    135691    2678     64018  81.60%   14.35           15                 4.33%     1287     19   4208     1759k    74.4s
+    147268    2486     69895  83.90%   14.41666667     15                 3.89%     1285     27   3223     1918k    79.4s
+    158587    2201     75695  86.15%   14.5            15                 3.33%     1135     19   2794     2046k    84.4s
+    170353    2037     81657  88.87%   14.5            15                 3.33%     1149     24   3169     2172k    89.4s
+    181926    1700     87609  89.94%   14.56           15                 2.93%     1153     19   2815     2293k    94.4s
+    193448     960     93737  93.20%   14.7            15                 2.00%     1060     21   1829     2424k    99.4s
+    201637       0     98310 100.00%   14.99897225     15                 0.01%     1259     23   2042     2523k   103.3s
+
+Solving report
+  Model             question
+  Status            Optimal
+  Primal bound      15
+  Dual bound        14.9989722508
+  Gap               0.00685% (tolerance: 0.01%)
+  P-D integral      5.62914435479
+  Solution status   feasible
+                    15 (objective)
+                    0 (bound viol.)
+                    9.76407843467e-12 (int. viol.)
+                    0 (row viol.)
+  Timing            103.30
+                    0.47 (Presolve)
+                        MIP    time [calls] = 0.01 [1]
+                        subMIP time [calls] = 0.47 [538]
+                    102.76 (Solve)
+                        MIP    time [calls] = 90.63 [1]
+                        subMIP time [calls] = 12.12 [538]
+                    0.00 (Postsolve)
+                        MIP    time [calls] = 0.00 [1]
+                        subMIP time [calls] = 0.00 [538]
+  Max sub-MIP depth 10
+  Nodes             201637
+  Repair LPs        3 (3 feasible; 20 iterations)
+  LP iterations     2523993
+                    9754 (strong br.)
+                    59565 (separation)
+                    130603 (heuristics)
+model status HighsModelStatus.kOptimal Optimal
+objective 14.999999999982984
+num col 63 sum 14.999999999982984
+values [0.9999999999902359, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 2.422728684334391e-12, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.9999999999945873, 1.0, 1.0,
+ 0.0, 0.0, 0.0, 0.0, 0.9999999999923419, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.9999999999989055, 1.0, 0.0, 0.0, 0.0, 0.0, 6.697975507540019e-12, 1.0, 0
+.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5000000000009803, 0.5000000000013525, 1.5507595207964187e-12, 4.202860282020986e-12, 0.5000000000005523, 0.49
+99999999934518, 2.071471417165685e-12, -6.3693118479775506e-12, 0.0, 0.0]
+root@f91c95941a9c:/app# true; tmux wait -S done
+root@f91c95941a9c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@f91c95941a9c:/app# echo -n "15" > /app/answer.txt
+root@f91c95941a9c:/app# printf 'answer content: ['; cat /app/answer.txt; printf ']\n'
+answer content: [15]
+root@f91c95941a9c:/app# python - <<'PY'
+> from pathlib import Path
+> p=Path('/app/answer.txt')
+> content=p.read_text()
+> assert content == '15', repr(content)
+> print('verified /app/answer.txt contains exactly:', content)
+> PY
+verified /app/answer.txt contains exactly: 15
+root@f91c95941a9c:/app# true; tmux wait -S done
+root@f91c95941a9c:/app#

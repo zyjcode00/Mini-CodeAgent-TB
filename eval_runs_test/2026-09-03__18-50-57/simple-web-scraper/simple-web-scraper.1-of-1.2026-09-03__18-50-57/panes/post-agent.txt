@@ -1,0 +1,578 @@
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+R}|g" \
+        -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+        /etc/apt/sources.list.d/debian.sources
+fi
+
+mkdir -p /root/.config/uv
+cat > /root/.config/uv/uv.toml <<EOF
+index-url = "${UV_INDEX_URL}"
+EOF
+
+apt-get update || true
+true; tmux wait -S done
+root@fc883afb4770:/app# set +e
+root@fc883afb4770:/app#
+root@fc883afb4770:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@fc883afb4770:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@fc883afb4770:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@fc883afb4770:/app#
+root@fc883afb4770:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@fc883afb4770:/app#
+root@fc883afb4770:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@fc883afb4770:/app#
+root@fc883afb4770:/app# mkdir -p /root/.config/uv
+root@fc883afb4770:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@fc883afb4770:/app#
+root@fc883afb4770:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 9s (1076 kB/s)
+Reading package lists... Done
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# ls -la /app && find /app -maxdepth 2 -type f -printf '%p\n' | sort
+total 8
+drwxr-xr-x 2 root root 4096 Mar 28  2025 .
+drwxr-xr-x 1 root root 4096 Sep  3 10:51 ..
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+write_books_csv(books: Iterable[Book], csv_path: Path = CSV_PATH) -> pd.DataFrame:\n    """Write books to CSV and return the DataFrame that was written."""\n
+ df = books_to_dataframe(books)\n    csv_path.parent.mkdir(parents=True, exist_ok=True)\n    df.to_csv(csv_path, index=False)\n    return df\n\n\ndef highest_ra
+ted_book(df: pd.DataFrame) -> Optional[pd.Series]:\n    """Return the row for the highest rated book, or None when empty."""\n    if df.empty:\n        return N
+one\n    return df.loc[df["rating"].idxmax()]\n\n\ndef build_report(df: pd.DataFrame) -> str:\n    """Build the requested summary report text."""\n    total_boo
+ks = len(df)\n    average_price = 0.0 if df.empty else float(df["price"].mean())\n    highest = highest_rated_book(df)\n\n    lines = [\n        f"Total number
+of books scraped: {total_books}",\n        f"Average book price: ${average_price:.2f}",\n    ]\n\n    if highest is None:\n        lines.append("Highest rated b
+ook: N/A")\n    else:\n        lines.append(\n            "Highest rated book: "\n            f"{highest[\'title\']}root@fc883afb4770:/app# python3 - /app/scrap
+e_books.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Scrape book information from the local bookstore website.\n\nThe scraper fetches http://server:8000, extracts book title
+, author, year,\nrating, and price from the documented HTML structure, then writes:\n  - /app/books.csv\n  - /app/report.txt\n"""\n\nfrom __future__ import anno
+tations\n\nimport re\nfrom dataclasses import dataclass\nfrom pathlib import Path\nfrom typing import Iterable, Optional\n\nimport pandas as pd\nimport requests
+\nfrom bs4 import BeautifulSoup\n\nURL = "http://server:8000"\nCSV_PATH = Path("/app/books.csv")\nREPORT_PATH = Path("/app/report.txt")\nCSV_COLUMNS = ["title",
+ "author", "year", "rating", "price"]\n\n\n@dataclass(frozen=True)\nclass Book:\n    title: str\n    author: str\n    year: int\n    rating: float\n    price: f
+loat\n\n\ndef _required_text(parent, selector: str) -> str:\n    """Return stripped text for a required selector or raise ValueError."""\n    element = parent.s
+elect_one(selector)\n    if element is None:\n        raise ValueError(f"Missing required element: {selector}")\n    return element.get_text(strip=True)\n\n\nde
+f _first_number(text: str, *, as_float: bool = False):\n    """Extract the first integer/decimal number from text."""\n    match = re.search(r"\\d+(?:\\.\\d+)?"
+, text)\n    if not match:\n        raise ValueError(f"No numeric value found in: {text!r}")\n    value = match.group(0)\n    return float(value) if as_float el
+se int(float(value))\n\n\ndef clean_author(text: str) -> str:\n    """Normalize author text such as \'by Jane Austen\' to \'Jane Austen\'."""\n    return re.sub
+(r"^\\s*by\\s+", "", text, flags=re.IGNORECASE).strip()\n\n\ndef parse_book(book_element) -> Book:\n    """Parse a single <div class=\'book\'> element into a Bo
+ok."""\n    title = _required_text(book_element, ".book-title")\n    author = clean_author(_required_text(book_element, ".book-author"))\n    year = _first_numb
+er(_required_text(book_element, ".book-year"))\n    rating = _first_number(_required_text(book_element, ".book-rating"), as_float=True)\n    price = _first_numb
+er(_required_text(book_element, ".book-price"), as_float=True)\n    return Book(title=title, author=author, year=year, rating=rating, price=price)\n\n\ndef pars
+e_books(html: str) -> list[Book]:\n    """Parse all books from the bookstore HTML."""\n    soup = BeautifulSoup(html, "html.parser")\n    return [parse_book(boo
+k_div) for book_div in soup.select("div.book")]\n\n\ndef fetch_html(url: str = URL, timeout: int = 10) -> str:\n    """Fetch bookstore HTML and raise for HTTP/n
+etwork failures."""\n    response = requests.get(url, timeout=timeout)\n    response.raise_for_status()\n    return response.text\n\n\ndef books_to_dataframe(bo
+oks: Iterable[Book]) -> pd.DataFrame:\n    """Convert parsed books to a DataFrame with the required CSV columns."""\n    rows = [book.__dict__ for book in books
+]\n    return pd.DataFrame(rows, columns=CSV_COLUMNS)\n\n\ndef write_books_csv(books: Iterable[Book], csv_path: Path = CSV_PATH) -> pd.DataFrame:\n    """Write
+books to CSV and return the DataFrame that was written."""\n    df = books_to_dataframe(books)\n    csv_path.parent.mkdir(parents=True, exist_ok=True)\n    df.t
+o_csv(csv_path, index=False)\n    return df\n\n\ndef highest_rated_book(df: pd.DataFrame) -> Optional[pd.Series]:\n    """Return the row for the highest rated b
+ook, or None when empty."""\n    if df.empty:\n        return None\n    return df.loc[df["rating"].idxmax()]\n\n\ndef build_report(df: pd.DataFrame) -> str:\n
+  """Build the requested summary report text."""\n    total_books = len(df)\n    average_price = 0.0 if df.empty else float(df["price"].mean())\n    highest = h
+ighest_rated_book(df)\n\n    lines = [\n        f"Total number of books scraped: {total_books}",\n        f"Average book price: ${average_price:.2f}",\n    ]\n\
+n    if highest is None:\n        lines.append("Highest rated book: N/A")\n    else:\n        lines.append(\n            "Highest rated book: "\n            f"{
+highest[\'title\']} by {highest[\'author\']} "\n            f"(Rating: {float(highest[\'rating\']):.1f}/5)"\n        )\n\n    return "\\n".join(lines) + "\\n"\n
+\n\ndef write_report(df: pd.DataFrame, report_path: Path = REPORT_PATH) -> str:\n    """Write the summary report and return its content."""\n    report = build_
+report(df)\n    report_path.parent.mkdir(parents=True, exist_ok=True)\n    report_path.write_text(report, encoding="utf-8")\n    return report\n\n\ndef scrape(u
+rl: str = URL, csv_path: Path = CSV_PATH, report_path: Path = REPORT_PATH) -> pd.DataFrame:\n    """Fetch, parse, save CSV, and save report."""\n    html = fetc
+h_html(url)\n    books = parse_books(html)\n    df = write_books_csv(books, csv_path)\n    write_report(df, report_path)\n    return df\n\n\ndef main() -> None:
+\n    df = scrape()\n    print(f"Scraped {len(df)} books")\n    print(f"Wrote {CSV_PATH}")\n    print(f"Wrote {REPORT_PATH}")\n\n\nif __name__ == "__main__":\n
+   main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/scrape_books.py
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# if [ -f /app/scrape_books.py ]; then cat -- /app/scrape_books.py; else echo '错误: 找不到文件 /app/scrape_books.py'; fi
+#!/usr/bin/env python3
+"""Scrape book information from the local bookstore website.
+
+The scraper fetches http://server:8000, extracts book title, author, year,
+rating, and price from the documented HTML structure, then writes:
+  - /app/books.csv
+  - /app/report.txt
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable, Optional
+
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+
+URL = "http://server:8000"
+CSV_PATH = Path("/app/books.csv")
+REPORT_PATH = Path("/app/report.txt")
+CSV_COLUMNS = ["title", "author", "year", "rating", "price"]
+
+
+@dataclass(frozen=True)
+class Book:
+    title: str
+    author: str
+    year: int
+    rating: float
+    price: float
+
+
+def _required_text(parent, selector: str) -> str:
+    """Return stripped text for a required selector or raise ValueError."""
+    element = parent.select_one(selector)
+    if element is None:
+        raise ValueError(f"Missing required element: {selector}")
+    return element.get_text(strip=True)
+
+
+def _first_number(text: str, *, as_float: bool = False):
+    """Extract the first integer/decimal number from text."""
+    match = re.search(r"\d+(?:\.\d+)?", text)
+    if not match:
+        raise ValueError(f"No numeric value found in: {text!r}")
+    value = match.group(0)
+    return float(value) if as_float else int(float(value))
+
+
+def clean_author(text: str) -> str:
+    """Normalize author text such as 'by Jane Austen' to 'Jane Austen'."""
+    return re.sub(r"^\s*by\s+", "", text, flags=re.IGNORECASE).strip()
+
+
+def parse_book(book_element) -> Book:
+    """Parse a single <div class='book'> element into a Book."""
+    title = _required_text(book_element, ".book-title")
+    author = clean_author(_required_text(book_element, ".book-author"))
+    year = _first_number(_required_text(book_element, ".book-year"))
+    rating = _first_number(_required_text(book_element, ".book-rating"), as_float=True)
+    price = _first_number(_required_text(book_element, ".book-price"), as_float=True)
+    return Book(title=title, author=author, year=year, rating=rating, price=price)
+
+
+def parse_books(html: str) -> list[Book]:
+    """Parse all books from the bookstore HTML."""
+    soup = BeautifulSoup(html, "html.parser")
+    return [parse_book(book_div) for book_div in soup.select("div.book")]
+
+
+def fetch_html(url: str = URL, timeout: int = 10) -> str:
+    """Fetch bookstore HTML and raise for HTTP/network failures."""
+    response = requests.get(url, timeout=timeout)
+    response.raise_for_status()
+    return response.text
+
+
+def books_to_dataframe(books: Iterable[Book]) -> pd.DataFrame:
+    """Convert parsed books to a DataFrame with the required CSV columns."""
+    rows = [book.__dict__ for book in books]
+    return pd.DataFrame(rows, columns=CSV_COLUMNS)
+
+
+def write_books_csv(books: Iterable[Book], csv_path: Path = CSV_PATH) -> pd.DataFrame:
+    """Write books to CSV and return the DataFrame that was written."""
+    df = books_to_dataframe(books)
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(csv_path, index=False)
+    return df
+
+
+def highest_rated_book(df: pd.DataFrame) -> Optional[pd.Series]:
+    """Return the row for the highest rated book, or None when empty."""
+    if df.empty:
+        return None
+    return df.loc[df["rating"].idxmax()]
+
+
+def build_report(df: pd.DataFrame) -> str:
+    """Build the requested summary report text."""
+    total_books = len(df)
+    average_price = 0.0 if df.empty else float(df["price"].mean())
+    highest = highest_rated_book(df)
+
+    lines = [
+        f"Total number of books scraped: {total_books}",
+        f"Average book price: ${average_price:.2f}",
+    ]
+
+    if highest is None:
+        lines.append("Highest rated book: N/A")
+    else:
+        lines.append(
+            "Highest rated book: "
+            f"{highest['title']} by {highest['author']} "
+            f"(Rating: {float(highest['rating']):.1f}/5)"
+        )
+
+    return "\n".join(lines) + "\n"
+
+
+def write_report(df: pd.DataFrame, report_path: Path = REPORT_PATH) -> str:
+    """Write the summary report and return its content."""
+    report = build_report(df)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(report, encoding="utf-8")
+    return report
+
+
+def scrape(url: str = URL, csv_path: Path = CSV_PATH, report_path: Path = REPORT_PATH) -> pd.DataFrame:
+    """Fetch, parse, save CSV, and save report."""
+    html = fetch_html(url)
+    books = parse_books(html)
+    df = write_books_csv(books, csv_path)
+    write_report(df, report_path)
+    return df
+
+
+def main() -> None:
+    df = scrape()
+    print(f"Scraped {len(df)} books")
+    print(f"Wrote {CSV_PATH}")
+    print(f"Wrote {REPORT_PATH}")
+
+
+if __name__ == "__main__":
+    main()
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+05, "rating": 4.9, "price": 20.0},\n    ]\n\n\ndef test_build_report_includes_summary_values():\n    df = scrape_books.books_to_dataframe([\n        Book("The F
+irst Book", "Alice Writer", 1999, 4.7, 12.50),\n        Book("Second Story", "Bob Author", 2005, 4.9, 20.00),\n    ])\n\n    report = scrape_books.build_report(
+df)\n\n    assert "Total number of books scraped: 2" in report\n    assert "Average book price: $16.25" in report\n    assert "Highest rated book: Second Story
+by Bob Author (Rating: 4.9/5)" in report\n\n\ndef test_scrape_fetches_html_and_writes_outputs(tmp_path):\n    csv_path = tmp_path / "books.csv"\n    report_path
+ = tmp_path / "report.txt"\n    mock_response = Mock()\n    mock_response.text = SAMPLE_HTML\n    mock_response.raise_for_status = Mock()\n\n    with patch("scr
+ape_books.requests.get", return_value=mock_response) as mock_get:\n        df = scrape_books.scrape("http://example.test", csv_path, report_path)\n\n    mock_ge
+t.assert_called_once_with("http://example.test", timeout=10)\n    assert len(df) == 2\n    assert csv_path.exists()\n    assert report_path.exists()\n    assert
+ pd.read_csv(csv_path).shape == (2, 5)\n    assert "Highest rated book: Second Story by Bob Author" in report_path.read_text(encoding="utf-8")\n'
+dir_path = os.path.dirname(path)
+if dir_path:
+    os.makedirs(dir_path, exist_ok=True)
+try:
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(content)
+    print(f"成功: 已写入 {path}")
+except Exception as exc:
+    print(f"写入失败: {exc}")
+PY
+true; tmux wait -S done
+root@fc883afb4770:/app# python3 - /app/test_scrape_books.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'from pathlib import Path\nfrom unittest.mock import Mock, patch\n\nimport pandas as pd\n\nimport scrape_books\nfrom scrape_books import Book\n\n\nS
+AMPLE_HTML = """\n<html>\n  <body>\n    <div class="book">\n      <div class="book-title">The First Book</div>\n      <div class="book-author">by Alice Writer</
+div>\n      <div class="book-details">\n        <span class="book-year">Published: 1999</span>\n        <span class="book-rating">Rating: 4.7/5</span>\n
+<span class="book-price">$12.50</span>\n      </div>\n    </div>\n    <div class="book">\n      <div class="book-title">Second Story</div>\n      <div class="bo
+ok-author">by Bob Author</div>\n      <div class="book-details">\n        <span class="book-year">Published: 2005</span>\n        <span class="book-rating">Rati
+ng: 4.9/5</span>\n        <span class="book-price">$20.00</span>\n      </div>\n    </div>\n  </body>\n</html>\n"""\n\n\ndef test_parse_books_extracts_required_
+fields():\n    books = scrape_books.parse_books(SAMPLE_HTML)\n\n    assert books == [\n        Book("The First Book", "Alice Writer", 1999, 4.7, 12.50),\n
+  Book("Second Story", "Bob Author", 2005, 4.9, 20.00),\n    ]\n\n\ndef test_write_books_csv_has_required_columns(tmp_path):\n    csv_path = tmp_path / "books.c
+sv"\n    books = [\n        Book("The First Book", "Alice Writer", 1999, 4.7, 12.50),\n        Book("Second Story", "Bob Author", 2005, 4.9, 20.00),\n    ]\n\n
+   df = scrape_books.write_books_csv(books, csv_path)\n    loaded = pd.read_csv(csv_path)\n\n    assert list(df.columns) == ["title", "author", "year", "rating"
+, "price"]\n    assert list(loaded.columns) == ["title", "author", "year", "rating", "price"]\n    assert loaded.to_dict("records") == [\n        {"title": "The
+ First Book", "author": "Alice Writer", "year": 1999, "rating": 4.7, "price": 12.5},\n        {"title": "Second Story", "author": "Bob Author", "year": 2005, "r
+ating": 4.9, "price": 20.0},\n    ]\n\n\ndef test_build_report_includes_summary_values():\n    df = scrape_books.books_to_dataframe([\n        Book("The First B
+ook", "Alice Writer", 1999, 4.7, 12.50),\n        Book("Second Story", "Bob Author", 2005, 4.9, 20.00),\n    ])\n\n    report = scrape_books.build_report(df)\n\
+n    assert "Total number of books scraped: 2" in report\n    assert "Average book price: $16.25" in report\n    assert "Highest rated book: Second Story by Bob
+ Author (Rating: 4.9/5)" in report\n\n\ndef test_scrape_fetches_html_and_writes_outputs(tmp_path):\n    csv_path = tmp_path / "books.csv"\n    report_path = tmp
+_path / "report.txt"\n    mock_response = Mock()\n    mock_response.text = SAMPLE_HTML\n    mock_response.raise_for_status = Mock()\n\n    with patch("scrape_bo
+oks.requests.get", return_value=mock_response) as mock_get:\n        df = scrape_books.scrape("http://example.test", csv_path, report_path)\n\n    mock_get.asse
+rt_called_once_with("http://example.test", timeout=10)\n    assert len(df) == 2\n    assert csv_path.exists()\n    assert report_path.exists()\n    assert pd.re
+ad_csv(csv_path).shape == (2, 5)\n    assert "Highest rated book: Second Story by Bob Author" in report_path.read_text(encoding="utf-8")\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_scrape_books.py
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# if [ -f /app/test_scrape_books.py ]; then cat -- /app/test_scrape_books.py; else echo '错误: 找不到文件 /app/test_scrape_books.py'; fi
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pandas as pd
+
+import scrape_books
+from scrape_books import Book
+
+
+SAMPLE_HTML = """
+<html>
+  <body>
+    <div class="book">
+      <div class="book-title">The First Book</div>
+      <div class="book-author">by Alice Writer</div>
+      <div class="book-details">
+        <span class="book-year">Published: 1999</span>
+        <span class="book-rating">Rating: 4.7/5</span>
+        <span class="book-price">$12.50</span>
+      </div>
+    </div>
+    <div class="book">
+      <div class="book-title">Second Story</div>
+      <div class="book-author">by Bob Author</div>
+      <div class="book-details">
+        <span class="book-year">Published: 2005</span>
+        <span class="book-rating">Rating: 4.9/5</span>
+        <span class="book-price">$20.00</span>
+      </div>
+    </div>
+  </body>
+</html>
+"""
+
+
+def test_parse_books_extracts_required_fields():
+    books = scrape_books.parse_books(SAMPLE_HTML)
+
+    assert books == [
+        Book("The First Book", "Alice Writer", 1999, 4.7, 12.50),
+        Book("Second Story", "Bob Author", 2005, 4.9, 20.00),
+    ]
+
+
+def test_write_books_csv_has_required_columns(tmp_path):
+    csv_path = tmp_path / "books.csv"
+    books = [
+        Book("The First Book", "Alice Writer", 1999, 4.7, 12.50),
+        Book("Second Story", "Bob Author", 2005, 4.9, 20.00),
+    ]
+
+    df = scrape_books.write_books_csv(books, csv_path)
+    loaded = pd.read_csv(csv_path)
+
+    assert list(df.columns) == ["title", "author", "year", "rating", "price"]
+    assert list(loaded.columns) == ["title", "author", "year", "rating", "price"]
+    assert loaded.to_dict("records") == [
+        {"title": "The First Book", "author": "Alice Writer", "year": 1999, "rating": 4.7, "price": 12.5},
+        {"title": "Second Story", "author": "Bob Author", "year": 2005, "rating": 4.9, "price": 20.0},
+    ]
+
+
+def test_build_report_includes_summary_values():
+    df = scrape_books.books_to_dataframe([
+        Book("The First Book", "Alice Writer", 1999, 4.7, 12.50),
+        Book("Second Story", "Bob Author", 2005, 4.9, 20.00),
+    ])
+
+    report = scrape_books.build_report(df)
+
+    assert "Total number of books scraped: 2" in report
+    assert "Average book price: $16.25" in report
+    assert "Highest rated book: Second Story by Bob Author (Rating: 4.9/5)" in report
+
+
+def test_scrape_fetches_html_and_writes_outputs(tmp_path):
+    csv_path = tmp_path / "books.csv"
+    report_path = tmp_path / "report.txt"
+    mock_response = Mock()
+    mock_response.text = SAMPLE_HTML
+    mock_response.raise_for_status = Mock()
+
+    with patch("scrape_books.requests.get", return_value=mock_response) as mock_get:
+        df = scrape_books.scrape("http://example.test", csv_path, report_path)
+
+    mock_get.assert_called_once_with("http://example.test", timeout=10)
+    assert len(df) == 2
+    assert csv_path.exists()
+    assert report_path.exists()
+    assert pd.read_csv(csv_path).shape == (2, 5)
+    assert "Highest rated book: Second Story by Bob Author" in report_path.read_text(encoding="utf-8")
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# python3 -m pytest -v -- /app/test_scrape_books.py
+/usr/local/bin/python3: No module named pytest
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# python3 - <<'PY'
+> import requests
+> url='http://server:8000'
+> try:
+>     r=requests.get(url, timeout=10)
+>     print('status', r.status_code)
+>     print(r.text[:2000])
+> except Exception as e:
+>     print(type(e).__name__, e)
+> PY
+status 200
+<!DOCTYPE html><html><head><title>Book Store</title></head><body><h1>Simple Book Store</h1><div class='books-container'>
+            <div class="book">
+                <div class="book-title">The Great Gatsby</div>
+                <div class="book-author">by F. Scott Fitzgerald</div>
+                <div class="book-details">
+                    <span class="book-year">Published: 1925</span>
+                    <span class="book-rating">Rating: 4.2/5</span>
+                    <span class="book-price">$12.99</span>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="book-title">To Kill a Mockingbird</div>
+                <div class="book-author">by Harper Lee</div>
+                <div class="book-details">
+                    <span class="book-year">Published: 1960</span>
+                    <span class="book-rating">Rating: 4.8/5</span>
+                    <span class="book-price">$14.99</span>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="book-title">1984</div>
+                <div class="book-author">by George Orwell</div>
+                <div class="book-details">
+                    <span class="book-year">Published: 1949</span>
+                    <span class="book-rating">Rating: 4.6/5</span>
+                    <span class="book-price">$11.99</span>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="book-title">Pride and Prejudice</div>
+                <div class="book-author">by Jane Austen</div>
+                <div class="book-details">
+                    <span class="book-year">Published: 1813</span>
+                    <span class="book-rating">Rating: 4.5/5</span>
+                    <span class="book-price">$9.99</span>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="book-title">The Catcher in t
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# python3 -m py_compile /app/scrape_books.py /app/test_scrape_books.py
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@fc883afb4770:/app# cd /app && python3 - <<'PY'
+> import tempfile
+> from pathlib import Path
+> from unittest.mock import Mock, patch
+>
+> import pandas as pd
+> import scrape_books
+> from scrape_books import Book
+>
+> SAMPLE_HTML = '''
+> <html><body>
+> <div class="book">
+>   <div class="book-title">The First Book</div>
+>   <div class="book-author">by Alice Writer</div>
+>   <div class="book-details">
+>     <span class="book-year">Published: 1999</span>
+>     <span class="book-rating">Rating: 4.7/5</span>
+>     <span class="book-price">$12.50</span>
+>   </div>
+> </div>
+> <div class="book">
+>   <div class="book-title">Second Story</div>
+>   <div class="book-author">by Bob Author</div>
+>   <div class="book-details">
+>     <span class="book-year">Published: 2005</span>
+>     <span class="book-rating">Rating: 4.9/5</span>
+>     <span class="book-price">$20.00</span>
+>   </div>
+> </div>
+> </body></html>
+> '''
+>
+> books = scrape_books.parse_books(SAMPLE_HTML)
+> assert books == [
+>     Book('The First Book', 'Alice Writer', 1999, 4.7, 12.5),
+>     Book('Second Story', 'Bob Author', 2005, 4.9, 20.0),
+> ]
+>
+> with tempfile.TemporaryDirectory() as tmp:
+>     tmp = Path(tmp)
+>     csv_path = tmp / 'books.csv'
+>     report_path = tmp / 'report.txt'
+>     df = scrape_books.write_books_csv(books, csv_path)
+>     loaded = pd.read_csv(csv_path)
+>     assert list(loaded.columns) == ['title', 'author', 'year', 'rating', 'price']
+>     assert loaded.shape == (2, 5)
+>
+>     report = scrape_books.write_report(df, report_path)
+>     assert 'Total number of books scraped: 2' in report
+>     assert 'Average book price: $16.25' in report
+>     assert 'Highest rated book: Second Story by Bob Author (Rating: 4.9/5)' in report
+>     assert report_path.read_text(encoding='utf-8') == report
+>
+>     mock_response = Mock()
+>     mock_response.text = SAMPLE_HTML
+>     mock_response.raise_for_status = Mock()
+>     with patch('scrape_books.requests.get', return_value=mock_response) as mock_get:
+>         df2 = scrape_books.scrape('http://example.test', tmp / 'full.csv', tmp / 'full_report.txt')
+>     mock_get.assert_called_once_with('http://example.test', timeout=10)
+>     assert len(df2) == 2
+>     assert (tmp / 'full.csv').exists()
+>     assert (tmp / 'full_report.txt').exists()
+>
+> print('Standalone validation passed')
+> PY
+Standalone validation passed
+root@fc883afb4770:/app# python3 /app/scrape_books.py
+Scraped 7 books
+Wrote /app/books.csv
+Wrote /app/report.txt
+root@fc883afb4770:/app# printf '\n--- books.csv ---\n'
+
+--- books.csv ---
+root@fc883afb4770:/app# cat /app/books.csv
+title,author,year,rating,price
+The Great Gatsby,F. Scott Fitzgerald,1925,4.2,12.99
+To Kill a Mockingbird,Harper Lee,1960,4.8,14.99
+1984,George Orwell,1949,4.6,11.99
+Pride and Prejudice,Jane Austen,1813,4.5,9.99
+The Catcher in the Rye,J.D. Salinger,1951,4.1,13.99
+Moby Dick,Herman Melville,1851,4.0,15.99
+The Hobbit,J.R.R. Tolkien,1937,4.7,16.99
+root@fc883afb4770:/app# printf '\n--- report.txt ---\n'
+
+--- report.txt ---
+root@fc883afb4770:/app# cat /app/report.txt
+Total number of books scraped: 7
+Average book price: $13.85
+Highest rated book: To Kill a Mockingbird by Harper Lee (Rating: 4.8/5)
+root@fc883afb4770:/app# true; tmux wait -S done
+root@fc883afb4770:/app#

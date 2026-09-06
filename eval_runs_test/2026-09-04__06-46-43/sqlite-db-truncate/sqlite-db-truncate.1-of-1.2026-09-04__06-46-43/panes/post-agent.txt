@@ -1,0 +1,549 @@
+root@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ab3c654a53a4:/app# set +e
+root@ab3c654a53a4:/app#
+root@ab3c654a53a4:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@ab3c654a53a4:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@ab3c654a53a4:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@ab3c654a53a4:/app#
+root@ab3c654a53a4:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@ab3c654a53a4:/app#
+root@ab3c654a53a4:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@ab3c654a53a4:/app#
+root@ab3c654a53a4:/app# mkdir -p /root/.config/uv
+root@ab3c654a53a4:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@ab3c654a53a4:/app#
+root@ab3c654a53a4:/app# apt-get update || true
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:5 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1530 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:7 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:9 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:10 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1212 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1903 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2151 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1562 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Fetched 32.5 MB in 10s (3157 kB/s)
+Reading package lists... Done
+root@ab3c654a53a4:/app# true; tmux wait -S done
+root@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ab3c654a53a4:/app# ls -l /app/trunc.db /app 2>&1 && file /app/trunc.db && python - <<'PY'
+> import os, struct
+> p='/app/trunc.db'
+> print('size', os.path.getsize(p))
+> with open(p,'rb') as f:
+>     h=f.read(100)
+> print('header', h[:16])
+> if len(h)>=100:
+>     print('page_size', struct.unpack('>H', h[16:18])[0] or 65536)
+>     print('write/read versions', h[18], h[19])
+>     print('reserved', h[20])
+>     print('file change counter', int.from_bytes(h[24:28],'big'))
+>     print('db pages header', int.from_bytes(h[28:32],'big'))
+>     print('schema cookie', int.from_bytes(h[40:44],'big'))
+>     print('schema format', int.from_bytes(h[44:48],'big'))
+> PY
+-rwxr-xr-x 1 root root 4096 Aug 10 16:30 /app/trunc.db
+
+/app:
+total 4
+-rwxr-xr-x 1 root root 4096 Aug 10 16:30 trunc.db
+bash: file: command not found
+root@ab3c654a53a4:/app# true; tmux wait -S done
+root@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ab3c654a53a4:/app# python - <<'PY'
+> import sqlite3
+> p='/app/trunc.db'
+> try:
+>     con=sqlite3.connect(p)
+>     cur=con.cursor()
+>     print('integrity:', cur.execute('pragma integrity_check').fetchall()[:5])
+>     print('tables:', cur.execute("select type,name,tbl_name,sql from sqlite_master").fetchall())
+>     for row in cur.execute("select name from sqlite_master where type='table'"):
+>         print('table',row[0], cur.execute(f'pragma table_info({row[0]})').fetchall())
+>         try:
+>             print('count', cur.execute(f'select count(*) from {row[0]}').fetchone())
+>             print('sample', cur.execute(f'select * from {row[0]} limit 5').fetchall())
+>         except Exception as e: print('queryerr', e)
+> except Exception as e:
+>     print('sqlite error:', type(e).__name__, e)
+> PY
+bash: python: command not found
+root@ab3c654a53a4:/app# true; tmux wait -S done
+root@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ab3c654a53a4:/app# set -u
+root@ab3c654a53a4:/app# ls -l /app/trunc.db /app 2>&1
+-rwxr-xr-x 1 root root 4096 Aug 10 16:30 /app/trunc.db
+
+/app:
+total 4
+-rwxr-xr-x 1 root root 4096 Aug 10 16:30 trunc.db
+root@ab3c654a53a4:/app# python3 - <<'PY'
+> import os, struct, sqlite3, binascii
+> p='/app/trunc.db'
+> print('size', os.path.getsize(p))
+> with open(p,'rb') as f:
+>     h=f.read(256)
+> print('header16', h[:16])
+> print('header_hex_100', binascii.hexlify(h[:100]).decode())
+> if len(h)>=100:
+>     ps=struct.unpack('>H', h[16:18])[0] or 65536
+>     print('page_size', ps)
+>     print('write/read versions', h[18], h[19])
+>     print('reserved', h[20])
+>     print('usable', ps-h[20])
+>     print('db_pages_header', int.from_bytes(h[28:32],'big'))
+>     print('freelist_trunk', int.from_bytes(h[32:36],'big'))
+>     print('freelist_count', int.from_bytes(h[36:40],'big'))
+>     print('schema_cookie', int.from_bytes(h[40:44],'big'))
+>     print('schema_format', int.from_bytes(h[44:48],'big'))
+>     print('text_encoding', int.from_bytes(h[56:60],'big'))
+> try:
+>     con=sqlite3.connect('file:/app/trunc.db?mode=ro', uri=True)
+>     cur=con.cursor()
+>     try: print('integrity', cur.execute('pragma integrity_check').fetchall()[:10])
+>     except Exception as e: print('integrity_error', repr(e))
+>     try: print('sqlite_master', cur.execute('select type,name,tbl_name,rootpage,sql from sqlite_master').fetchall())
+>     except Exception as e: print('master_error', repr(e))
+> except Exception as e:
+>     print('connect_error', type(e).__name__, e)
+> PY
+size 4096
+header16 b'\r\x00\x00\x00\n\x0fI\x00\x0f\xf0\x0f\xdf\x0f\xce\x0f\xbd'
+header_hex_100 0d0000000a0f49000ff00fdf0fce0fbd0fac0f9b0f8a0f790f610f4900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000
+page_size 4012
+write/read versions 15 155
+reserved 15
+usable 3997
+db_pages_header 0
+freelist_trunk 0
+freelist_count 0
+schema_cookie 0
+schema_format 0
+text_encoding 0
+integrity_error DatabaseError('file is not a database')
+master_error DatabaseError('file is not a database')
+root@ab3c654a53a4:/app# true; tmux wait -S done
+root@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ab3c654a53a4:/app# python3 - <<'PY'
+> from pathlib import Path
+> import binascii
+> b=Path('/app/trunc.db').read_bytes()
+> print('len', len(b))
+> print('page type', b[0], 'ncell', int.from_bytes(b[3:5],'big'), 'cell_start', int.from_bytes(b[5:7],'big'), 'frag', b[7])
+> ptrs=[int.from_bytes(b[8+2*i:10+2*i],'big') for i in range(int.from_bytes(b[3:5],'big'))]
+> print('ptrs', ptrs)
+> for p in ptrs:
+>     print('\ncell@',p,'hex',binascii.hexlify(b[p:p+80]).decode())
+>     # printable preview
+>     print('ascii', ''.join(chr(c) if 32<=c<127 else '.' for c in b[p:p+100]))
+>
+> def getvar(buf, off):
+>     v=0
+>     for i in range(9):
+>         c=buf[off+i]
+>         if i==8:
+>             return (v<<8)|c, off+i+1
+>         v=(v<<7)|(c&0x7f)
+>         if not (c&0x80):
+>             return v, off+i+1
+>     raise ValueError
+>
+> def serial_len(t):
+>     if t==0: return 0
+>     if t==1: return 1
+>     if t==2: return 2
+>     if t==3: return 3
+>     if t==4: return 4
+>     if t==5: return 6
+>     if t==6: return 8
+>     if t==7: return 8
+>     if t in (8,9): return 0
+>     if t>=12: return (t-12)//2
+>     raise ValueError(t)
+>
+> def decode_val(t, data):
+>     if t==0: return None
+>     if t==8: return 0
+>     if t==9: return 1
+>     if 1<=t<=6:
+>         return int.from_bytes(data, 'big', signed=True)
+>     if t>=13 and t%2==1:
+>         return data.decode('utf-8','replace')
+>     if t>=12 and t%2==0:
+>         return data
+>     return data
+>
+> for p in ptrs:
+>     try:
+>         payload, o = getvar(b,p)
+>         rowid, o = getvar(b,o)
+>         start=o
+>         hsz, ho = getvar(b,o)
+>         types=[]
+>         while ho < start+hsz:
+>             t, ho = getvar(b,ho); types.append(t)
+>         dataoff=start+hsz
+>         vals=[]
+>         for t in types:
+>             l=serial_len(t); data=b[dataoff:dataoff+l]; dataoff+=l; vals.append(decode_val(t,data))
+>         print('PARSED', p, 'payload',payload,'rowid',rowid,'hsz',hsz,'types',types,'vals',vals,'end',dataoff)
+>     except Exception as e:
+>         print('ERR parse',p,e)
+> PY
+len 4096
+page type 13 ncell 10 cell_start 3913 frag 0
+ptrs [4080, 4063, 4046, 4029, 4012, 3995, 3978, 3961, 3937, 3913]
+
+cell@ 4080 hex 0e010400210974657374776f72643030
+ascii ....!.testword00
+
+cell@ 4063 hex 0f020400210174657374776f72643031020e010400210974657374776f72643030
+ascii ....!.testword01.....!.testword00
+
+cell@ 4046 hex 0f030400210174657374776f726430320a0f020400210174657374776f72643031020e010400210974657374776f72643030
+ascii ....!.testword02.....!.testword01.....!.testword00
+
+cell@ 4029 hex 0f040400210174657374776f72643033190f030400210174657374776f726430320a0f020400210174657374776f72643031020e010400210974657374776f72643030
+ascii ....!.testword03.....!.testword02.....!.testword01.....!.testword00
+
+cell@ 4012 hex 0f050400210174657374776f726430342a0f040400210174657374776f72643033190f030400210174657374776f726430320a0f020400210174657374776f72643031020e0104002
+10974657374776f
+ascii ....!.testword04*....!.testword03.....!.testword02.....!.testword01.....!.testword00
+
+cell@ 3995 hex 0f060400210174657374776f72643035320f050400210174657374776f726430342a0f040400210174657374776f72643033190f030400210174657374776f726430320a0f0204002
+10174657374776f
+ascii ....!.testword052....!.testword04*....!.testword03.....!.testword02.....!.testword01.....!.testword0
+
+cell@ 3978 hex 0f070400210174657374776f726430364b0f060400210174657374776f72643035320f050400210174657374776f726430342a0f040400210174657374776f72643033190f0304002
+10174657374776f
+ascii ....!.testword06K....!.testword052....!.testword04*....!.testword03.....!.testword02.....!.testword0
+
+cell@ 3961 hex 0f080400210174657374776f72643037630f070400210174657374776f726430364b0f060400210174657374776f72643035320f050400210174657374776f726430342a0f0404002
+10174657374776f
+ascii ....!.testword07c....!.testword06K....!.testword052....!.testword04*....!.testword03.....!.testword0
+
+cell@ 3937 hex 16090400210774657374776f726430384058ff5c28f5c28f0f080400210174657374776f72643037630f070400210174657374776f726430364b0f060400210174657374776f72643
+035320f05040021
+ascii ....!.testword08@X.\(.......!.testword07c....!.testword06K....!.testword052....!.testword04*....!.te
+
+cell@ 3913 hex 160a0400210774657374776f726430393fe000000000000016090400210774657374776f726430384058ff5c28f5c28f0f080400210174657374776f72643037630f0704002101746
+57374776f726430
+ascii ....!.testword09?...........!.testword08@X.\(.......!.testword07c....!.testword06K....!.testword052.
+PARSED 4080 payload 14 rowid 1 hsz 4 types [0, 33, 9] vals [None, 'testword00', 1] end 4096
+PARSED 4063 payload 15 rowid 2 hsz 4 types [0, 33, 1] vals [None, 'testword01', 2] end 4080
+PARSED 4046 payload 15 rowid 3 hsz 4 types [0, 33, 1] vals [None, 'testword02', 10] end 4063
+PARSED 4029 payload 15 rowid 4 hsz 4 types [0, 33, 1] vals [None, 'testword03', 25] end 4046
+PARSED 4012 payload 15 rowid 5 hsz 4 types [0, 33, 1] vals [None, 'testword04', 42] end 4029
+PARSED 3995 payload 15 rowid 6 hsz 4 types [0, 33, 1] vals [None, 'testword05', 50] end 4012
+PARSED 3978 payload 15 rowid 7 hsz 4 types [0, 33, 1] vals [None, 'testword06', 75] end 3995
+PARSED 3961 payload 15 rowid 8 hsz 4 types [0, 33, 1] vals [None, 'testword07', 99] end 3978
+PARSED 3937 payload 22 rowid 9 hsz 4 types [0, 33, 7] vals [None, 'testword08', b'@X\xff\\(\xf5\xc2\x8f'] end 3961
+PARSED 3913 payload 22 rowid 10 hsz 4 types [0, 33, 7] vals [None, 'testword09', b'?\xe0\x00\x00\x00\x00\x00\x00'] end 3937
+root@ab3c654a53a4:/app# true; tmux wait -S done
+root@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ab3c654a53a4:/app# python3 - <<'PY'
+> from pathlib import Path
+> import struct, re, json
+> b=Path('/app/trunc.db').read_bytes()
+>
+> def getvar(buf, off):
+>     v=0
+>     for i in range(9):
+>         if off+i >= len(buf): raise EOFError('varint beyond EOF')
+>         c=buf[off+i]
+>         if i==8:
+>             return (v<<8)|c, off+i+1
+>         v=(v<<7)|(c&0x7f)
+>         if not (c&0x80):
+>             return v, off+i+1
+>     raise ValueError('bad varint')
+>
+> def serial_len(t):
+>     return {0:0,1:1,2:2,3:3,4:4,5:6,6:8,7:8,8:0,9:0}.get(t, (t-12)//2 if t>=12 else None)
+>
+> def decode_val(t, data):
+>     if t==0: return None
+>     if t==8: return 0
+>     if t==9: return 1
+>     if 1 <= t <= 6: return int.from_bytes(data, 'big', signed=True)
+>     if t==7: return struct.unpack('>d', data)[0]
+>     if t>=13 and t%2: return data.decode('utf-8','replace')
+>     if t>=12 and not (t%2): return data.hex()
+>     return data.hex()
+>
+> def parse_cell(off):
+>     payload, o=getvar(b,off)
+>     rowid, o=getvar(b,o)
+>     payload_start=o
+>     hsz, ho=getvar(b,o)
+>     if hsz < 1 or payload_start+payload > len(b):
+>         raise ValueError('invalid payload boundaries')
+>     types=[]
+>     while ho < payload_start+hsz:
+>         t, ho=getvar(b,ho)
+>         types.append(t)
+>     if ho != payload_start+hsz:
+>         raise ValueError('header mismatch')
+>     dataoff=payload_start+hsz
+>     vals=[]
+>     for t in types:
+>         l=serial_len(t)
+>         if l is None: raise ValueError(f'bad serial type {t}')
+>         vals.append(decode_val(t, b[dataoff:dataoff+l]))
+>         dataoff += l
+>     if dataoff != payload_start+payload:
+>         raise ValueError('payload length mismatch')
+>     return rowid, vals
+>
+> # Parse declared cells from first page, which is already a table leaf page.
+> if b[0] != 13:
+>     raise SystemExit(f'Expected raw SQLite table leaf page at offset 0, got {b[0]!r}')
+> ncell=int.from_bytes(b[3:5],'big')
+> ptrs=[int.from_bytes(b[8+2*i:10+2*i],'big') for i in range(ncell)]
+> rows=[]
+> for off in ptrs:
+>     rowid, vals = parse_cell(off)
+>     # observed layout: [id/null-placeholder, word, value]
+>     if len(vals) >= 3 and isinstance(vals[1], str) and vals[1].startswith('testword'):
+>         rows.append({'rowid': rowid, 'word': vals[1], 'value': vals[2], 'cell_offset': off})
+> print(json.dumps(rows, indent=2, ensure_ascii=False))
+> print('declared_cells', ncell, 'recovered_rows', len(rows))
+> # independent text scan for possible words not captured by cell pointers
+> words=sorted(set(m.group(0).decode() for m in re.finditer(rb'testword[0-9A-Za-z_\-]*', b)))
+> print('word_scan_count', len(words), words)
+> PY
+[
+  {
+    "rowid": 1,
+    "word": "testword00",
+    "value": 1,
+    "cell_offset": 4080
+  },
+  {
+    "rowid": 2,
+    "word": "testword01",
+    "value": 2,
+    "cell_offset": 4063
+  },
+  {
+    "rowid": 3,
+    "word": "testword02",
+    "value": 10,
+    "cell_offset": 4046
+  },
+  {
+    "rowid": 4,
+    "word": "testword03",
+    "value": 25,
+    "cell_offset": 4029
+  },
+  {
+    "rowid": 5,
+    "word": "testword04",
+    "value": 42,
+    "cell_offset": 4012
+  },
+  {
+    "rowid": 6,
+    "word": "testword05",
+    "value": 50,
+    "cell_offset": 3995
+  },
+  {
+    "rowid": 7,
+    "word": "testword06",
+    "value": 75,
+    "cell_offset": 3978
+  },
+  {
+    "rowid": 8,
+    "word": "testword07",
+    "value": 99,
+    "cell_offset": 3961
+  },
+  {
+    "rowid": 9,
+    "word": "testword08",
+    "value": 99.99,
+    "cell_offset": 3937
+  },
+  {
+    "rowid": 10,
+    "word": "testword09",
+    "value": 0.5,
+    "cell_offset": 3913
+  }
+]
+declared_cells 10 recovered_rows 10
+word_scan_count 10 ['testword00', 'testword01', 'testword02', 'testword03', 'testword04', 'testword052', 'testword06K', 'testword07c', 'testword08', 'testword09
+']
+root@ab3c654a53a4:/app# true; tmux wait -S done
+root@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@ab3c654a53a4:/app# python3 - <<'PY'
+> from pathlib import Path
+> import json, struct
+>
+> src = Path('/app/trunc.db')
+> out = Path('/app/recover.json')
+> b = src.read_bytes()
+>
+> def getvar(buf, off):
+>     v = 0
+>     for i in range(9):
+>         if off + i >= len(buf):
+>             raise EOFError('varint beyond EOF')
+>         c = buf[off + i]
+>         if i == 8:
+>             return (v << 8) | c, off + i + 1
+>         v = (v << 7) | (c & 0x7f)
+>         if not (c & 0x80):
+>             return v, off + i + 1
+>     raise ValueError('bad varint')
+>
+> def serial_len(t):
+>     fixed = {0:0, 1:1, 2:2, 3:3, 4:4, 5:6, 6:8, 7:8, 8:0, 9:0}
+>     if t in fixed:
+>         return fixed[t]
+>     if t >= 12:
+>         return (t - 12) // 2
+>     raise ValueError(f'bad serial type {t}')
+>
+> def decode_val(t, data):
+>     if t == 0: return None
+>     if t == 8: return 0
+>     if t == 9: return 1
+>     if 1 <= t <= 6: return int.from_bytes(data, 'big', signed=True)
+>     if t == 7: return struct.unpack('>d', data)[0]
+>     if t >= 13 and t % 2 == 1: return data.decode('utf-8')
+>     if t >= 12 and t % 2 == 0: return data
+>     raise ValueError(f'bad serial type {t}')
+>
+> def parse_cell(buf, off):
+>     payload_size, pos = getvar(buf, off)
+>     rowid, pos = getvar(buf, pos)
+>     payload_start = pos
+>     header_size, hpos = getvar(buf, pos)
+>     header_end = payload_start + header_size
+>     payload_end = payload_start + payload_size
+>     if not (0 < header_size <= payload_size and payload_end <= len(buf)):
+>         raise ValueError('invalid cell boundaries')
+>     serial_types = []
+>     while hpos < header_end:
+>         st, hpos = getvar(buf, hpos)
+>         serial_types.append(st)
+>     if hpos != header_end:
+>         raise ValueError('record header overrun')
+>     dpos = header_end
+>     values = []
+>     for st in serial_types:
+>         n = serial_len(st)
+>         values.append(decode_val(st, buf[dpos:dpos+n]))
+>         dpos += n
+>     if dpos != payload_end:
+>         raise ValueError('record payload size mismatch')
+>     return rowid, values
+>
+> if len(b) < 8 or b[0] != 0x0d:
+>     raise SystemExit('Input does not look like a raw SQLite table leaf page')
+>
+> ncell = int.from_bytes(b[3:5], 'big')
+> ptrs = [int.from_bytes(b[8 + 2*i:10 + 2*i], 'big') for i in range(ncell)]
+> rows = []
+> for ptr in ptrs:
+>     rowid, vals = parse_cell(b, ptr)
+>     if len(vals) >= 3 and isinstance(vals[1], str):
+>         rows.append({'word': vals[1], 'value': vals[2]})
+>
+> # Preserve table order by rowid/cell pointer order from the btree cell pointer array.
+> out.write_text(json.dumps(rows, ensure_ascii=False), encoding='utf-8')
+>
+> # Validation
+> loaded = json.loads(out.read_text(encoding='utf-8'))
+> assert loaded == rows
+> assert all(set(r.keys()) == {'word', 'value'} for r in loaded)
+> assert len(loaded) == ncell == 10
+> print(f'wrote {out} with {len(loaded)} recovered rows')
+> print(out.read_text(encoding='utf-8'))
+> PY
+wrote /app/recover.json with 10 recovered rows
+[{"word": "testword00", "value": 1}, {"word": "testword01", "value": 2}, {"word": "testword02", "value": 10}, {"word": "testword03", "value": 25}, {"word": "tes
+tword04", "value": 42}, {"word": "testword05", "value": 50}, {"word": "testword06", "value": 75}, {"word": "testword07", "value": 99}, {"word": "testword08", "v
+alue": 99.99}, {"word": "testword09", "value": 0.5}]
+root@ab3c654a53a4:/app# ls -l /app/recover.json
+-rw-r--r-- 1 root root 372 Sep  3 22:50 /app/recover.json
+root@ab3c654a53a4:/app# python3 -m json.tool /app/recover.json >/tmp/recover_json_validated.txt && echo 'json validation ok' && cat /tmp/recover_json_validated.
+txt
+json validation ok
+[
+    {
+        "word": "testword00",
+        "value": 1
+    },
+    {
+        "word": "testword01",
+        "value": 2
+    },
+    {
+        "word": "testword02",
+        "value": 10
+    },
+    {
+        "word": "testword03",
+        "value": 25
+    },
+    {
+        "word": "testword04",
+        "value": 42
+    },
+    {
+        "word": "testword05",
+        "value": 50
+    },
+    {
+        "word": "testword06",
+        "value": 75
+    },
+    {
+        "word": "testword07",
+        "value": 99
+    },
+    {
+        "word": "testword08",
+        "value": 99.99
+    },
+    {
+        "word": "testword09",
+        "value": 0.5
+    }
+]
+root@ab3c654a53a4:/app# true; tmux wait -S done
+root@ab3c654a53a4:/app#

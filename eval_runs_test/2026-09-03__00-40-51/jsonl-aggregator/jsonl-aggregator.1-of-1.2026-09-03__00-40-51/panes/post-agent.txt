@@ -1,0 +1,498 @@
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# set +e
+root@4c37174160ca:/app#
+root@4c37174160ca:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@4c37174160ca:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@4c37174160ca:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@4c37174160ca:/app#
+root@4c37174160ca:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@4c37174160ca:/app#
+root@4c37174160ca:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@4c37174160ca:/app#
+root@4c37174160ca:/app# mkdir -p /root/.config/uv
+root@4c37174160ca:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@4c37174160ca:/app#
+root@4c37174160ca:/app# apt-get update || true
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1211 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:9 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1529 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:11 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1527 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1842 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2150 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Fetched 32.4 MB in 38s (849 kB/s)
+Reading package lists... Done
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+./records_1.jsonl
+./records_2.jsonl
+./records_3.jsonl
+./records_4.jsonl
+./records_5.jsonl
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# find /app -maxdepth 1 -type f -name '*.jsonl' -printf '%f\n' | sort && printf '\n--- line counts ---\n' && wc -l /app/*.jsonl 2>/dev/nul
+l && printf '\n--- samples ---\n' && for f in $(find /app -maxdepth 1 -type f -name '*.jsonl' | sort); do printf '\n%s\n' "$f"; sed -n '1,3p' "$f"; done
+records_1.jsonl
+records_2.jsonl
+records_3.jsonl
+records_4.jsonl
+records_5.jsonl
+
+--- line counts ---
+  200000 /app/records_1.jsonl
+  200000 /app/records_2.jsonl
+  200000 /app/records_3.jsonl
+  200000 /app/records_4.jsonl
+  200000 /app/records_5.jsonl
+ 1000000 total
+
+--- samples ---
+
+/app/records_1.jsonl
+{"user": "user143", "amount": 25.57, "items": 9, "tags": []}
+{"user": "user402_dev", "amount": 1.91, "items": 1, "tags": []}
+{"user": "user302", "amount": 47.67, "items": 10, "tags": ["free", "category1", "normal", "orange", "enhancement"]}
+
+/app/records_2.jsonl
+{"user": "user360", "amount": 423.59, "items": 4, "tags": ["important", "enhancement", "security"]}
+{"user": "quinn_2024", "amount": 259.43, "items": 7, "tags": ["qa", "staging", "type_a", "documentation", "alpha", "ui"]}
+{"user": "quentin_user", "amount": 49.4, "items": 7, "tags": ["v4"]}
+
+/app/records_3.jsonl
+{"user": "user364", "amount": 9.02, "items": 2, "tags": ["cyan", "category1", "purple", "cloud"]}
+{"user": "owen_user", "amount": 6230.48, "items": 3, "tags": []}
+{"user": "penny", "amount": 32.11, "items": 98, "tags": ["pink", "type_b", "blue", "guest", "red"]}
+
+/app/records_4.jsonl
+{"user": "user464", "amount": 314.83, "items": 4, "tags": ["critical", "v3", "brown", "normal", "analytics", "free"]}
+{"user": "kyle", "amount": 12.48, "items": 9, "tags": ["user", "archived", "completed"]}
+{"user": "user441", "amount": 344.5, "items": 86, "tags": ["orange", "documentation", "ui"]}
+
+/app/records_5.jsonl
+{"user": "user334", "amount": 157.64, "items": 8, "tags": ["performance", "alpha", "premium"]}
+{"user": "user467", "amount": 34.94, "items": 2, "tags": ["security", "black", "v4", "enhancement"]}
+{"user": "user175_42", "amount": 15.65, "items": 3, "tags": ["review", "orange", "user"]}
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# if [ -f /app/aggregates.json ]; then cat -- /app/aggregates.json; else echo '错误: 找不到文件 /app/aggregates.json'; fi
+错误: 找不到文件 /app/aggregates.json
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 - /app/aggregate_records.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Aggregate record JSONL files into a compact JSON summary."""\n\nfrom __future__ import annotations\n\nimport argparse\ni
+mport json\nfrom collections import Counter, defaultdict\nfrom decimal import Decimal, ROUND_HALF_UP\nfrom pathlib import Path\nfrom typing import Iterable\n\n\
+nCENT = Decimal("0.01")\n\n\ndef aggregate_files(input_files: Iterable[Path]) -> dict:\n    """Return the requested top-five user and tag aggregates."""\n    us
+er_amounts: defaultdict[str, Decimal] = defaultdict(lambda: Decimal("0"))\n    user_items: defaultdict[str, int] = defaultdict(int)\n    tag_counts: Counter[str
+] = Counter()\n\n    for input_file in input_files:\n        with input_file.open("r", encoding="utf-8") as stream:\n            for line_number, line in enumer
+ate(stream, 1):\n                if not line.strip():\n                    continue\n                try:\n                    record = json.loads(line)\n
+          except json.JSONDecodeError as exc:\n                    raise ValueError(f"Invalid JSON in {input_file}:{line_number}") from exc\n\n                u
+ser = record["user"]\n                user_amounts[user] += Decimal(str(record["amount"]))\n                user_items[user] += int(record["items"])\n
+      tag_counts.update(record.get("tags", []))\n\n    top_users = sorted(\n        user_amounts,\n        key=lambda user: (-user_amounts[user], user),\n    )[
+:5]\n    top_tags = sorted(\n        tag_counts,\n        key=lambda tag: (-tag_counts[tag], tag),\n    )[:5]\n\n    return {\n        "top_5_users_by_amount":
+{\n            user: {\n                "total_amount": float(user_amounts[user].quantize(CENT, rounding=ROUND_HALF_UP)),\n                "total_items": int(us
+er_items[user]),\n            }\n            for user in top_users\n        },\n        "top_5_tags_by_count": {\n            tag: {"count": int(tag_counts[tag]
+)}\n            for tag in top_tags\n        },\n    }\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description=__doc__)\n    parser.add_argum
+ent(\n        "--input-dir",\n        type=Path,\n        default=Path("/app"),\n        help="Directory containing records_*.jsonl files (default: /app)",\n
+ )\n    parser.add_argument(\n        "--output",\n        type=Path,\n        default=Path("/app/aggregates.json"),\n        help="Output JSON path (default: /
+app/aggregates.json)",\n    )\n    args = parser.parse_args()\n\n    input_files = sorted(args.input_dir.glob("records_*.jsonl"))\n    if not input_files:\n
+    raise SystemExit(f"No records_*.jsonl files found in {args.input_dir}")\n\n    result = aggregate_files(input_files)\n    args.output.write_text(\n        j
+son.dumps(result, indent=2, ensure_ascii=True) + "\\n",\n        encoding="utf-8",\n    )\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/aggregate_records.py
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# if [ -f /app/aggregate_records.py ]; then cat -- /app/aggregate_records.py; else echo '错误: 找不到文件 /app/aggregate_records.py'; fi
+#!/usr/bin/env python3
+"""Aggregate record JSONL files into a compact JSON summary."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from collections import Counter, defaultdict
+from decimal import Decimal, ROUND_HALF_UP
+from pathlib import Path
+from typing import Iterable
+
+
+CENT = Decimal("0.01")
+
+
+def aggregate_files(input_files: Iterable[Path]) -> dict:
+    """Return the requested top-five user and tag aggregates."""
+    user_amounts: defaultdict[str, Decimal] = defaultdict(lambda: Decimal("0"))
+    user_items: defaultdict[str, int] = defaultdict(int)
+    tag_counts: Counter[str] = Counter()
+
+    for input_file in input_files:
+        with input_file.open("r", encoding="utf-8") as stream:
+            for line_number, line in enumerate(stream, 1):
+                if not line.strip():
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(f"Invalid JSON in {input_file}:{line_number}") from exc
+
+                user = record["user"]
+                user_amounts[user] += Decimal(str(record["amount"]))
+                user_items[user] += int(record["items"])
+                tag_counts.update(record.get("tags", []))
+
+    top_users = sorted(
+        user_amounts,
+        key=lambda user: (-user_amounts[user], user),
+    )[:5]
+    top_tags = sorted(
+        tag_counts,
+        key=lambda tag: (-tag_counts[tag], tag),
+    )[:5]
+
+    return {
+        "top_5_users_by_amount": {
+            user: {
+                "total_amount": float(user_amounts[user].quantize(CENT, rounding=ROUND_HALF_UP)),
+                "total_items": int(user_items[user]),
+            }
+            for user in top_users
+        },
+        "top_5_tags_by_count": {
+            tag: {"count": int(tag_counts[tag])}
+            for tag in top_tags
+        },
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--input-dir",
+        type=Path,
+        default=Path("/app"),
+        help="Directory containing records_*.jsonl files (default: /app)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("/app/aggregates.json"),
+        help="Output JSON path (default: /app/aggregates.json)",
+    )
+    args = parser.parse_args()
+
+    input_files = sorted(args.input_dir.glob("records_*.jsonl"))
+    if not input_files:
+        raise SystemExit(f"No records_*.jsonl files found in {args.input_dir}")
+
+    result = aggregate_files(input_files)
+    args.output.write_text(
+        json.dumps(result, indent=2, ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+if __name__ == "__main__":
+    main()
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 -m py_compile /app/aggregate_records.py && echo 'syntax ok'
+syntax ok
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# git rev-parse --is-inside-work-tree
+bash: git: command not found
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# git status --porcelain
+bash: git: command not found
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# git branch --show-current
+bash: git: command not found
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# git log -1 --oneline
+bash: git: command not found
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 - /app/test_aggregate_records.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import json\nfrom pathlib import Path\n\nfrom aggregate_records import aggregate_files\n\n\ndef write_records(path: Path, records: list[dict]) -> N
+one:\n    path.write_text("".join(json.dumps(record) + "\\n" for record in records), encoding="utf-8")\n\n\ndef test_aggregates_users_tags_and_rounds_amounts(tm
+p_path: Path) -> None:\n    first = tmp_path / "records_1.jsonl"\n    second = tmp_path / "records_2.jsonl"\n    write_records(\n        first,\n        [\n
+        {"user": "bob", "amount": 1.005, "items": 2, "tags": ["z", "a"]},\n            {"user": "alice", "amount": 10.10, "items": 3, "tags": ["a", "a"]},\n
+    ],\n    )\n    write_records(\n        second,\n        [\n            {"user": "bob", "amount": 2.005, "items": 4, "tags": ["a"]},\n            {"user": "a
+lice", "amount": 1, "items": 1, "tags": ["z"]},\n        ],\n    )\n\n    result = aggregate_files([first, second])\n\n    assert result == {\n        "top_5_us
+ers_by_amount": {\n            "alice": {"total_amount": 11.10, "total_items": 4},\n            "bob": {"total_amount": 3.01, "total_items": 6},\n        },\n
+      "top_5_tags_by_count": {\n            "a": {"count": 3},\n            "z": {"count": 2},\n        },\n    }\n\n\ndef test_limits_results_and_breaks_ties_b
+y_name(tmp_path: Path) -> None:\n    path = tmp_path / "records_1.jsonl"\n    records = [\n        {"user": name, "amount": 1, "items": 1, "tags": [tag]}\n
+   for name, tag in [("e", "e"), ("d", "d"), ("c", "c"), ("b", "b"), ("a", "a"), ("f", "f")]\n    ]\n    write_records(path, records)\n\n    result = aggregate_
+files([path])\n\n    assert list(result["top_5_users_by_amount"]) == ["a", "b", "c", "d", "e"]\n    assert list(result["top_5_tags_by_count"]) == ["a", "b", "c"
+, "d", "e"]\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_aggregate_records.py
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 -m pytest -v -- /app/test_aggregate_records.py
+/usr/bin/python3: No module named pytest
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 /app/aggregate_records.py --input-dir /app --output /app/aggregates.json && python3 - <<'PY'
+> import json
+> from pathlib import Path
+> p = Path('/app/aggregates.json')
+> obj = json.loads(p.read_text())
+> print('keys', list(obj.keys()))
+> print('users', list(obj['top_5_users_by_amount'].keys())[:5])
+> print('tags', list(obj['top_5_tags_by_count'].keys())[:5])
+> PY
+keys ['top_5_users_by_amount', 'top_5_tags_by_count']
+users ['user211', 'user220_dev', 'chloe_test', 'user260_123', 'user271']
+tags ['lime', 'type_a', 'reporting', 'frontend', 'approved']
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 - <<'PY'
+> import json
+> import tempfile
+> from pathlib import Path
+> from aggregate_records import aggregate_files
+>
+>
+> def write_records(path: Path, records):
+>     path.write_text(''.join(json.dumps(record) + '\n' for record in records), encoding='utf-8')
+>
+> with tempfile.TemporaryDirectory() as tmp:
+>     tmp_path = Path(tmp)
+>     first = tmp_path / 'records_1.jsonl'
+>     second = tmp_path / 'records_2.jsonl'
+>     write_records(first, [
+>         {'user': 'bob', 'amount': 1.005, 'items': 2, 'tags': ['z', 'a']},
+>         {'user': 'alice', 'amount': 10.10, 'items': 3, 'tags': ['a', 'a']},
+>     ])
+>     write_records(second, [
+>         {'user': 'bob', 'amount': 2.005, 'items': 4, 'tags': ['a']},
+>         {'user': 'alice', 'amount': 1, 'items': 1, 'tags': ['z']},
+>     ])
+>     result = aggregate_files([first, second])
+>     assert result == {
+>         'top_5_users_by_amount': {
+>             'alice': {'total_amount': 11.1, 'total_items': 4},
+>             'bob': {'total_amount': 3.01, 'total_items': 6},
+>         },
+>         'top_5_tags_by_count': {
+>             'a': {'count': 3},
+>             'z': {'count': 2},
+>         },
+>     }
+>
+>     path = tmp_path / 'records_3.jsonl'
+>     write_records(path, [
+>         {'user': name, 'amount': 1, 'items': 1, 'tags': [tag]}
+>         for name, tag in [('e', 'e'), ('d', 'd'), ('c', 'c'), ('b', 'b'), ('a', 'a'), ('f', 'f')]
+>     ])
+>     result2 = aggregate_files([path])
+>     assert list(result2['top_5_users_by_amount']) == ['a', 'b', 'c', 'd', 'e']
+>     assert list(result2['top_5_tags_by_count']) == ['a', 'b', 'c', 'd', 'e']
+>
+> print('custom tests ok')
+> PY
+Traceback (most recent call last):
+  File "<stdin>", line 23, in <module>
+AssertionError
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 - <<'PY'
+> import json
+> from pathlib import Path
+> p = Path('/app/aggregates.json')
+> obj = json.loads(p.read_text(encoding='utf-8'))
+> assert set(obj) == {'top_5_users_by_amount', 'top_5_tags_by_count'}
+> assert isinstance(obj['top_5_users_by_amount'], dict)
+> assert isinstance(obj['top_5_tags_by_count'], dict)
+> users = obj['top_5_users_by_amount']
+> prev_amount = None
+> prev_name = None
+> for name, payload in users.items():
+>     assert isinstance(payload['total_amount'], float)
+>     assert isinstance(payload['total_items'], int)
+>     if prev_amount is not None:
+>         assert payload['total_amount'] <= prev_amount + 1e-9 or (payload['total_amount'] == prev_amount and name >= prev_name)
+>     prev_amount = payload['total_amount']
+>     prev_name = name
+>
+> tags = obj['top_5_tags_by_count']
+> prev_count = None
+> prev_tag = None
+> for tag, payload in tags.items():
+>     assert isinstance(payload['count'], int)
+>     if prev_count is not None:
+>         assert payload['count'] <= prev_count or (payload['count'] == prev_count and tag >= prev_tag)
+>     prev_count = payload['count']
+>     prev_tag = tag
+>
+> print('output validation ok')
+> PY
+output validation ok
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 - /app/test_aggregate_records.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import json\nfrom pathlib import Path\n\nfrom aggregate_records import aggregate_files\n\n\ndef write_records(path: Path, records: list[dict]) -> N
+one:\n    path.write_text("".join(json.dumps(record) + "\\n" for record in records), encoding="utf-8")\n\n\ndef test_aggregates_users_tags_and_rounds_amounts(tm
+p_path: Path) -> None:\n    first = tmp_path / "records_1.jsonl"\n    second = tmp_path / "records_2.jsonl"\n    write_records(\n        first,\n        [\n
+        {"user": "bob", "amount": 1.005, "items": 2, "tags": ["z", "a"]},\n            {"user": "alice", "amount": 10.10, "items": 3, "tags": ["a", "a"]},\n
+    ],\n    )\n    write_records(\n        second,\n        [\n            {"user": "bob", "amount": 2.005, "items": 4, "tags": ["a"]},\n            {"user": "a
+lice", "amount": 1, "items": 1, "tags": ["z"]},\n        ],\n    )\n\n    result = aggregate_files([first, second])\n\n    assert result == {\n        "top_5_us
+ers_by_amount": {\n            "alice": {"total_amount": 11.10, "total_items": 4},\n            "bob": {"total_amount": 3.01, "total_items": 6},\n        },\n
+      "top_5_tags_by_count": {\n            "a": {"count": 4},\n            "z": {"count": 2},\n        },\n    }\n\n\ndef test_limits_results_and_breaks_ties_b
+y_name(tmp_path: Path) -> None:\n    path = tmp_path / "records_1.jsonl"\n    records = [\n        {"user": name, "amount": 1, "items": 1, "tags": [tag]}\n
+   for name, tag in [("e", "e"), ("d", "d"), ("c", "c"), ("b", "b"), ("a", "a"), ("f", "f")]\n    ]\n    write_records(path, records)\n\n    result = aggregate_
+files([path])\n\n    assert list(result["top_5_users_by_amount"]) == ["a", "b", "c", "d", "e"]\n    assert list(result["top_5_tags_by_count"]) == ["a", "b", "c"
+, "d", "e"]\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_aggregate_records.py
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# PYTHONPATH=/app python3 - <<'PY'
+> import json
+> import tempfile
+> from pathlib import Path
+> from aggregate_records import aggregate_files
+>
+>
+> def write_records(path, records):
+>     path.write_text(''.join(json.dumps(record) + '\n' for record in records), encoding='utf-8')
+>
+> with tempfile.TemporaryDirectory() as directory:
+>     root = Path(directory)
+>     first, second = root / 'records_1.jsonl', root / 'records_2.jsonl'
+>     write_records(first, [
+>         {'user': 'bob', 'amount': 1.005, 'items': 2, 'tags': ['z', 'a']},
+>         {'user': 'alice', 'amount': 10.10, 'items': 3, 'tags': ['a', 'a']},
+>     ])
+>     write_records(second, [
+>         {'user': 'bob', 'amount': 2.005, 'items': 4, 'tags': ['a']},
+>         {'user': 'alice', 'amount': 1, 'items': 1, 'tags': ['z']},
+>     ])
+>     assert aggregate_files([first, second]) == {
+>         'top_5_users_by_amount': {
+>             'alice': {'total_amount': 11.1, 'total_items': 4},
+>             'bob': {'total_amount': 3.01, 'total_items': 6},
+>         },
+>         'top_5_tags_by_count': {'a': {'count': 4}, 'z': {'count': 2}},
+>     }
+>     tie_file = root / 'records_3.jsonl'
+>     write_records(tie_file, [
+>         {'user': name, 'amount': 1, 'items': 1, 'tags': [tag]}
+>         for name, tag in [('e','e'), ('d','d'), ('c','c'), ('b','b'), ('a','a'), ('f','f')]
+>     ])
+>     tie_result = aggregate_files([tie_file])
+>     assert list(tie_result['top_5_users_by_amount']) == ['a', 'b', 'c', 'd', 'e']
+>     assert list(tie_result['top_5_tags_by_count']) == ['a', 'b', 'c', 'd', 'e']
+> print('custom aggregation tests passed')
+> PY
+custom aggregation tests passed
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 -m py_compile /app/aggregate_records.py /app/test_aggregate_records.py && echo 'compile passed'
+compile passed
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 /app/aggregate_records.py --input-dir /app --output /app/aggregates.json && wc -c /app/aggregates.json
+733 /app/aggregates.json
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4c37174160ca:/app# python3 - <<'PY'
+> import json
+> import re
+> from pathlib import Path
+>
+> output = Path('/app/aggregates.json')
+> data = json.loads(output.read_text(encoding='utf-8'))
+> assert list(data) == ['top_5_users_by_amount', 'top_5_tags_by_count']
+> users = data['top_5_users_by_amount']
+> tags = data['top_5_tags_by_count']
+> assert len(users) == 5
+> assert len(tags) == 5
+> raw = output.read_text(encoding='utf-8')
+> for name, value in users.items():
+>     assert isinstance(value['total_amount'], float)
+>     assert isinstance(value['total_items'], int) and not isinstance(value['total_items'], bool)
+>     assert re.search(r'"total_amount": -?\d+\.\d{2}', raw)
+> user_rows = [(name, value['total_amount']) for name, value in users.items()]
+> assert user_rows == sorted(user_rows, key=lambda row: (-row[1], row[0]))
+> for name, value in tags.items():
+>     assert isinstance(value['count'], int) and not isinstance(value['count'], bool)
+> tag_rows = [(name, value['count']) for name, value in tags.items()]
+> assert tag_rows == sorted(tag_rows, key=lambda row: (-row[1], row[0]))
+> print('validated: 5 users, 5 tags, ordered values, two-decimal amounts, integer counts')
+> PY
+validated: 5 users, 5 tags, ordered values, two-decimal amounts, integer counts
+root@4c37174160ca:/app# true; tmux wait -S done
+root@4c37174160ca:/app#

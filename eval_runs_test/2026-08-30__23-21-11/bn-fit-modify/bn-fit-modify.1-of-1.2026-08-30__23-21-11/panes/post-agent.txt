@@ -1,0 +1,1015 @@
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# set +e
+root@687782a4c840:/app#
+root@687782a4c840:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@687782a4c840:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@687782a4c840:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@687782a4c840:/app#
+root@687782a4c840:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@687782a4c840:/app#
+root@687782a4c840:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@687782a4c840:/app#
+root@687782a4c840:/app# mkdir -p /root/.config/uv
+root@687782a4c840:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@687782a4c840:/app#
+root@687782a4c840:/app# apt-get update || true
+Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1200 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:11 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:12 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1527 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2149 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1525 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1842 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Fetched 32.4 MB in 10s (3092 kB/s)
+Reading package lists... Done
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+./bn_sample_10k.csv
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - /app/bn_sample_10k.csv 1 20 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+"U","Y","R","D","M"
+65.1595787086976,55.0497451938166,73.1506268775402,57.6615550291927,64.3384681778361
+44.6029054197735,43.600175682188,38.589412608575,45.9401940372555,21.2469494226791
+54.4564237284025,54.1307611128149,47.302573583304,41.8194189531508,52.392400251044
+57.3210008646862,61.0491365637276,48.9899101338243,54.4998895140635,52.223173316915
+54.8933295917574,61.5962301422769,58.2214432134545,24.9614445370898,50.9315002616816
+49.4729576391084,48.6902126997417,28.3704316928405,50.0536877752844,23.3813564189702
+66.6523636128015,67.0986831902259,70.5195767499515,64.3760816368758,53.0660810930049
+49.5947210120529,69.3426615704978,32.0050448251388,62.2354560766512,54.8234795284054
+72.0356598413742,71.7380098874994,77.1068499934543,73.2179890075619,58.5668142551726
+49.9339762680633,45.9287569893273,43.9973854741504,40.9875965115527,52.9393159959432
+64.4577157278534,60.4450922701484,78.1393877482104,42.387023391916,78.3788488916068
+74.8841740704858,87.0306505184187,57.0570181262451,74.7389001718958,66.2873832386314
+35.850299354187,33.9986684938571,26.7183998912491,22.0090250821641,-0.0474637794086572
+47.6392632963995,62.5450208936839,45.8532627886926,62.2218097420345,22.739046005961
+49.1841274074994,28.2105925686326,48.168061749979,51.9225568370145,27.6193847843547
+57.3537932275042,68.2193956636205,38.2548873747227,60.2763409829804,42.7619126314083
+47.5812339745613,43.5062326996327,42.6260577605047,25.2947482037948,52.7588938784698
+22.3884434299913,37.8430064692539,2.33891139887459,28.4216324376872,19.7222984324936
+24.682241218528,33.8566006833202,26.5678851395346,20.9939683264083,3.17767608378212
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# git rev-parse --is-inside-work-tree
+bash: git: command not found
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# git status --porcelain
+bash: git: command not found
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# git branch --show-current
+bash: git: command not found
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# git log -1 --oneline
+bash: git: command not found
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python - <<'PY'
+> import pandas as pd
+> import itertools, numpy as np
+> from scipy.stats import pearsonr
+>
+> df = pd.read_csv('/app/bn_sample_10k.csv')
+> print(df.head())
+> print(df.describe())
+> print('corr\n', df.corr())
+> # pairwise correlations and maybe linear regressions R2
+> cols=df.columns
+> for a,b in itertools.combinations(cols,2):
+>     r,_=pearsonr(df[a],df[b])
+>     print(a,b,'r=',r)
+> PY
+bash: python: command not found
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - <<'PY'
+> import sys, pkgutil
+> mods = ['pandas','numpy','scipy','pgmpy','networkx','sklearn','bnlearn']
+> for m in mods:
+>     print(m, pkgutil.find_loader(m) is not None)
+> PY
+<stdin>:4: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+pandas False
+numpy False
+scipy False
+pgmpy False
+networkx False
+sklearn False
+bnlearn False
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - <<'PY'
+> import csv, math, itertools
+> from statistics import mean
+> path='/app/bn_sample_10k.csv'
+> with open(path) as f:
+>     rows=list(csv.DictReader(f))
+> cols=rows[0].keys()
+> vals={c:[float(r[c]) for r in rows] for c in cols}
+> print('cols', cols)
+> # means and stdevs
+> for c in cols:
+>     xs=vals[c]
+>     mu=sum(xs)/len(xs)
+>     var=sum((x-mu)**2 for x in xs)/len(xs)
+>     print(c, mu, var**0.5)
+> print('pairwise corr')
+> for a,b in itertools.combinations(cols,2):
+>     xa, xb=vals[a], vals[b]
+>     ma, mb = sum(xa)/len(xa), sum(xb)/len(xb)
+>     va=sum((x-ma)**2 for x in xa)
+>     vb=sum((x-mb)**2 for x in xb)
+>     cov=sum((x-ma)*(y-mb) for x,y in zip(xa,xb))
+>     r=cov/math.sqrt(va*vb)
+>     print(a,b,round(r,4))
+> PY
+cols dict_keys(['U', 'Y', 'R', 'D', 'M'])
+U 50.479893648837994 10.684617568519114
+Y 50.35472533389906 13.317452381806872
+R 46.41368494034576 14.90669323837792
+D 38.03432518055476 17.634448525278618
+M 41.44426017660128 17.191607516956644
+pairwise corr
+U Y 0.6028
+U R 0.7044
+U D 0.5372
+U M 0.662
+Y R 0.4305
+Y D 0.5395
+Y M 0.3848
+R D 0.3816
+R M 0.5986
+D M 0.3479
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - <<'PY'
+> import csv, math, itertools
+n> from collections import defaultdict
+>
+> # load data
+> path='/app/bn_sample_10k.csv'
+> with open(path) as f:
+>     rows=list(csv.DictReader(f))
+> cols=list(rows[0].keys())
+> X={c:[float(r[c]) for r in rows] for c in cols}
+> n=len(rows)
+>
+> # linear algebra helpers
+>
+u> def transpose(A):
+>     return [list(row) for row in zip(*A)]
+>
+l> def matmul(A,B):
+e,>     # A m x p, B p x n
+>     m,p=len(A),len(A[0])
+ >     if isinstance(B[0], (int,float)):
+>         raise TypeError
+>     p2=len(B)
+>     n2=len(B[0])
+>     assert p==p2
+>     C=[[0.0]*n2 for _ in range(m)]
+>     for i in range(m):
+>         Ai=A[i]
+>         for k in range(p):
+>             aik=Ai[k]
+>             if aik==0: continue
+>             Bk=B[k]
+>             for j in range(n2):
+>                 C[i][j]+=aik*Bk[j]
+>     return C
+>
+> def matvec(A,v):
+>     return [sum(a*b for a,b in zip(row,v)) for row in A]
+>
+> def solve_linear(A,b):
+>     # Gaussian elimination on augmented matrix; A square
+>     m=len(A)
+>     M=[row[:] + [b[i]] for i,row in enumerate(A)]
+>     for col in range(m):
+>         pivot=max(range(col,m), key=lambda r: abs(M[r][col]))
+>         if abs(M[pivot][col]) < 1e-12:
+>             return None
+>         M[col],M[pivot]=M[pivot],M[col]
+>         pv=M[col][col]
+>         inv=1.0/pv
+>         for j in range(col,m+1):
+>             M[col][j]*=inv
+>         for r in range(m):
+>             if r==col: continue
+>             factor=M[r][col]
+>             if factor==0: continue
+>             for j in range(col,m+1):
+>                 M[r][j]-=factor*M[col][j]
+>     return [M[i][m] for i in range(m)]
+>
+> def regress_bic(y, parents):
+>     # y, parents are lists of floats
+>     k=len(parents)
+>     # build design matrix with intercept
+>     if k==0:
+>         mu=sum(y)/n
+>         rss=sum((v-mu)**2 for v in y)
+>         sigma2=rss/n
+>         ll=-0.5*n*(math.log(2*math.pi*sigma2)+1)
+>         bic=ll - 0.5*math.log(n)
+>         return bic, mu, [], sigma2
+>     Xmat=[[1.0]+[p[i] for p in parents] for i in range(n)]
+>     # normal equations
+>     p=k+1
+>     XtX=[[0.0]*p for _ in range(p)]
+>     Xty=[0.0]*p
+>     for i in range(n):
+>         row=Xmat[i]
+>         yi=y[i]
+>         for a in range(p):
+>             Xty[a]+=row[a]*yi
+>             ra=row[a]
+>             for b in range(p):
+>                 XtX[a][b]+=ra*row[b]
+>     beta=solve_linear(XtX,Xty)
+>     if beta is None:
+>         return -1e99, None, None, None
+>     rss=0.0
+>     for i in range(n):
+>         pred=sum(beta[j]*Xmat[i][j] for j in range(p))
+>         e=y[i]-pred
+>         rss+=e*e
+>     sigma2=rss/n
+>     if sigma2<=0:
+>         sigma2=1e-12
+>     ll=-0.5*n*(math.log(2*math.pi*sigma2)+1)
+>     bic=ll - 0.5*p*math.log(n)
+>     return bic, beta[0], beta[1:], sigma2
+>
+> # enumerate orders with U first, others permutations
+> others=[c for c in cols if c!='U']
+> best=None
+> best_struct=None
+> count=0
+> for perm in itertools.permutations(others):
+>     order=('U',)+perm
+>     pos={node:i for i,node in enumerate(order)}
+>     # possible parent candidates for each node from predecessors; U must have no parents.
+>     cand={node:[p for p in order[:pos[node]] if not (node=='U')] for node in order}
+>     # need exactly 6 edges total
+>     # enumerate parent sets for each node. With only 4 other nodes, small.
+>     parent_options=[]
+>     nodes=[]
+>     for node in order:
+>         if node=='U':
+>             opts=[()]
+>         else:
+>             preds=cand[node]
+>             opts=[]
+>             for r in range(len(preds)+1):
+>                 for subset in itertools.combinations(preds,r):
+>                     opts.append(subset)
+>         parent_options.append(opts)
+>         nodes.append(node)
+>     # recursive prune by edge count
+>     def rec(i, chosen, edgecount):
+>         nonlocal best,best_struct,count
+>         if edgecount>6:
+>             return
+>         if i==len(nodes):
+>             if edgecount!=6:
+>                 return
+>             # score
+>             bic_total=0.0
+>             for node,parents in chosen.items():
+>                 y=X[node]
+>                 pars=[X[p] for p in parents]
+>                 bic,_,_,_=regress_bic(y, pars)
+>                 bic_total+=bic
+>             count+=1
+>             if best is None or bic_total>best:
+>                 best=bic_total
+>                 best_struct={node:chosen[node] for node in nodes}
+>             return
+>         node=nodes[i]
+>         for parents in parent_options[i]:
+>             chosen[node]=parents
+>             rec(i+1, chosen, edgecount+len(parents))
+>         chosen.pop(node,None)
+>     rec(0, {}, 0)
+>
+> print('searched structures',count)
+> print('best bic',best)
+> print('best struct order likely')
+> for node,parents in best_struct.items():
+>     print(node, '<-', parents)
+> PY
+  File "<stdin>", line 126
+SyntaxError: no binding for nonlocal 'best' found
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - <<'PY'
+> import csv, math, itertools
+>
+> path='/app/bn_sample_10k.csv'
+> with open(path) as f:
+>     rows=list(csv.DictReader(f))
+> cols=list(rows[0].keys())
+> X={c:[float(r[c]) for r in rows] for c in cols}
+> n=len(rows)
+>
+> # basic linear algebra for small systems
+>
+> def solve_linear(A, b):
+>     m=len(A)
+>     M=[A[i][:]+[b[i]] for i in range(m)]
+>     for col in range(m):
+>         pivot=max(range(col,m), key=lambda r: abs(M[r][col]))
+>         if abs(M[pivot][col]) < 1e-12:
+>             return None
+>         M[col], M[pivot] = M[pivot], M[col]
+>         inv=1.0/M[col][col]
+>         for j in range(col, m+1):
+>             M[col][j] *= inv
+>         for r in range(m):
+>             if r == col:
+>                 continue
+>             factor=M[r][col]
+>             if factor == 0:
+>                 continue
+>             for j in range(col, m+1):
+>                 M[r][j] -= factor * M[col][j]
+>     return [M[i][m] for i in range(m)]
+>
+>
+> def bic_for_node(y, parents):
+>     p=len(parents)
+>     if p == 0:
+>         mu=sum(y)/n
+>         rss=sum((v-mu)**2 for v in y)
+>         sigma2=max(rss/n, 1e-12)
+>         ll=-0.5*n*(math.log(2*math.pi*sigma2)+1)
+>         bic=ll - 0.5*math.log(n)
+>         return bic, [mu], sigma2
+>     Xmat=[[1.0]+[par[i] for par in parents] for i in range(n)]
+>     k=p+1
+>     XtX=[[0.0]*k for _ in range(k)]
+>     Xty=[0.0]*k
+>     for i in range(n):
+>         row=Xmat[i]
+>         yi=y[i]
+>         for a in range(k):
+>             Xty[a] += row[a]*yi
+>             ra=row[a]
+>             for b in range(k):
+>                 XtX[a][b] += ra*row[b]
+>     beta=solve_linear(XtX, Xty)
+>     if beta is None:
+>         return -1e99, None, None
+>     rss=0.0
+>     for i in range(n):
+>         pred=sum(beta[j]*Xmat[i][j] for j in range(k))
+>         e=y[i]-pred
+>         rss += e*e
+>     sigma2=max(rss/n, 1e-12)
+>     ll=-0.5*n*(math.log(2*math.pi*sigma2)+1)
+>     bic=ll - 0.5*k*math.log(n)
+>     return bic, beta, sigma2
+>
+> others=[c for c in cols if c!='U']
+> best=None
+> best_graph=None
+> count=0
+>
+> for perm in itertools.permutations(others):
+>     order=('U',)+perm
+>     preds={node:list(order[:i]) for i,node in enumerate(order)}
+>     # enumerate parent sets by recursion, total edges fixed at 6
+>     nodes=list(order)
+>     def rec(i, chosen, edgecount):
+>         global best,best_graph,count
+>         nonlocal best, best_graph, count
+>         if edgecount > 6:
+>             return
+>         if i == len(nodes):
+>             if edgecount != 6:
+>                 return
+>             score=0.0
+>             for node in nodes:
+>                 parents=chosen[node]
+>                 bic, _, _ = bic_for_node(X[node], [X[p] for p in parents])
+>                 score += bic
+>             count += 1
+>             if best is None or score > best:
+>                 best=score
+>                 best_graph={node: tuple(chosen[node]) for node in nodes}
+>             return
+>         node=nodes[i]
+>         if node=='U':
+>             chosen[node]=()
+>             rec(i+1, chosen, edgecount)
+>             del chosen[node]
+>             return
+>         ps=preds[node]
+>         for r in range(len(ps)+1):
+>             for subset in itertools.combinations(ps, r):
+>                 chosen[node]=subset
+>                 rec(i+1, chosen, edgecount+len(subset))
+>         if node in chosen:
+>             del chosen[node]
+>     rec(0, {}, 0)
+>
+> print('candidate structures evaluated:', count)
+> print('best score:', best)
+> for node in nodes:
+>     print(node, '<-', best_graph[node])
+> print('edges:', sum(len(v) for v in best_graph.values()))
+> PY
+  File "<stdin>", line 79
+SyntaxError: name 'best' is nonlocal and global
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - <<'PY'
+> import csv, math, itertools
+>
+> path='/app/bn_sample_10k.csv'
+> with open(path) as f:
+>     rows=list(csv.DictReader(f))
+> cols=list(rows[0].keys())
+> X={c:[float(r[c]) for r in rows] for c in cols}
+> n=len(rows)
+>
+> # Solve linear system via Gauss-Jordan
+>
+> def solve_linear(A, b):
+>     m=len(A)
+>     M=[A[i][:]+[b[i]] for i in range(m)]
+>     for col in range(m):
+>         pivot=max(range(col,m), key=lambda r: abs(M[r][col]))
+>         if abs(M[pivot][col]) < 1e-12:
+>             return None
+>         if pivot != col:
+>             M[col], M[pivot] = M[pivot], M[col]
+>         inv=1.0/M[col][col]
+>         for j in range(col, m+1):
+>             M[col][j] *= inv
+>         for r in range(m):
+>             if r == col:
+>                 continue
+>             factor=M[r][col]
+>             if factor == 0:
+>                 continue
+>             for j in range(col, m+1):
+>                 M[r][j] -= factor * M[col][j]
+>     return [M[i][m] for i in range(m)]
+>
+>
+> def bic_for_node(y, parent_names):
+>     p=len(parent_names)
+>     if p == 0:
+>         mu=sum(y)/n
+>         rss=sum((v-mu)**2 for v in y)
+>         sigma2=max(rss/n, 1e-12)
+>         ll=-0.5*n*(math.log(2*math.pi*sigma2)+1)
+>         bic=ll - 0.5*math.log(n)
+>         return bic, [mu], sigma2
+>     Xmat=[[1.0]+[X[pn][i] for pn in parent_names] for i in range(n)]
+>     k=p+1
+>     XtX=[[0.0]*k for _ in range(k)]
+>     Xty=[0.0]*k
+>     for i in range(n):
+>         row=Xmat[i]
+>         yi=y[i]
+>         for a in range(k):
+>             Xty[a] += row[a]*yi
+>             ra=row[a]
+>             for b in range(k):
+>                 XtX[a][b] += ra*row[b]
+>     beta=solve_linear(XtX, Xty)
+>     if beta is None:
+>         return -1e99, None, None
+>     rss=0.0
+>     for i in range(n):
+>         pred=0.0
+>         for j in range(k):
+>             pred += beta[j]*Xmat[i][j]
+>         e=y[i]-pred
+>         rss += e*e
+>     sigma2=max(rss/n, 1e-12)
+>     ll=-0.5*n*(math.log(2*math.pi*sigma2)+1)
+>     bic=ll - 0.5*k*math.log(n)
+>     return bic, beta, sigma2
+>
+> nodes=cols
+> best_score=[None]
+> best_graph=[None]
+> eval_count=[0]
+>
+> # Enumerate DAGs consistent with an order, with U first due to no parents. Since direction between remaining nodes may be inferred by alphabet rule when uncle
+ar, we enforce an order that respects a DAG and later use that to orient edges.
+> others=[c for c in nodes if c != 'U']
+>
+> for perm in itertools.permutations(others):
+>     order=('U',)+perm
+>     parent_candidates={node:list(order[:i]) for i,node in enumerate(order)}
+>
+>     def rec(idx, chosen, edgecount):
+>         if edgecount > 6:
+>             return
+>         if idx == len(order):
+>             if edgecount != 6:
+>                 return
+>             score=0.0
+>             for node in order:
+>                 parents=chosen[node]
+>                 bic, _, _ = bic_for_node(X[node], parents)
+>                 score += bic
+>             eval_count[0] += 1
+>             if best_score[0] is None or score > best_score[0]:
+>                 best_score[0] = score
+>                 best_graph[0] = {node: tuple(chosen[node]) for node in order}
+>             return
+>         node=order[idx]
+>         if node == 'U':
+>             chosen[node]=()
+>             rec(idx+1, chosen, edgecount)
+>             del chosen[node]
+>             return
+>         preds=parent_candidates[node]
+>         for r in range(len(preds)+1):
+>             for subset in itertools.combinations(preds, r):
+>                 chosen[node]=subset
+>                 rec(idx+1, chosen, edgecount+len(subset))
+>         if node in chosen:
+>             del chosen[node]
+>
+>     rec(0, {}, 0)
+>
+> print('evaluated', eval_count[0], 'structures')
+> print('best score', best_score[0])
+> for node in order:
+>     print(node, '<-', best_graph[0][node])
+> print('edge count', sum(len(v) for v in best_graph[0].values()))
+>
+> # write learned_dag.csv
+> edges=[]
+> for child, parents in best_graph[0].items():
+>     for parent in parents:
+>         edges.append((child, parent))
+> with open('/app/learned_dag.csv', 'w', newline='') as f:
+>     w=csv.writer(f)
+>     w.writerow(['to','from'])
+>     for child,parent in edges:
+>         w.writerow([child,parent])
+> print('wrote /app/learned_dag.csv')
+> PY
+evaluated 5040 structures
+best score -193604.56585005854
+U <- ()
+M <- ('U', 'R')
+D <- ('U', 'Y')
+R <- ('U',)
+Y <- ('U',)
+edge count 6
+wrote /app/learned_dag.csv
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# if [ -f /app/learned_dag.csv ]; then cat -- /app/learned_dag.csv; else echo '错误: 找不到文件 /app/learned_dag.csv'; fi
+to,from
+Y,U
+R,U
+D,U
+D,Y
+M,U
+M,R
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - <<'PY'
+> import csv, math, random
+> from collections import defaultdict
+>
+> random.seed(0)
+>
+> # Load data
+> with open('/app/bn_sample_10k.csv') as f:
+>     rows=list(csv.DictReader(f))
+> cols=list(rows[0].keys())
+> X={c:[float(r[c]) for r in rows] for c in cols}
+>
+> # Learned DAG from file
+> with open('/app/learned_dag.csv') as f:
+>     dag=list(csv.DictReader(f))
+> parents=defaultdict(list)
+> children=defaultdict(list)
+> for e in dag:
+>     child=e['to']
+>     parent=e['from']
+>     parents[child].append(parent)
+>     children[parent].append(child)
+>
+> # intervention: cut incoming edges to Y
+> intervened_edges=[e for e in dag if e['to']!='Y']
+> with open('/app/intervened_dag.csv','w',newline='') as f:
+>     w=csv.writer(f)
+>     w.writerow(['to','from'])
+>     for e in intervened_edges:
+>         w.writerow([e['to'], e['from']])
+>
+> # Fit linear-Gaussian parameters for each node on original data
+> # We keep coefficients in topological order [U, Y, R, D, M] based on learned structure.
+> order=['U','Y','R','D','M']
+>
+> def solve_linear(A, b):
+>     m=len(A)
+>     M=[A[i][:]+[b[i]] for i in range(m)]
+>     for col in range(m):
+>         pivot=max(range(col,m), key=lambda r: abs(M[r][col]))
+>         if abs(M[pivot][col]) < 1e-12:
+>             return None
+>         if pivot != col:
+>             M[col], M[pivot] = M[pivot], M[col]
+>         inv=1.0/M[col][col]
+>         for j in range(col,m+1):
+>             M[col][j] *= inv
+>         for r in range(m):
+>             if r == col:
+>                 continue
+>             factor=M[r][col]
+>             if factor == 0:
+>                 continue
+>             for j in range(col,m+1):
+>                 M[r][j] -= factor*M[col][j]
+>     return [M[i][m] for i in range(m)]
+>
+> params={}
+> for node in order:
+>     ps=parents.get(node, [])
+>     y=X[node]
+>     n=len(y)
+>     if not ps:
+>         mu=sum(y)/n
+>         rss=sum((v-mu)**2 for v in y)
+>         sigma=math.sqrt(max(rss/n, 1e-12))
+>         params[node]={'parents':[], 'beta':[mu], 'sigma':sigma}
+>     else:
+>         Xmat=[[1.0]+[X[p][i] for p in ps] for i in range(n)]
+>         k=len(ps)+1
+>         XtX=[[0.0]*k for _ in range(k)]
+>         Xty=[0.0]*k
+>         for i in range(n):
+>             row=Xmat[i]
+>             yi=y[i]
+>             for a in range(k):
+>                 Xty[a]+=row[a]*yi
+>                 ra=row[a]
+>                 for b in range(k):
+>                     XtX[a][b]+=ra*row[b]
+>         beta=solve_linear(XtX, Xty)
+>         if beta is None:
+>             raise RuntimeError(f'Could not fit node {node}')
+>         rss=0.0
+>         for i in range(n):
+>             pred=sum(beta[j]*Xmat[i][j] for j in range(k))
+>             rss+=(y[i]-pred)**2
+>         sigma=math.sqrt(max(rss/n, 1e-12))
+>         params[node]={'parents':ps, 'beta':beta, 'sigma':sigma}
+>
+> # Sample from intervened BN
+> N=10000
+> samples=[]
+> for _ in range(N):
+>     s={}
+>     # U root
+>     p=params['U']
+>     s['U']=random.gauss(p['beta'][0], p['sigma'])
+>     # Y intervened to 0 exactly
+>     s['Y']=0.0
+>     # R depends on U
+>     p=params['R']
+>     s['R']=p['beta'][0] + p['beta'][1]*s['U'] + random.gauss(0.0, p['sigma'])
+>     # D depends on U, Y
+>     p=params['D']
+>     s['D']=p['beta'][0] + p['beta'][1]*s['U'] + p['beta'][2]*s['Y'] + random.gauss(0.0, p['sigma'])
+>     # M depends on U, R
+>     p=params['M']
+>     s['M']=p['beta'][0] + p['beta'][1]*s['U'] + p['beta'][2]*s['R'] + random.gauss(0.0, p['sigma'])
+>     samples.append(s)
+>
+> with open('/app/final_bn_sample.csv','w',newline='') as f:
+>     w=csv.writer(f)
+>     w.writerow(cols)
+>     for s in samples:
+>         w.writerow([s[c] for c in cols])
+>
+> print('wrote /app/intervened_dag.csv and /app/final_bn_sample.csv')
+> for node in order:
+>     print(node, params[node])
+> PY
+wrote /app/intervened_dag.csv and /app/final_bn_sample.csv
+U {'parents': [], 'beta': [50.479893648837994], 'sigma': 10.684617568519114}
+Y {'parents': ['U'], 'beta': [12.428390703341229, 0.7513156603377831], 'sigma': 10.626074181012207}
+R {'parents': ['U'], 'beta': [-3.1974118990166147, 0.9827892503989983], 'sigma': 10.580370015450104}
+D {'parents': ['U', 'Y'], 'beta': [-12.296513517029922, 0.5495886405654089, 0.4485708624455004], 'sigma': 14.089535389108423}
+M {'parents': ['U', 'R'], 'beta': [-11.357020085805033, 0.767516620467708, 0.30286590917200445], 'sigma': 12.480277224738144}
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - /app/test_bn_outputs.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "import csv\nfrom pathlib import Path\n\nBASE = Path('/app')\nEXPECTED_COLS = ['U', 'Y', 'R', 'D', 'M']\nEXPECTED_EDGES = {\n    ('Y', 'U'),\n    ('
+R', 'U'),\n    ('D', 'U'),\n    ('D', 'Y'),\n    ('M', 'U'),\n    ('M', 'R'),\n}\n\n\ndef read_edges(path):\n    with path.open(newline='') as f:\n        rows
+= list(csv.DictReader(f))\n    assert set(rows[0]) == {'to', 'from'}\n    return {(row['to'], row['from']) for row in rows}\n\n\ndef test_learned_dag():\n    ed
+ges = read_edges(BASE / 'learned_dag.csv')\n    assert len(edges) == 6\n    assert edges == EXPECTED_EDGES\n\n    # Every edge must point from an earlier node i
+n this topological order.\n    order = {'U': 0, 'Y': 1, 'R': 2, 'D': 3, 'M': 4}\n    assert all(order[parent] < order[child] for child, parent in edges)\n\n\nde
+f test_intervened_dag():\n    edges = read_edges(BASE / 'intervened_dag.csv')\n    assert edges == EXPECTED_EDGES - {('Y', 'U')}\n    assert all(child != 'Y' fo
+r child, _ in edges)\n\n\ndef test_final_sample():\n    with (BASE / 'final_bn_sample.csv').open(newline='') as f:\n        reader = csv.DictReader(f)\n
+assert reader.fieldnames == EXPECTED_COLS\n        rows = list(reader)\n    assert len(rows) == 10000\n    assert all(float(row['Y']) == 0.0 for row in rows)\n
+   for row in rows:\n        for col in EXPECTED_COLS:\n            float(row[col])\n"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_bn_outputs.py
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 -m pytest -v -- /app/test_bn_outputs.py
+/usr/bin/python3: No module named pytest
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 -m unittest /app/test_bn_outputs.py && python3 - <<'PY'
+> import csv
+> from pathlib import Path
+> for name in ['learned_dag.csv','intervened_dag.csv','final_bn_sample.csv']:
+>     p=Path('/app')/name
+>     with p.open(newline='') as f:
+>         rows=list(csv.reader(f))
+>     print(name, 'rows including header=', len(rows), 'header=', rows[0])
+>     print('first data=', rows[1] if len(rows)>1 else None)
+> PY
+
+----------------------------------------------------------------------
+Ran 0 tests in 0.000s
+
+NO TESTS RAN
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - /app/test_bn_outputs.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = 'import csv\nfrom pathlib import Path\n'
+> new_str = 'import csv\nimport unittest\nfrom pathlib import Path\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/test_bn_outputs.py。修改已持久化。
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# if [ -f /app/test_bn_outputs.py ]; then cat -- /app/test_bn_outputs.py; else echo '错误: 找不到文件 /app/test_bn_outputs.py'; fi
+import csv
+import unittest
+from pathlib import Path
+
+BASE = Path('/app')
+EXPECTED_COLS = ['U', 'Y', 'R', 'D', 'M']
+EXPECTED_EDGES = {
+    ('Y', 'U'),
+    ('R', 'U'),
+    ('D', 'U'),
+    ('D', 'Y'),
+    ('M', 'U'),
+    ('M', 'R'),
+}
+
+
+def read_edges(path):
+    with path.open(newline='') as f:
+        rows = list(csv.DictReader(f))
+    assert set(rows[0]) == {'to', 'from'}
+    return {(row['to'], row['from']) for row in rows}
+
+
+def test_learned_dag():
+    edges = read_edges(BASE / 'learned_dag.csv')
+    assert len(edges) == 6
+    assert edges == EXPECTED_EDGES
+
+    # Every edge must point from an earlier node in this topological order.
+    order = {'U': 0, 'Y': 1, 'R': 2, 'D': 3, 'M': 4}
+    assert all(order[parent] < order[child] for child, parent in edges)
+
+
+def test_intervened_dag():
+    edges = read_edges(BASE / 'intervened_dag.csv')
+    assert edges == EXPECTED_EDGES - {('Y', 'U')}
+    assert all(child != 'Y' for child, _ in edges)
+
+
+def test_final_sample():
+    with (BASE / 'final_bn_sample.csv').open(newline='') as f:
+        reader = csv.DictReader(f)
+        assert reader.fieldnames == EXPECTED_COLS
+        rows = list(reader)
+    assert len(rows) == 10000
+    assert all(float(row['Y']) == 0.0 for row in rows)
+    for row in rows:
+        for col in EXPECTED_COLS:
+            float(row[col])
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 - /app/test_bn_outputs.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = "def test_learned_dag():\n    edges = read_edges(BASE / 'learned_dag.csv')\n    assert len(edges) == 6\n    assert edges == EXPECTED_EDGES\n\n    #
+Every edge must point from an earlier node in this topological order.\n    order = {'U': 0, 'Y': 1, 'R': 2, 'D': 3, 'M': 4}\n    assert all(order[parent] < orde
+r[child] for child, parent in edges)\n\n\ndef test_intervened_dag():\n    edges = read_edges(BASE / 'intervened_dag.csv')\n    assert edges == EXPECTED_EDGES -
+{('Y', 'U')}\n    assert all(child != 'Y' for child, _ in edges)\n\n\ndef test_final_sample():\n    with (BASE / 'final_bn_sample.csv').open(newline='') as f:\n
+        reader = csv.DictReader(f)\n        assert reader.fieldnames == EXPECTED_COLS\n        rows = list(reader)\n    assert len(rows) == 10000\n    assert al
+l(float(row['Y']) == 0.0 for row in rows)\n    for row in rows:\n        for col in EXPECTED_COLS:\n            float(row[col])\n"
+> new_str = "class BayesianNetworkOutputTests(unittest.TestCase):\n    def test_learned_dag(self):\n        edges = read_edges(BASE / 'learned_dag.csv')\n
+  self.assertEqual(len(edges), 6)\n        self.assertEqual(edges, EXPECTED_EDGES)\n\n        # Every edge must point from an earlier node in this topological o
+rder.\n        order = {'U': 0, 'Y': 1, 'R': 2, 'D': 3, 'M': 4}\n        self.assertTrue(all(order[parent] < order[child] for child, parent in edges))\n\n    de
+f test_intervened_dag(self):\n        edges = read_edges(BASE / 'intervened_dag.csv')\n        self.assertEqual(edges, EXPECTED_EDGES - {('Y', 'U')})\n        s
+elf.assertTrue(all(child != 'Y' for child, _ in edges))\n\n    def test_final_sample(self):\n        with (BASE / 'final_bn_sample.csv').open(newline='') as f:\
+n            reader = csv.DictReader(f)\n            self.assertEqual(reader.fieldnames, EXPECTED_COLS)\n            rows = list(reader)\n        self.assertEqu
+al(len(rows), 10000)\n        self.assertTrue(all(float(row['Y']) == 0.0 for row in rows))\n        for row in rows:\n            for col in EXPECTED_COLS:\n
+             float(row[col])\n\n\nif __name__ == '__main__':\n    unittest.main()\n"
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/test_bn_outputs.py。修改已持久化。
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 -m unittest -v /app/test_bn_outputs.py; status=$?; python3 - <<'PY'
+> import csv
+> from pathlib import Path
+> for name in ['learned_dag.csv','intervened_dag.csv','final_bn_sample.csv']:
+>     p=Path('/app')/name
+>     with p.open(newline='') as f:
+>         rows=list(csv.reader(f))
+>     print(f'{name}: data_rows={len(rows)-1}, header={rows[0]}')
+>     print(f'  first_data={rows[1] if len(rows)>1 else None}')
+> raise SystemExit(status)
+> PY
+test_final_sample (test_bn_outputs.BayesianNetworkOutputTests.test_final_sample) ... ok
+test_intervened_dag (test_bn_outputs.BayesianNetworkOutputTests.test_intervened_dag) ... ok
+test_learned_dag (test_bn_outputs.BayesianNetworkOutputTests.test_learned_dag) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.031s
+
+OK
+learned_dag.csv: data_rows=6, header=['to', 'from']
+  first_data=['Y', 'U']
+intervened_dag.csv: data_rows=5, header=['to', 'from']
+  first_data=['R', 'U']
+final_bn_sample.csv: data_rows=10000, header=['U', 'Y', 'R', 'D', 'M']
+  first_data=['60.54176260623411', '0.0', '41.52606848738414', '11.399690720474775', '52.31060666832405']
+Traceback (most recent call last):
+  File "<stdin>", line 9, in <module>
+NameError: name 'status' is not defined
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@687782a4c840:/app# python3 -m unittest -v /app/test_bn_outputs.py && python3 - <<'PY'
+> import csv
+> from pathlib import Path
+> checks = []
+> for name, expected_rows in [('learned_dag.csv', 6), ('intervened_dag.csv', 5), ('final_bn_sample.csv', 10000)]:
+>     p = Path('/app') / name
+>     with p.open(newline='') as f:
+>         rows = list(csv.reader(f))
+>     checks.append((name, len(rows) - 1, expected_rows, rows[0]))
+> for name, got, exp, header in checks:
+>     assert got == exp, (name, got, exp)
+>     print(f'{name}: data_rows={got}, header={header}')
+> PY
+test_final_sample (test_bn_outputs.BayesianNetworkOutputTests.test_final_sample) ... ok
+test_intervened_dag (test_bn_outputs.BayesianNetworkOutputTests.test_intervened_dag) ... ok
+test_learned_dag (test_bn_outputs.BayesianNetworkOutputTests.test_learned_dag) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.026s
+
+OK
+learned_dag.csv: data_rows=6, header=['to', 'from']
+intervened_dag.csv: data_rows=5, header=['to', 'from']
+final_bn_sample.csv: data_rows=10000, header=['U', 'Y', 'R', 'D', 'M']
+root@687782a4c840:/app# true; tmux wait -S done
+root@687782a4c840:/app#

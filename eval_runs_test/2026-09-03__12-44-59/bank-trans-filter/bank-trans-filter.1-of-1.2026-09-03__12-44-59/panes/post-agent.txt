@@ -1,0 +1,424 @@
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# set +e
+root@6dbc11a6357a:/app#
+root@6dbc11a6357a:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@6dbc11a6357a:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@6dbc11a6357a:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@6dbc11a6357a:/app#
+root@6dbc11a6357a:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@6dbc11a6357a:/app#
+root@6dbc11a6357a:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@6dbc11a6357a:/app#
+root@6dbc11a6357a:/app# mkdir -p /root/.config/uv
+root@6dbc11a6357a:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@6dbc11a6357a:/app#
+root@6dbc11a6357a:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (4158 kB/s)
+Reading package lists... Done
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - /app/data/bank_transactions.csv 1 20 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+Company Name,Account Number,Date,Amount,Transaction Type,Description
+Nova Tech Industries,BUS-26958,2024-01-01,-$211608.00,Purchase,Marketing Services
+Phoenix Retail Group,BUS-23454,2024-01-01,$263071.00,Deposit,Investment Return
+Digital Dynamics Systems,BUS-21921,2024-01-01,$250394.00,Transfer,Inter-company Transfer
+Blue Mountain Coffee Co,BUS-2q268,2024-01-01,-$166331.00,Withdrawal,Operating Expenses
+Momentum Capital,BUS-24192,2024-01-01,-$42967.00,Payment,Legal Services
+Summit Investment Partners,BUS-20894,2024-01-01,$150593.00,Transfer,Capital Movement
+Orion Consulting Group,BUS-24041,2024-01-02,$170748.00,Deposit,Quarterly Earnings
+Momentum Capital,BUS-24192,2024-01-02,-$243166.00,Withdrawal,Utility Payment
+Liberty Insurance Group,BUS-29595,2024-01-03,-$187725.00,Payment,Vendor Payment
+Global Logistics Corp,BUS-21748,2024-01-04,-$165017.00,Payment,Professional Services
+Yellowstone Energy,BUS-21513,2024-01-04,-$33834.00,Withdrawal,Office Supplies
+Liberty Insurance Group,BUS-29595,2024-01-04,-$245791.00,Withdrawal,Utility Payment
+Digital Dynamics Systems,BUS-21921,2024-01-05,$24857.00,Deposit,Project Completion
+Aurora Software Systems,BUS-20393,2024-01-05,-$131602.00,Payment,Contractor Payment
+Metro Construction Group,BUS-20998,2024-01-05,-$81951.00,Withdrawal,Insurance Premium
+Galaxy Communications,BUS-20809,2024-01-06,-$203326.00,Withdrawal,Maintenance Costs
+Zephyr Airlines,BUS-24819,2024-01-06,$496874.00,Transfer,Capital Movement
+Digital Dynamics Systems,BUS-21921,2024-01-06,-$17558.00,Withdrawal,Insurance Premium
+Charter Communications,BUS-24349,2024-01-07,-$159607.00,Withdrawal,Rent Payment
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# rg -n -i "north|west|capital|BUS-12345678" /app/data/bank_transactions.csv
+bash: rg: command not found
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - <<'PY'
+> import csv
+> from collections import Counter, defaultdict
+> p='/app/data/bank_transactions.csv'
+> with open(p,newline='',encoding='utf-8') as f:
+>     rows=list(csv.DictReader(f))
+> print('rows',len(rows),'fields',list(rows[0]))
+> for i,r in enumerate(rows,2):
+>     text=' '.join(r.values()).lower()
+>     if any(x in text for x in ('north','west','capital')):
+>         print(i,repr(r))
+> print('candidate account counts')
+> accounts=Counter(r['Account Number'] for r in rows if any(x in ' '.join(r.values()).lower() for x in ('north','west','capital')))
+> print(accounts)
+> PY
+rows 500 fields ['Company Name', 'Account Number', 'Date', 'Amount', 'Transaction Type', 'Description']
+6 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-01-01', 'Amount': '-$42967.00', 'Transaction Type': 'Payment', 'Description'
+: 'Legal Services'}
+7 {'Company Name': 'Summit Investment Partners', 'Account Number': 'BUS-20894', 'Date': '2024-01-01', 'Amount': '$150593.00', 'Transaction Type': 'Transfer', 'D
+escription': 'Capital Movement'}
+9 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-01-02', 'Amount': '-$243166.00', 'Transaction Type': 'Withdrawal', 'Descript
+ion': 'Utility Payment'}
+18 {'Company Name': 'Zephyr Airlines', 'Account Number': 'BUS-24819', 'Date': '2024-01-06', 'Amount': '$496874.00', 'Transaction Type': 'Transfer', 'Description
+': 'Capital Movement'}
+46 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-01-17', 'Amount': '-$60674.00', 'Transaction Type': 'Purchase', 'Descriptio
+n': 'Office Supplies'}
+48 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-01-18', 'Amount': '$304758.00', 'Transaction Type': 'Deposit', 'Description
+': 'Project Completion'}
+52 {'Company Name': 'Northern Light Energy', 'Account Number': 'BUS-27749', 'Date': '2024-01-19', 'Amount': '-$55858.00', 'Transaction Type': 'Withdrawal', 'Des
+cription': 'Operating Expenses'}
+53 {'Company Name': 'Digital Dynamics Systems', 'Account Number': 'BUS-21921', 'Date': '2024-01-19', 'Amount': '$375797.00', 'Transaction Type': 'Transfer', 'De
+scription': 'Capital Movement'}
+64 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-01-22', 'Amount': '-$197887.00', 'Transaction Type': '
+Payment', 'Description': 'Professional Services'}
+66 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-01-22', 'Amount': '-$186904.00', 'Transaction Type': 'Payment', 'Descriptio
+n': 'License Renewal'}
+122 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-02-11', 'Amount': '-$63024.00', 'Transaction Type': 'Payment', 'Descriptio
+n': 'Service Payment'}
+127 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-02-13', 'Amount': '$376406.00', 'Transaction Type': 'Transfer', 'Descripti
+on': 'Investment Transfer'}
+136 {'Company Name': 'Westwind Trading Co', 'Account Number': 'BUS-21273', 'Date': '2024-02-16', 'Amount': '$495224.00', 'Transaction Type': 'Deposit', 'Descrip
+tion': 'Consulting Fee'}
+137 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-02-16', 'Amount': '-$84634.00', 'Transaction Type': 'Purchase', 'Descripti
+on': 'Raw Materials'}
+148 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-02-19', 'Amount': '$148303.00', 'Transaction Type': 'Deposit', 'Descriptio
+n': 'Quarterly Earnings'}
+174 {'Company Name': 'Unity Financial Services', 'Account Number': 'BUS-27700', 'Date': '2024-02-26', 'Amount': '$204512.00', 'Transaction Type': 'Transfer', 'D
+escription': 'Capital Movement'}
+178 {'Company Name': 'Galaxy Communications', 'Account Number': 'BUS-20809', 'Date': '2024-02-29', 'Amount': '$386556.00', 'Transaction Type': 'Transfer', 'Desc
+ription': 'Capital Movement'}
+180 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-03-01', 'Amount': '-$171417.00', 'Transaction Type': 'Purchase', 'Descript
+ion': 'Raw Materials'}
+181 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-03-02', 'Amount': '$182593.00', 'Transaction Type': 'Transfer', 'Descripti
+on': 'Investment Transfer'}
+191 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-03-04', 'Amount': '-$198625.00', 'Transaction Type': 'Payment', 'Descripti
+on': 'License Renewal'}
+193 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-03-05', 'Amount': '-$115848.00', 'Transaction Type': 'Withdrawal', 'Descri
+ption': 'Operating Expenses'}
+208 {'Company Name': 'Orion Consulting Group', 'Account Number': 'BUS-24041', 'Date': '2024-03-11', 'Amount': '$431767.00', 'Transaction Type': 'Transfer', 'Des
+cription': 'Capital Movement'}
+220 {'Company Name': 'North West Capital Group Incoporated', 'Account Number': 'BUS-30999', 'Date': '2024-03-15', 'Amount': '-$22413.00', 'Transaction Type': 'W
+ithdrawal', 'Description': 'Office Supplies'}
+222 {'Company Name': 'Blue Mountain Coffee Co', 'Account Number': 'BUS-24268', 'Date': '2024-03-15', 'Amount': '$209361.00', 'Transaction Type': 'Transfer', 'De
+scription': 'Capital Movement'}
+227 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-03-16', 'Amount': '-$197107.00', 'Transaction Type': 'Payment', 'Descripti
+on': 'Service Payment'}
+229 {'Company Name': 'Liberty Insurance Group', 'Account Number': 'BUS-29595', 'Date': '2024-03-17', 'Amount': '$170381.00', 'Transaction Type': 'Transfer', 'De
+scription': 'Capital Movement'}
+235 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-03-20', 'Amount': '$232005.00', 'Transaction Type': '
+Deposit', 'Description': 'Quarterly Earnings'}
+245 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-03-22', 'Amount': '$105157.00', 'Transaction Type': 'Deposit', 'Descriptio
+n': 'Quarterly Earnings'}
+248 {'Company Name': 'Skyline Construction', 'Account Number': 'BUS-26168', 'Date': '2024-03-23', 'Amount': '$439755.00', 'Transaction Type': 'Transfer', 'Descr
+iption': 'Capital Movement'}
+250 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-03-23', 'Amount': '-$209585.00', 'Transaction Type': 'Withdrawal', 'Descri
+ption': 'Insurance Premium'}
+263 {'Company Name': 'Cloud Nine Software', 'Account Number': 'BUS-20361', 'Date': '2024-03-29', 'Amount': '$35912.00', 'Transaction Type': 'Transfer', 'Descrip
+tion': 'Capital Movement'}
+269 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-04-01', 'Amount': '-$18149.00', 'Transaction Type': 'Purchase', 'Descripti
+on': 'Technology Upgrade'}
+275 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-04-04', 'Amount': '$279375.00', 'Transaction Type': '
+Transfer', 'Description': 'Inter-company Transfer'}
+279 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-04-04', 'Amount': '-$201243.00', 'Transaction Type': 'Payment', 'Descripti
+on': 'Legal Services'}
+282 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-04-05', 'Amount': '$21731.00', 'Transaction Type': 'Transfer', 'Descriptio
+n': 'Capital Movement'}
+290 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-04-08', 'Amount': '$449310.00', 'Transaction Type': 'Deposit', 'Descriptio
+n': 'Investment Return'}
+294 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-04-10', 'Amount': '-$125251.00', 'Transaction Type':
+'Withdrawal', 'Description': 'Payroll'}
+296 {'Company Name': 'Unity Financial Services', 'Account Number': 'BUS-27700', 'Date': '2024-04-10', 'Amount': '$167163.00', 'Transaction Type': 'Transfer', 'D
+escription': 'Capital Movement'}
+302 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-35001', 'Date': '2024-04-13', 'Amount': '$121274.00', 'Transaction Type': '
+Transfer', 'Description': 'Partner Distribution'}
+312 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-04-17', 'Amount': '-$240113.00', 'Transaction Type': 'Purchase', 'Descript
+ion': 'Fleet Maintenance'}
+327 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-04-23', 'Amount': '$271212.00', 'Transaction Type': 'Transfer', 'Descripti
+on': 'Account Consolidation'}
+363 {'Company Name': 'TechCore Solutions Inc', 'Account Number': 'BUS-28269', 'Date': '2024-05-06', 'Amount': '$483253.00', 'Transaction Type': 'Transfer', 'Des
+cription': 'Capital Movement'}
+386 {'Company Name': 'Blue Mountain Coffee Co', 'Account Number': 'BUS-24268', 'Date': '2024-05-18', 'Amount': '$232402.00', 'Transaction Type': 'Transfer', 'De
+scription': 'Capital Movement'}
+388 {'Company Name': 'Cloud Nine Software', 'Account Number': 'BUS-20361', 'Date': '2024-05-19', 'Amount': '$128042.00', 'Transaction Type': 'Transfer', 'Descri
+ption': 'Capital Movement'}
+396 {'Company Name': 'Harbor Marine Services', 'Account Number': 'BUS-21570', 'Date': '2024-05-22', 'Amount': '$414844.00', 'Transaction Type': 'Transfer', 'Des
+cription': 'Capital Movement'}
+423 {'Company Name': 'Blue Mountain Coffee Co', 'Account Number': 'BUS-24268', 'Date': '2024-06-02', 'Amount': '$116932.00', 'Transaction Type': 'Transfer', 'De
+scription': 'Capital Movement'}
+425 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-06-02', 'Amount': '-$167135.00', 'Transaction Type': 'Withdrawal', 'Descri
+ption': 'Utility Payment'}
+438 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-06-07', 'Amount': '$130793.00', 'Transaction Type': 'Transfer', 'Descripti
+on': 'Capital Movement'}
+448 {'Company Name': 'Westwind Trading Co', 'Account Number': 'BUS-21273', 'Date': '2024-06-11', 'Amount': '-$19160.00', 'Transaction Type': 'Payment', 'Descrip
+tion': 'Service Payment'}
+453 {'Company Name': 'Metro Construction Group', 'Account Number': 'BUS-20998', 'Date': '2024-06-12', 'Amount': '$453452.00', 'Transaction Type': 'Transfer', 'D
+escription': 'Capital Movement'}
+463 {'Company Name': 'Liberty Insurce Group', 'Account Number': 'BUS-29595', 'Date': '2024-06-15', 'Amount': '$95153.00', 'Transaction Type': 'Transfer', 'Descr
+iption': 'Capital Movement'}
+471 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-06-18', 'Amount': '-$123220.00', 'Transaction Type': 'Withdrawal', 'Descri
+ption': 'Rent Payment'}
+472 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-06-18', 'Amount': '-$195578.00', 'Transaction Type': 'Withdrawal', 'Descri
+ption': 'Equipment Purchase'}
+481 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-06-23', 'Amount': '-$227635.00', 'Transaction Type': 'Purchase', 'Descript
+ion': 'Office Supplies'}
+491 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-06-25', 'Amount': '$62250.00', 'Transaction Type': 'Transfer', 'Descriptio
+n': 'Subsidiary Payment'}
+496 {'Company Name': 'Northern Light Energy', 'Account Number': 'BUS-z7749', 'Date': '2024-06-26', 'Amount': '-$160578.00', 'Transaction Type': 'Withdrawal', 'D
+escription': 'Insurance Premium'}
+498 {'Company Name': 'Momentum Capital', 'Account Number': 'BUS-24192', 'Date': '2024-06-27', 'Amount': '$449476.00', 'Transaction Type': 'Deposit', 'Descriptio
+n': 'Investment Return'}
+candidate account counts
+Counter({'BUS-24192': 29, 'BUS-30001': 4, 'BUS-24268': 3, 'BUS-21273': 2, 'BUS-27700': 2, 'BUS-29595': 2, 'BUS-20361': 2, 'BUS-20894': 1, 'BUS-24819': 1, 'BUS-2
+7749': 1, 'BUS-21921': 1, 'BUS-20809': 1, 'BUS-24041': 1, 'BUS-30999': 1, 'BUS-26168': 1, 'BUS-35001': 1, 'BUS-28269': 1, 'BUS-21570': 1, 'BUS-20998': 1, 'BUS-z
+7749': 1})
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - <<'PY'
+> import csv
+> p='/app/data/bank_transactions.csv'
+> accounts={'BUS-30001','BUS-30999','BUS-35001'}
+> with open(p,newline='',encoding='utf-8') as f:
+>     for n,r in enumerate(csv.DictReader(f),2):
+>         if r['Account Number'] in accounts:
+>             print(n, r)
+> PY
+64 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-01-22', 'Amount': '-$197887.00', 'Transaction Type': '
+Payment', 'Description': 'Professional Services'}
+179 {'Company Name': 'NWCG Inc. Pty. Ltd.', 'Account Number': 'BUS-30001', 'Date': '2024-03-01', 'Amount': '-$84377.00', 'Transaction Type': 'Purchase', 'Descri
+ption': 'Office Supplies'}
+220 {'Company Name': 'North West Capital Group Incoporated', 'Account Number': 'BUS-30999', 'Date': '2024-03-15', 'Amount': '-$22413.00', 'Transaction Type': 'W
+ithdrawal', 'Description': 'Office Supplies'}
+226 {'Company Name': 'NWCG Inc. Pty. Ltd.', 'Account Number': 'BUS-30001', 'Date': '2024-03-16', 'Amount': '-$205706.00', 'Transaction Type': 'Purchase', 'Descr
+iption': 'Software License'}
+235 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-03-20', 'Amount': '$232005.00', 'Transaction Type': '
+Deposit', 'Description': 'Quarterly Earnings'}
+275 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-04-04', 'Amount': '$279375.00', 'Transaction Type': '
+Transfer', 'Description': 'Inter-company Transfer'}
+294 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-04-10', 'Amount': '-$125251.00', 'Transaction Type':
+'Withdrawal', 'Description': 'Payroll'}
+302 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-35001', 'Date': '2024-04-13', 'Amount': '$121274.00', 'Transaction Type': '
+Transfer', 'Description': 'Partner Distribution'}
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# wc -l /app/data/bank_transactions.csv && find /app/data -maxdepth 1 -type f -printf '%f\n' | sort
+501 /app/data/bank_transactions.csv
+bank_transactions.csv
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - /app/data/output.json <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '[\n  {\n    "Company Name": "North West Capital Group Incorporated",\n    "Account Number": "BUS-30001",\n    "Date": "2024-01-22",\n    "Amount":
+"-$197887.00",\n    "Transaction Type": "Payment",\n    "Description": "Professional Services"\n  },\n  {\n    "Company Name": "NWCG Inc. Pty. Ltd.",\n    "Acco
+unt Number": "BUS-30001",\n    "Date": "2024-03-01",\n    "Amount": "-$84377.00",\n    "Transaction Type": "Purchase",\n    "Description": "Office Supplies"\n
+},\n  {\n    "Company Name": "North West Capital Group Incoporated",\n    "Account Number": "BUS-30999",\n    "Date": "2024-03-15",\n    "Amount": "-$22413.00",
+\n    "Transaction Type": "Withdrawal",\n    "Description": "Office Supplies"\n  },\n  {\n    "Company Name": "NWCG Inc. Pty. Ltd.",\n    "Account Number": "BUS
+-30001",\n    "Date": "2024-03-16",\n    "Amount": "-$205706.00",\n    "Transaction Type": "Purchase",\n    "Description": "Software License"\n  },\n  {\n    "C
+ompany Name": "North West Capital Group Incorporated",\n    "Account Number": "BUS-30001",\n    "Date": "2024-03-20",\n    "Amount": "$232005.00",\n    "Transac
+tion Type": "Deposit",\n    "Description": "Quarterly Earnings"\n  },\n  {\n    "Company Name": "North West Capital Group Incorporated",\n    "Account Number":
+"BUS-30001",\n    "Date": "2024-04-04",\n    "Amount": "$279375.00",\n    "Transaction Type": "Transfer",\n    "Description": "Inter-company Transfer"\n  },\n
+{\n    "Company Name": "North West Capital Group Incorporated",\n    "Account Number": "BUS-30001",\n    "Date": "2024-04-10",\n    "Amount": "-$125251.00",\n
+  "Transaction Type": "Withdrawal",\n    "Description": "Payroll"\n  },\n  {\n    "Company Name": "North West Capital Group Incorporated",\n    "Account Number"
+: "BUS-35001",\n    "Date": "2024-04-13",\n    "Amount": "$121274.00",\n    "Transaction Type": "Transfer",\n    "Description": "Partner Distribution"\n  }\n]\n
+'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/data/output.json
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - <<'PY'
+> import csv, json, sys
+> from pathlib import Path
+> csv_path = Path('/app/data/bank_transactions.csv')
+> json_path = Path('/app/data/output.json')
+> expected_keys = ["Company Name", "Account Number", "Date", "Amount", "Transaction Type", "Description"]
+> allowed_accounts = {'BUS-30001','BUS-30999','BUS-35001'}
+> allowed_names = {
+>     'North West Capital Group Incorporated',
+>     'North West Capital Group Incoporated',
+>     'NWCG Inc. Pty. Ltd.',
+> }
+> with csv_path.open(newline='', encoding='utf-8') as f:
+>     rows = list(csv.DictReader(f))
+> expected = [r for r in rows if r['Account Number'] in allowed_accounts or r['Company Name'] in allowed_names]
+> expected = sorted(expected, key=lambda r: r['Date'])
+> with json_path.open(encoding='utf-8') as f:
+>     data = json.load(f)
+> assert isinstance(data, list), type(data)
+> assert len(data) == len(expected), (len(data), len(expected))
+> for idx, obj in enumerate(data):
+>     assert list(obj.keys()) == expected_keys, (idx, list(obj.keys()))
+>     assert all(isinstance(v, str) for v in obj.values()), (idx, obj)
+>     src = expected[idx]
+>     for k in expected_keys:
+>         assert obj[k] == src[k], (idx, k, obj[k], src[k])
+> assert [x['Date'] for x in data] == sorted(x['Date'] for x in data), [x['Date'] for x in data]
+> print('Validation passed:', len(data), 'rows')
+> for row in data:
+>     print(row)
+> PY
+Traceback (most recent call last):
+  File "<stdin>", line 19, in <module>
+AssertionError: (8, 9)
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - <<'PY'
+> import csv, json
+> from pathlib import Path
+> csv_path=Path('/app/data/bank_transactions.csv')
+> json_path=Path('/app/data/output.json')
+> allowed_accounts={'BUS-30001','BUS-30999','BUS-35001'}
+> allowed_names={'North West Capital Group Incorporated','North West Capital Group Incoporated','NWCG Inc. Pty. Ltd.'}
+> with csv_path.open(newline='', encoding='utf-8') as f:
+>     rows=list(csv.DictReader(f))
+> expected=[]
+> for n,r in enumerate(rows,2):
+>     if r['Account Number'] in allowed_accounts or r['Company Name'] in allowed_names:
+>         expected.append((n,r))
+> with json_path.open(encoding='utf-8') as f:
+>     data=json.load(f)
+> actual={(tuple(o.items())) for o in data}
+> print('expected count',len(expected))
+> for n,r in sorted(expected, key=lambda x:x[1]['Date']):
+>     marker='OK' if tuple(r.items()) in actual else 'MISSING'
+>     print(marker,n,r)
+> PY
+expected count 9
+OK 64 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-01-22', 'Amount': '-$197887.00', 'Transaction Type'
+: 'Payment', 'Description': 'Professional Services'}
+MISSING 97 {'Company Name': 'NWCG Inc. Pty. Ltd.', 'Account Number': 'BUS-30g01', 'Date': '2024-02-02', 'Amount': '-$56760.00', 'Transaction Type': 'Payment', '
+Description': 'Consulting Fee'}
+OK 179 {'Company Name': 'NWCG Inc. Pty. Ltd.', 'Account Number': 'BUS-30001', 'Date': '2024-03-01', 'Amount': '-$84377.00', 'Transaction Type': 'Purchase', 'Des
+cription': 'Office Supplies'}
+OK 220 {'Company Name': 'North West Capital Group Incoporated', 'Account Number': 'BUS-30999', 'Date': '2024-03-15', 'Amount': '-$22413.00', 'Transaction Type':
+ 'Withdrawal', 'Description': 'Office Supplies'}
+OK 226 {'Company Name': 'NWCG Inc. Pty. Ltd.', 'Account Number': 'BUS-30001', 'Date': '2024-03-16', 'Amount': '-$205706.00', 'Transaction Type': 'Purchase', 'De
+scription': 'Software License'}
+OK 235 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-03-20', 'Amount': '$232005.00', 'Transaction Type'
+: 'Deposit', 'Description': 'Quarterly Earnings'}
+OK 275 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-04-04', 'Amount': '$279375.00', 'Transaction Type'
+: 'Transfer', 'Description': 'Inter-company Transfer'}
+OK 294 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-30001', 'Date': '2024-04-10', 'Amount': '-$125251.00', 'Transaction Type
+': 'Withdrawal', 'Description': 'Payroll'}
+OK 302 {'Company Name': 'North West Capital Group Incorporated', 'Account Number': 'BUS-35001', 'Date': '2024-04-13', 'Amount': '$121274.00', 'Transaction Type'
+: 'Transfer', 'Description': 'Partner Distribution'}
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - <<'PY'
+> import csv, json
+> from pathlib import Path
+> csv_path = Path('/app/data/bank_transactions.csv')
+> out_path = Path('/app/data/output.json')
+> allowed_accounts = {'BUS-30001','BUS-30999','BUS-35001'}
+> allowed_names = {'North West Capital Group Incorporated','North West Capital Group Incoporated','NWCG Inc. Pty. Ltd.'}
+> keys = ['Company Name','Account Number','Date','Amount','Transaction Type','Description']
+> with csv_path.open(newline='', encoding='utf-8') as f:
+>     rows = list(csv.DictReader(f))
+> filtered = [ {k:r[k] for k in keys} for r in rows if r['Account Number'] in allowed_accounts or r['Company Name'] in allowed_names ]
+> filtered.sort(key=lambda r: r['Date'])
+> out_path.write_text(json.dumps(filtered, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+> print('wrote', len(filtered), 'rows')
+> PY
+wrote 9 rows
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@6dbc11a6357a:/app# python3 - <<'PY'
+> import csv, json
+> from pathlib import Path
+> csv_path = Path('/app/data/bank_transactions.csv')
+> json_path = Path('/app/data/output.json')
+> expected_keys = ["Company Name", "Account Number", "Date", "Amount", "Transaction Type", "Description"]
+> allowed_accounts = {'BUS-30001','BUS-30999','BUS-35001'}
+> allowed_names = {
+>     'North West Capital Group Incorporated',
+>     'North West Capital Group Incoporated',
+>     'NWCG Inc. Pty. Ltd.',
+> }
+> with csv_path.open(newline='', encoding='utf-8') as f:
+>     rows = list(csv.DictReader(f))
+> expected = [r for r in rows if r['Account Number'] in allowed_accounts or r['Company Name'] in allowed_names]
+> expected = sorted(expected, key=lambda r: r['Date'])
+> with json_path.open(encoding='utf-8') as f:
+>     data = json.load(f)
+> assert isinstance(data, list)
+> assert len(data) == len(expected), (len(data), len(expected))
+> for idx, obj in enumerate(data):
+>     assert list(obj.keys()) == expected_keys, (idx, list(obj.keys()))
+>     assert all(isinstance(v, str) for v in obj.values()), (idx, obj)
+>     src = expected[idx]
+>     for k in expected_keys:
+>         assert obj[k] == src[k], (idx, k, obj[k], src[k])
+> assert [x['Date'] for x in data] == sorted(x['Date'] for x in data)
+> print('Validation passed:', len(data), 'rows')
+> PY
+Validation passed: 9 rows
+root@6dbc11a6357a:/app# true; tmux wait -S done
+root@6dbc11a6357a:/app#

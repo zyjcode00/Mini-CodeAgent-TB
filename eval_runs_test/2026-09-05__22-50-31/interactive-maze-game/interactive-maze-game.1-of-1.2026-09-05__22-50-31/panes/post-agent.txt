@@ -1,0 +1,239 @@
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# set +e
+root@e4e5c9ba69d9:/app#
+root@e4e5c9ba69d9:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@e4e5c9ba69d9:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@e4e5c9ba69d9:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@e4e5c9ba69d9:/app#
+root@e4e5c9ba69d9:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@e4e5c9ba69d9:/app#
+root@e4e5c9ba69d9:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@e4e5c9ba69d9:/app#
+root@e4e5c9ba69d9:/app# mkdir -p /root/.config/uv
+root@e4e5c9ba69d9:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@e4e5c9ba69d9:/app#
+root@e4e5c9ba69d9:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [336 kB]
+Fetched 9375 kB in 4s (2424 kB/s)
+Reading package lists... Done
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# curl -s http://maze:8088/maze_size && echo
+{"maze_size":9}
+
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# curl -s http://maze:8088/sense && echo
+{"connectivity":[1,0,0,0]}
+
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# python3 - maze_solver.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Safe online solver for the interactive maze challenge.\n\nThe solver keeps an internal coordinate, senses only the curre
+nt cell, and never\nchooses a move that would make a cell\'s visit count exceed two.  It prioritizes\nunknown/unvisited neighbours that move toward the exit, an
+d uses bounded\nbacktracking only when necessary.\n"""\nfrom __future__ import annotations\n\nfrom collections import defaultdict, deque\nfrom dataclasses impor
+t dataclass, field\nimport argparse\nimport json\nimport sys\nimport time\nfrom typing import Dict, Iterable, List, Optional, Protocol, Tuple\nfrom urllib impor
+t request\n\n# Directions: 0=up, 1=down, 2=left, 3=right\nDIRS: Dict[int, Tuple[int, int]] = {\n    0: (0, 1),\n    1: (0, -1),\n    2: (-1, 0),\n    3: (1, 0),
+\n}\nOPPOSITE = {0: 1, 1: 0, 2: 3, 3: 2}\nDIR_NAMES = {0: "up", 1: "down", 2: "left", 3: "right"}\nCoord = Tuple[int, int]\n\n\nclass MazeClient(Protocol):\n
+ def maze_size(self) -> int: ...\n    def sense(self) -> List[int]: ...\n    def move(self, direction: int) -> dict: ...\n    def finish(self) -> dict: ...\n\n\
+nclass HttpMazeClient:\n    def __init__(self, base_url: str, timeout: float = 5.0):\n        self.base_url = base_url.rstrip("/")\n        self.timeout = timeo
+ut\n\n    def _json(self, method: str, path: str, payload: Optional[dict] = None) -> dict:\n        data = None\n        headers = {}\n        if payload is not
+ None:\n            data = json.dumps(payload).encode("utf-8")\n            headers["Content-Type"] = "application/json"\n        req = request.Request(self.bas
+e_url + path, data=data, headers=headers, method=method)\n        with request.urlopen(req, timeout=self.timeout) as resp:\n            return json.loads(resp.r
+ead().decode("utf-8"))\n\n    def maze_size(self) -> int:\n        return int(self._json("GET", "/maze_size")["maze_size"])\n\n    def sense(self) -> List[int]:
+\n        return list(self._json("GET", "/sense")["connectivity"])\n\n    def move(self, direction: int) -> dict:\n        return self._json("POST", "/move", {"
+direction": direction})\n\n    def finish(self) -> dict:\n        return self._json("POST", "/finish", {})\n\n\n@dataclass\nclass OnlineMazeSolver:\n    client:
+ MazeClient\n    verbose: bool = True\n    n: int = 0\n    pos: Coord = (1, 1)\n    visits: Dict[Coord, int] = field(default_factory=lambda: defaultdict(int))\n
+    known: Dict[Coord, List[int]] = field(default_factory=dict)\n    stack: List[Coord] = field(default_factory=list)\n    moves_made: int = 0\n\n    def log(se
+lf, msg: str) -> None:\n        if self.verbose:\n            print(msg, flush=True)\n\n    def in_bounds(self, p: Coord) -> bool:\n        x, y = p\n        re
+turn 1 <= x <= self.n and 1 <= y <= self.n\n\n    def neighbor(self, p: Coord, direction: int) -> Coord:\n        dx, dy = DIRS[direction]\n        return (p[0]
+ + dx, p[1] + dy)\n\n    def open_neighbors(self, p: Coord) -> Iterable[Tuple[int, Coord]]:\n        conn = self.known[p]\n        for d, open_ in enumerate(con
+n):\n            if open_:\n                q = self.neighbor(p, d)\n                if self.in_bounds(q):\n                    yield d, q\n\n    def unblocked_
+candidate_dirs(self, conn: List[int]) -> List[Tuple[int, Coord]]:\n        out: List[Tuple[int, Coord]] = []\n        for d, open_ in enumerate(conn):\n
+    if not open_:\n                continue\n            q = self.neighbor(self.pos, d)\n            if self.in_bounds(q) and self.visits[q] < 2:\n
+   out.append((d, q))\n        return out\n\n    def score_forward(self, q: Coord) -> Tuple[int, int, int, int]:\n        """Lower score is better for explorati
+on toward the top-right exit."""\n        x, y = q\n        dist = (self.n - x) + (self.n - y)\n        # Strongly prefer unvisited cells, then progress to exit
+, then right/up bias.\n        return (self.visits[q], dist, -x, -y)\n\n    def direction_to(self, a: Coord, b: Coord) -> int:\n        delta = (b[0] - a[0], b[
+1] - a[1])\n        for d, step in DIRS.items():\n            if step == delta:\n                return d\n        raise ValueError(f"{a} and {b} are not adjace
+nt")\n\n    def choose_next(self, conn: List[int]) -> Optional[Tuple[int, Coord]]:\n        candidates = self.unblocked_candidate_dirs(conn)\n        if not can
+didates:\n            return None\n\n        # 1) Prefer completely unvisited neighbours; this avoids loops and makes progress.\n        unvisited = [(d, q) for
+ d, q in candidates if self.visits[q] == 0]\n        if unvisited:\n            return min(unvisited, key=lambda item: self.score_forward(item[1]))\n\n        #
+ 2) If no unvisited neighbour exists, backtrack along the DFS stack if possible.\n        if self.stack:\n            parent = self.stack[-1]\n            for d
+, q in candidates:\n                if q == parent:\n                    return d, q\n\n        # 3) Last resort: choose the least-visited move that still trend
+s toward the exit.\n        return min(candidates, key=lambda item: self.score_forward(item[1]))\n\n    def apply_stack_update(self, old: Coord, new: Coord) ->
+None:\n        if self.stack and self.stack[-1] == new:\n            self.stack.pop()\n        else:\n            self.stack.append(old)\n\n    def run(self, ma
+x_steps: Optional[int] = None) -> dict:\n        self.n = self.client.maze_size()\n        if max_steps is None:\n            max_steps = 4 * self.n * self.n\n
+       self.pos = (1, 1)\n        self.visits[self.pos] += 1\n        self.log(f"maze_size={self.n}, start={self.pos}, exit={(self.n, self.n)}")\n\n        whil
+e self.moves_made <= max_steps:\n            if self.pos == (self.n, self.n):\n                self.log(f"at exit {self.pos}; calling finish")\n
+result = self.client.finish()\n                self.log(f"finish -> {result}")\n                return result\n\n            conn = self.client.sense()\n
+     if conn == [0, 0, 0, 0]:\n                raise RuntimeError("sense returned all walls/game-over signal before reaching exit")\n            self.known[self
+.pos] = conn\n            choice = self.choose_next(conn)\n            if choice is None:\n                raise RuntimeError(f"No legal move from {self.pos}; v
+isits={dict(self.visits)} conn={conn}")\n            direction, nxt = choice\n            if self.visits[nxt] >= 2:\n                raise AssertionError(f"Refu
+sing third visit to {nxt}")\n            self.log(\n                f"step={self.moves_made:03d} pos={self.pos} conn={conn} "\n                f"move={DIR_NAMES
+[direction]}->{nxt} next_visits={self.visits[nxt] + 1}"\n            )\n            resp = self.client.move(direction)\n            if resp.get("status") != "mo
+ved":\n                raise RuntimeError(f"Move {direction} from {self.pos} to {nxt} failed: {resp}")\n            old = self.pos\n            self.pos = nxt\n
+            self.visits[self.pos] += 1\n            if self.visits[self.pos] > 2:\n                raise AssertionError(f"Visited {self.pos} more than twice")\n
+            self.apply_stack_update(old, self.pos)\n            self.moves_made += 1\n\n        raise RuntimeError(f"Exceeded max_steps={max_steps}; pos={self.p
+os}; visits={dict(self.visits)}")\n\n\nclass SimMazeClient:\n    """Small deterministic simulator used by tests."""\n    def __init__(self, n: int, edges: Itera
+ble[Tuple[Coord, Coord]]):\n        self.n = n\n        self.pos = (1, 1)\n        self.adj: Dict[Coord, set[Coord]] = defaultdict(set)\n        self.visit_coun
+ts: Dict[Coord, int] = defaultdict(int)\n        self.visit_counts[self.pos] = 1\n        self.finished = False\n        for a, b in edges:\n            self.ad
+j[a].add(b)\n            self.adj[b].add(a)\n\n    def maze_size(self) -> int:\n        return self.n\n\n    def sense(self) -> List[int]:\n        conn = []\n
+       for d in range(4):\n            conn.append(1 if self._neighbor(self.pos, d) in self.adj[self.pos] else 0)\n        return conn\n\n    def _neighbor(self
+, p: Coord, d: int) -> Coord:\n        dx, dy = DIRS[d]\n        return (p[0] + dx, p[1] + dy)\n\n    def move(self, direction: int) -> dict:\n        q = self.
+_neighbor(self.pos, direction)\n        if q not in self.adj[self.pos]:\n            return {"status": "illegal"}\n        self.pos = q\n        self.visit_coun
+ts[q] += 1\n        if self.visit_counts[q] > 2:\n            return {"status": "illegal", "message": "overvisit"}\n        return {"status": "moved"}\n\n    de
+f finish(self) -> dict:\n        self.finished = True\n        if self.pos == (self.n, self.n):\n            return {"status": "Congratulations, destination rea
+ched"}\n        return {"status": "illegal", "message": "Not at destination, game over"}\n\n\ndef main(argv: Optional[List[str]] = None) -> int:\n    parser = a
+rgparse.ArgumentParser()\n    parser.add_argument("--url", default="http://maze:8088")\n    parser.add_argument("--quiet", action="store_true")\n    parser.add_
+argument("--max-steps", type=int, default=None)\n    args = parser.parse_args(argv)\n    solver = OnlineMazeSolver(HttpMazeClient(args.url), verbose=not args.qu
+iet)\n    result = solver.run(max_steps=args.max_steps)\n    ok = result.get("status") == "Congratulations, destination reached"\n    return 0 if ok else 2\n\n\
+nif __name__ == "__main__":\n    raise SystemExit(main())\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 maze_solver.py
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# python3 - test_maze_solver.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'from maze_solver import OnlineMazeSolver, SimMazeClient\n\n\ndef path_edges(points):\n    return list(zip(points, points[1:]))\n\n\ndef test_solver
+_finishes_only_at_exit_on_simple_path():\n    points = [(1, 1), (1, 2), (2, 2), (2, 3), (3, 3)]\n    client = SimMazeClient(3, path_edges(points))\n    solver =
+ OnlineMazeSolver(client, verbose=False)\n\n    result = solver.run()\n\n    assert result["status"] == "Congratulations, destination reached"\n    assert clien
+t.pos == (3, 3)\n    assert client.finished is True\n    assert max(client.visit_counts.values()) <= 2\n\n\ndef test_solver_backtracks_from_one_dead_end_without
+_overvisit():\n    # Start has an upward dead-end that looks closer by y, so the solver must\n    # return to (1,1) once and then take the rightward route to th
+e exit.\n    edges = [\n        ((1, 1), (1, 2)),  # dead-end branch\n        ((1, 1), (2, 1)),\n        ((2, 1), (2, 2)),\n        ((2, 2), (3, 2)),\n        (
+(3, 2), (3, 3)),\n    ]\n    client = SimMazeClient(3, edges)\n    solver = OnlineMazeSolver(client, verbose=False)\n\n    result = solver.run()\n\n    assert r
+esult["status"] == "Congratulations, destination reached"\n    assert client.pos == (3, 3)\n    assert max(client.visit_counts.values()) <= 2\n\n\ndef test_solv
+er_refuses_candidate_that_would_be_third_visit():\n    client = SimMazeClient(2, [((1, 1), (1, 2)), ((1, 1), (2, 1))])\n    solver = OnlineMazeSolver(client, ve
+rbose=False)\n    solver.n = 2\n    solver.pos = (1, 1)\n    solver.visits[(1, 2)] = 2\n    solver.visits[(2, 1)] = 1\n\n    choice = solver.choose_next([1, 0,
+0, 1])\n\n    assert choice == (3, (2, 1))\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 test_maze_solver.py
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# python3 -m pytest -v -- test_maze_solver.py
+/usr/local/bin/python3: No module named pytest
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# python3 - <<'PY'
+> import test_maze_solver
+>
+> for name in sorted(n for n in dir(test_maze_solver) if n.startswith('test_')):
+>     print(f'RUN {name}')
+>     getattr(test_maze_solver, name)()
+>     print(f'PASS {name}')
+> print('ALL TESTS PASSED')
+> PY
+RUN test_solver_backtracks_from_one_dead_end_without_overvisit
+PASS test_solver_backtracks_from_one_dead_end_without_overvisit
+RUN test_solver_finishes_only_at_exit_on_simple_path
+PASS test_solver_finishes_only_at_exit_on_simple_path
+RUN test_solver_refuses_candidate_that_would_be_third_visit
+PASS test_solver_refuses_candidate_that_would_be_third_visit
+ALL TESTS PASSED
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@e4e5c9ba69d9:/app# python3 maze_solver.py --url http://maze:8088
+maze_size=9, start=(1, 1), exit=(9, 9)
+step=000 pos=(1, 1) conn=[1, 0, 0, 0] move=up->(1, 2) next_visits=1
+step=001 pos=(1, 2) conn=[1, 1, 0, 0] move=up->(1, 3) next_visits=1
+step=002 pos=(1, 3) conn=[1, 1, 0, 0] move=up->(1, 4) next_visits=1
+step=003 pos=(1, 4) conn=[1, 1, 0, 1] move=right->(2, 4) next_visits=1
+step=004 pos=(2, 4) conn=[1, 0, 1, 0] move=up->(2, 5) next_visits=1
+step=005 pos=(2, 5) conn=[0, 1, 0, 1] move=right->(3, 5) next_visits=1
+step=006 pos=(3, 5) conn=[0, 1, 1, 0] move=down->(3, 4) next_visits=1
+step=007 pos=(3, 4) conn=[1, 1, 0, 0] move=down->(3, 3) next_visits=1
+step=008 pos=(3, 3) conn=[1, 0, 1, 1] move=right->(4, 3) next_visits=1
+step=009 pos=(4, 3) conn=[0, 1, 1, 0] move=down->(4, 2) next_visits=1
+step=010 pos=(4, 2) conn=[1, 0, 1, 0] move=left->(3, 2) next_visits=1
+step=011 pos=(3, 2) conn=[0, 0, 0, 1] move=right->(4, 2) next_visits=2
+step=012 pos=(4, 2) conn=[1, 0, 1, 0] move=up->(4, 3) next_visits=2
+step=013 pos=(4, 3) conn=[0, 1, 1, 0] move=left->(3, 3) next_visits=2
+step=014 pos=(3, 3) conn=[1, 0, 1, 1] move=left->(2, 3) next_visits=1
+step=015 pos=(2, 3) conn=[0, 1, 0, 1] move=down->(2, 2) next_visits=1
+step=016 pos=(2, 2) conn=[1, 1, 0, 0] move=down->(2, 1) next_visits=1
+step=017 pos=(2, 1) conn=[1, 0, 0, 1] move=right->(3, 1) next_visits=1
+step=018 pos=(3, 1) conn=[0, 0, 1, 1] move=right->(4, 1) next_visits=1
+step=019 pos=(4, 1) conn=[0, 0, 1, 1] move=right->(5, 1) next_visits=1
+step=020 pos=(5, 1) conn=[1, 0, 1, 1] move=right->(6, 1) next_visits=1
+step=021 pos=(6, 1) conn=[0, 0, 1, 1] move=right->(7, 1) next_visits=1
+step=022 pos=(7, 1) conn=[0, 0, 1, 1] move=right->(8, 1) next_visits=1
+step=023 pos=(8, 1) conn=[1, 0, 1, 0] move=up->(8, 2) next_visits=1
+step=024 pos=(8, 2) conn=[0, 1, 1, 0] move=left->(7, 2) next_visits=1
+step=025 pos=(7, 2) conn=[1, 0, 0, 1] move=up->(7, 3) next_visits=1
+step=026 pos=(7, 3) conn=[0, 1, 1, 0] move=left->(6, 3) next_visits=1
+step=027 pos=(6, 3) conn=[1, 1, 0, 1] move=up->(6, 4) next_visits=1
+step=028 pos=(6, 4) conn=[0, 1, 0, 1] move=right->(7, 4) next_visits=1
+step=029 pos=(7, 4) conn=[0, 0, 1, 1] move=right->(8, 4) next_visits=1
+step=030 pos=(8, 4) conn=[1, 0, 1, 0] move=up->(8, 5) next_visits=1
+step=031 pos=(8, 5) conn=[0, 1, 1, 0] move=left->(7, 5) next_visits=1
+step=032 pos=(7, 5) conn=[1, 0, 0, 1] move=up->(7, 6) next_visits=1
+step=033 pos=(7, 6) conn=[0, 1, 1, 0] move=left->(6, 6) next_visits=1
+step=034 pos=(6, 6) conn=[1, 1, 0, 1] move=up->(6, 7) next_visits=1
+step=035 pos=(6, 7) conn=[0, 1, 1, 0] move=left->(5, 7) next_visits=1
+step=036 pos=(5, 7) conn=[1, 0, 0, 1] move=up->(5, 8) next_visits=1
+step=037 pos=(5, 8) conn=[1, 1, 0, 0] move=up->(5, 9) next_visits=1
+step=038 pos=(5, 9) conn=[0, 1, 1, 1] move=right->(6, 9) next_visits=1
+step=039 pos=(6, 9) conn=[0, 1, 1, 0] move=down->(6, 8) next_visits=1
+step=040 pos=(6, 8) conn=[1, 0, 0, 1] move=right->(7, 8) next_visits=1
+step=041 pos=(7, 8) conn=[1, 0, 1, 0] move=up->(7, 9) next_visits=1
+step=042 pos=(7, 9) conn=[0, 1, 0, 1] move=right->(8, 9) next_visits=1
+step=043 pos=(8, 9) conn=[0, 1, 1, 0] move=down->(8, 8) next_visits=1
+step=044 pos=(8, 8) conn=[1, 1, 0, 0] move=down->(8, 7) next_visits=1
+step=045 pos=(8, 7) conn=[1, 1, 1, 0] move=down->(8, 6) next_visits=1
+step=046 pos=(8, 6) conn=[1, 0, 0, 1] move=right->(9, 6) next_visits=1
+step=047 pos=(9, 6) conn=[1, 1, 1, 0] move=up->(9, 7) next_visits=1
+step=048 pos=(9, 7) conn=[1, 1, 0, 0] move=up->(9, 8) next_visits=1
+step=049 pos=(9, 8) conn=[1, 1, 0, 0] move=up->(9, 9) next_visits=1
+at exit (9, 9); calling finish
+finish -> {'status': 'Congratulations, destination reached'}
+root@e4e5c9ba69d9:/app# true; tmux wait -S done
+root@e4e5c9ba69d9:/app#

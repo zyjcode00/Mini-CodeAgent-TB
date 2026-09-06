@@ -1,0 +1,122 @@
+root@940e7fc6e259:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@940e7fc6e259:/app# set +e
+root@940e7fc6e259:/app#
+root@940e7fc6e259:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@940e7fc6e259:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@940e7fc6e259:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@940e7fc6e259:/app#
+root@940e7fc6e259:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@940e7fc6e259:/app#
+root@940e7fc6e259:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@940e7fc6e259:/app#
+root@940e7fc6e259:/app# mkdir -p /root/.config/uv
+root@940e7fc6e259:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@940e7fc6e259:/app#
+root@940e7fc6e259:/app# apt-get update || true
+Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:4 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:6 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1212 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1530 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Ign:10 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages
+Get:11 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2151 kB]
+Ign:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1542 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1861 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2151 kB]
+Fetched 32.2 MB in 1min 54s (283 kB/s)
+Reading package lists... Done
+root@940e7fc6e259:/app# true; tmux wait -S done
+root@940e7fc6e259:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@940e7fc6e259:/app# if [ -f /app/regex.txt ]; then cat -- /app/regex.txt; else echo '错误: 找不到文件 /app/regex.txt'; fi
+错误: 找不到文件 /app/regex.txt
+root@940e7fc6e259:/app# true; tmux wait -S done
+root@940e7fc6e259:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@940e7fc6e259:/app# ls -la /app && pwd
+total 8
+drwxr-xr-x 2 root root 4096 May 28  2025 .
+drwxr-xr-x 1 root root 4096 Sep  3 16:35 ..
+/app
+root@940e7fc6e259:/app# true; tmux wait -S done
+root@940e7fc6e259:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@940e7fc6e259:/app# python3 - /app/regex.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '^(?=[^\\n]*(?<![A-Za-z0-9])(?:(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d?|0)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d?|0)(?![A-Za-z0-9]))[^\\n]*((?<!
+[A-Za-z0-9])\\d{4}-(?:(?:01|03|05|07|08|10|12)-(?:0[1-9]|[12]\\d|3[01])|(?:04|06|09|11)-(?:0[1-9]|[12]\\d|30)|02-(?:0[1-9]|1\\d|2[0-9]))(?![A-Za-z0-9]))\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/regex.txt
+root@940e7fc6e259:/app# true; tmux wait -S done
+root@940e7fc6e259:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@940e7fc6e259:/app# python3 - /app/test_regex.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "import re\nfrom pathlib import Path\n\npattern = Path('/app/regex.txt').read_text().strip()\nregex = re.compile(pattern, re.MULTILINE)\n\nlog = '''
+\nvalid 192.168.1.1 first 2024-01-01 second 2024-02-29\nno ip here 2024-01-02\nbad date with ip 10.0.0.1 2024-02-30\nmonth days 8.8.8.8 2024-04-30 then bad 2024
+-04-31\nvalid december 0.0.0.0 1999-12-31\nleading zero ip 01.2.3.4 2024-03-05\nout of range ip 256.1.1.1 2024-03-06\nadjacent ip x192.168.1.1 2024-03-07\nip fo
+llowed alnum 192.168.1.1x 2024-03-08\nadjacent date 192.168.1.1 x2024-03-09\nadjacent date end 192.168.1.1 2024-03-10x\nfake date user 1134-12-1234 with ip 172.
+16.0.1 and real 2024-05-09\nlast valid despite earlier 127.0.0.1 2024-06-01 middle 2024-06-02\ninvalid later date should still match last valid 127.0.0.1 2024-0
+6-03 2024-06-31\nhyphen separated ok? 127.0.0.1 [2024-07-04]\n'''\n\nexpected = [\n    '2024-02-29',\n    '2024-04-30',\n    '1999-12-31',\n    '2024-05-09',\n
+   '2024-06-02',\n    '2024-06-03',\n    '2024-07-04',\n]\nactual = regex.findall(log)\nprint('pattern:', pattern)\nprint('actual:', actual)\nassert actual == e
+xpected, (actual, expected)\nassert all(isinstance(x, str) for x in actual)\nprint('PASS')\n"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_regex.py
+root@940e7fc6e259:/app# true; tmux wait -S done
+root@940e7fc6e259:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@940e7fc6e259:/app# python3 /app/test_regex.py
+pattern: ^(?=[^\n]*(?<![A-Za-z0-9])(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d?|0)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d?|0)(?![A-Za-z0-9]))[^\n]*((?<![A-Za-z0-9])\d{
+4}-(?:(?:01|03|05|07|08|10|12)-(?:0[1-9]|[12]\d|3[01])|(?:04|06|09|11)-(?:0[1-9]|[12]\d|30)|02-(?:0[1-9]|1\d|2[0-9]))(?![A-Za-z0-9]))
+actual: ['2024-02-29', '2024-04-30', '1999-12-31', '2024-05-09', '2024-06-02', '2024-06-03', '2024-07-04']
+PASS
+root@940e7fc6e259:/app# true; tmux wait -S done
+root@940e7fc6e259:/app#

@@ -1,0 +1,534 @@
+[?2004hroot@2ba8ac21caf6:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@2ba8ac21caf6:/app# clear
+[?2004l[H[J[3J[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# set +e
+[?2004l[?2004hroot@2ba8ac21caf6:/app# 
+[?2004l[?2004hroot@2ba8ac21caf6:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@2ba8ac21caf6:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@2ba8ac21caf6:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@2ba8ac21caf6:/app# 
+[?2004l[?2004hroot@2ba8ac21caf6:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@2ba8ac21caf6:/app# 
+[?2004l[?2004hroot@2ba8ac21caf6:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@2ba8ac21caf6:/app# 
+[?2004l[?2004hroot@2ba8ac21caf6:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@2ba8ac21caf6:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@2ba8ac21caf6:/app# 
+[?2004l[?2004hroot@2ba8ac21caf6:/app# apt-get update || true
+[?2004l0% [Working]            Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+0% [1 InRelease 4344 B/151 kB 3%]                                 0% [Working]            Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+0% [2 InRelease 2896 B/55.4 kB 5%]                                  0% [Working]            Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+0% [3 InRelease 0 B/34.8 kB 0%]                               0% [Working]0% [Working]            Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+0% [4 Packages 4344 B/8790 kB 0%]0% [4 Packages 321 kB/8790 kB 4%]26% [4 Packages 1212 kB/8790 kB 14%]67% [4 Packages 5990 kB/8790 kB 68%]86% [4 Packages 8332 kB/8790 kB 95%]                                    90% [Working]90% [4 Packages store 0 B] [Waiting for headers]                                                Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+90% [4 Packages store 0 B] [5 Packages 2896 B/6924 B 42%]                                                         90% [4 Packages store 0 B]                          Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+91% [4 Packages store 0 B] [6 Packages 5792 B/335 kB 2%]                                                        93% [4 Packages store 0 B]93% [4 Packages store 0 B]                          96% [Working]96% [5 Packages store 0 B]                          98% [Working]98% [6 Packages store 0 B]                          100% [Working]              Fetched 9374 kB in 2s (3874 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# ls -la /app && printf '\n--- users.json ---\n' && sed -n '1,240p' /app/users.json
+[?2004ltotal 124
+drwxr-xr-x 1 root root   4096 Sep  2 16:18 .
+drwxr-xr-x 1 root root   4096 Sep  2 16:19 ..
+-rw-r--r-- 1 root root     65 Sep  2 16:18 .auto_gen_key.dat
+-rw-r--r-- 1 root root 113812 Sep  2 16:18 users.json
+
+--- users.json ---
+[
+  {
+    "id": 1,
+    "username": "johnsonjoshua",
+    "email": "jillrhodes@gmail.com",
+    "status": "active",
+    "last_login": "2026-08-24T16:18:55.335360Z",
+    "roles": [
+      "editor",
+      "moderator",
+      "user",
+      "admin"
+    ]
+  },
+  {
+    "id": 2,
+    "username": "garzaanthony",
+    "email": "jesseguzman@gmail.com",
+    "status": "active",
+    "last_login": "2026-05-11T16:18:55.335717Z",
+    "roles": [
+      "admin",
+      "user"
+    ]
+  },
+  {
+    "id": 3,
+    "username": "jennifermiles",
+    "email": "shaneramirez@yahoo.com",
+    "status": "inactive",
+    "last_login": "2026-01-28T16:18:55.335963Z",
+    "roles": [
+      "analyst",
+      "admin",
+      "editor",
+      "viewer"
+    ]
+  },
+  {
+    "id": 4,
+    "username": "blakeerik",
+    "email": "joshua35@yahoo.com",
+    "status": "inactive",
+    "last_login": "2026-03-23T16:18:55.336135Z",
+    "roles": [
+      "moderator",
+      "viewer",
+      "admin",
+      "analyst"
+    ]
+  },
+  {
+    "id": 5,
+    "username": "daviscolin",
+    "email": "lindsay78@yahoo.com",
+    "status": "active",
+    "last_login": "2026-04-14T16:18:55.336305Z",
+    "roles": [
+      "editor",
+      "analyst",
+      "contributor",
+      "user"
+    ]
+  },
+  {
+    "id": 6,
+    "username": "dudleynicholas",
+    "email": "maria95@hotmail.com",
+    "status": "inactive",
+    "last_login": "2026-08-17T16:18:55.336470Z",
+    "roles": [
+      "viewer",
+      "user",
+      "moderator",
+      "contributor"
+    ]
+  },
+  {
+    "id": 7,
+    "username": "janetwilliams",
+    "email": "tracie31@gmail.com",
+    "status": "active",
+    "last_login": "2025-12-08T16:18:55.336684Z",
+    "roles": []
+  },
+  {
+    "id": 8,
+    "username": "oramirez",
+    "email": "mitchellclark@yahoo.com",
+    "status": "active",
+    "last_login": "2026-05-14T16:18:55.336883Z",
+    "roles": [
+      "editor",
+      "moderator"
+    ]
+  },
+  {
+    "id": 9,
+    "username": "jacqueline19",
+    "email": "amandasanchez@hotmail.com",
+    "status": "inactive",
+    "last_login": "2026-05-04T16:18:55.337068Z",
+    "roles": [
+      "moderator",
+      "analyst",
+      "admin"
+    ]
+  },
+  {
+    "id": 10,
+    "username": "ogray",
+    "email": "gabriellecameron@hotmail.com",
+    "status": "pending",
+    "last_login": "2026-06-19T16:18:55.337282Z",
+    "roles": [
+      "admin",
+      "editor"
+    ]
+  },
+  {
+    "id": 11,
+    "username": "perezantonio",
+    "email": "nadams@yahoo.com",
+    "status": "active",
+    "last_login": "2025-09-13T16:18:55.337515Z",
+    "roles": [
+      "moderator"
+    ]
+  },
+  {
+    "id": 12,
+    "username": "jason76",
+    "email": "ithomas@hotmail.com",
+    "status": "inactive",
+    "last_login": "2026-01-13T16:18:55.337789Z",
+    "roles": [
+      "editor"
+    ]
+  },
+  {
+    "id": 13,
+    "username": "julieryan",
+    "email": "zhurst@hotmail.com",
+    "status": "active",
+    "last_login": "2026-04-11T16:18:55.338752Z",
+    "roles": []
+  },
+  {
+    "id": 14,
+    "username": "jeffrey28",
+    "email": "camposmichelle@yahoo.com",
+    "status": "active",
+    "last_login": "2026-02-25T16:18:55.339255Z",
+    "roles": [
+      "analyst",
+      "viewer",
+      "moderator"
+    ]
+  },
+  {
+    "id": 15,
+    "username": "courtneyconner",
+    "email": "cruzcaitlin@yahoo.com",
+    "status": "inactive",
+    "last_login": "2025-10-03T16:18:55.339743Z",
+    "roles": [
+      "moderator",
+      "user",
+      "contributor",
+      "analyst"
+    ]
+  },
+  {
+    "id": 16,
+    "username": "jrice",
+    "email": "maldonadoamanda@gmail.com",
+    "status": "active",
+    "last_login": "2026-07-25T16:18:55.340124Z",
+    "roles": [
+      "contributor",
+      "editor",
+      "analyst",
+      "user",
+      "moderator"
+    ]
+  },
+  {
+    "id": 17,
+    "username": "kayla51",
+    "email": "amoore@yahoo.com",
+    "status": "active",
+    "last_login": "2026-04-17T16:18:55.340384Z",
+    "roles": [
+      "moderator",
+      "admin",
+      "editor",
+      "contributor",
+      "viewer"
+    ]
+  },
+  {
+    "id": 18,
+    "username": "teresa28",
+    "email": "meagan89@gmail.com",
+    "status": "active",
+    "last_login": "2026-05-28T16:18:55.340596Z",
+    "roles": [
+      "contributor",
+      "editor",
+      "user"
+    ]
+  },
+  {
+    "id": 19,
+    "username": "ericfarmer",
+    "email": "georgetracy@hotmail.com",
+    "status": "inactive",
+    "last_login": "2025-12-14T16:18:55.340994Z",
+    "roles": [
+      "contributor",
+      "editor",
+      "user"
+    ]
+  },
+  {
+    "id": 20,
+    "username": "hickmannatasha",
+    "email": "brianhumphrey@yahoo.com",
+    "status": "active",
+    "last_login": "2026-03-18T16:18:55.341231Z",
+    "roles": []
+  },
+  {
+    "id": 21,
+    "username": "millertodd",
+    "email": "davidalvarez@gmail.com",
+    "status": "active",
+    "last_login": "2026-02-15T16:18:55.341616Z",
+    "roles": [
+      "viewer",
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# command -v jq && jq --version && command -v yq && yq --version
+[?2004l/usr/bin/jq
+jq-1.6
+/usr/bin/yq
+yq 0.0.0
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# for f in /app/cmd.sh /app/jq_args.yaml /app/active_users_report.json; do if [ -f "$f" ]; then printf '\n--- %s ---\n' "$f"; sed -n '1,240p' "$f"; fi; done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# python3 - /app/cmd.sh <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'jq --indent 2 \'[.[] | select(.status == "active") | {user_id: .id, username: .username, email: .email, last_login: (.last_login | split("T")[0]), role_count: (.roles | length), primary_role: (.roles[0] // null)}] | sort_by(.username)\' /app/users.json > /app/active_users_report.json\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/cmd.sh
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# if [ -f /app/cmd.sh ]; then cat -- /app/cmd.sh; else echo '错误: 找不到文件 /app/cmd.sh'; fi
+[?2004ljq --indent 2 '[.[] | select(.status == "active") | {user_id: .id, username: .username, email: .email, last_login: (.last_login | split("T")[0]), role_count: (.roles | length), primary_role: (.roles[0] // null)}] | sort_by(.username)' /app/users.json > /app/active_users_report.json
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# if [ -f /app/jq_args.yaml ]; then cat -- /app/jq_args.yaml; else echo '错误: 找不到文件 /app/jq_args.yaml'; fi
+[?2004l错误: 找不到文件 /app/jq_args.yaml
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# if [ -f /app/active_users_report.json ]; then cat -- /app/active_users_report.json; else echo '错误: 找不到文件 /app/active_users_report.json'; fi
+[?2004l错误: 找不到文件 /app/active_users_report.json
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# python3 - /app/jq_args.yaml <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'filter: "[.[] | select(.status == \\"active\\") | {user_id: .id, username: .username, email: .email, last_login: (.last_login | split(\\"T\\")[0]), role_count: (.roles | length), primary_role: (.roles[0] // null)}] | sort_by(.username)"\nargs:\n  - "--indent 2"\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/jq_args.yaml
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# bash /app/cmd.sh && jq -r '.' /app/active_users_report.json | sed -n '1,120p'
+[?2004l[
+  {
+    "user_id": 273,
+    "username": "alexisrogers",
+    "email": "gregorychase@yahoo.com",
+    "last_login": "2026-02-17",
+    "role_count": 1,
+    "primary_role": "contributor"
+  },
+  {
+    "user_id": 292,
+    "username": "allencarlos",
+    "email": "griffinemily@hotmail.com",
+    "last_login": "2025-10-25",
+    "role_count": 3,
+    "primary_role": "viewer"
+  },
+  {
+    "user_id": 224,
+    "username": "alyssasanders",
+    "email": "john10@hotmail.com",
+    "last_login": "2026-07-21",
+    "role_count": 4,
+    "primary_role": "user"
+  },
+  {
+    "user_id": 365,
+    "username": "amber07",
+    "email": "veronicagarcia@hotmail.com",
+    "last_login": "2025-12-06",
+    "role_count": 0,
+    "primary_role": null
+  },
+  {
+    "user_id": 408,
+    "username": "amberfields",
+    "email": "tapiaaaron@hotmail.com",
+    "last_login": "2026-08-02",
+    "role_count": 1,
+    "primary_role": "analyst"
+  },
+  {
+    "user_id": 152,
+    "username": "amberlindsey",
+    "email": "andersonmichael@gmail.com",
+    "last_login": "2026-06-29",
+    "role_count": 3,
+    "primary_role": "viewer"
+  },
+  {
+    "user_id": 246,
+    "username": "amitchell",
+    "email": "qanderson@gmail.com",
+    "last_login": "2026-01-17",
+    "role_count": 2,
+    "primary_role": "viewer"
+  },
+  {
+    "user_id": 491,
+    "username": "andersonryan",
+    "email": "epatterson@yahoo.com",
+    "last_login": "2025-10-29",
+    "role_count": 3,
+    "primary_role": "moderator"
+  },
+  {
+    "user_id": 351,
+    "username": "andrearivera",
+    "email": "zhall@yahoo.com",
+    "last_login": "2026-01-31",
+    "role_count": 0,
+    "primary_role": null
+  },
+  {
+    "user_id": 493,
+    "username": "andrewsmith",
+    "email": "jeremywiley@hotmail.com",
+    "last_login": "2026-04-25",
+    "role_count": 1,
+    "primary_role": "contributor"
+  },
+  {
+    "user_id": 58,
+    "username": "angela36",
+    "email": "lbyrd@hotmail.com",
+    "last_login": "2026-08-09",
+    "role_count": 3,
+    "primary_role": "viewer"
+  },
+  {
+    "user_id": 432,
+    "username": "annalopez",
+    "email": "gregory01@yahoo.com",
+    "last_login": "2026-07-27",
+    "role_count": 4,
+    "primary_role": "user"
+  },
+  {
+    "user_id": 406,
+    "username": "anne49",
+    "email": "frichardson@gmail.com",
+    "last_login": "2026-04-25",
+    "role_count": 0,
+    "primary_role": null
+  },
+  {
+    "user_id": 108,
+    "username": "anthony39",
+    "email": "keyemily@hotmail.com",
+    "last_login": "2026-04-03",
+    "role_count": 0,
+    "primary_role": null
+  },
+  {
+    "user_id": 256,
+    "username": "anthonyvaughan",
+    "email": "andrewedwards@gmail.com",
+    "last_login": "2026-08-11",
+    "role_count": 2,
+    "primary_role": "editor"
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# yq -r '.args[]' /app/jq_args.yaml && printf '\nFILTER=%s\n' "$(yq -r '.filter' /app/jq_args.yaml)"
+[?2004l--indent 2
+
+FILTER=[.[] | select(.status == "active") | {user_id: .id, username: .username, email: .email, last_login: (.last_login | split("T")[0]), role_count: (.roles | length), primary_role: (.roles[0] // null)}] | sort_by(.username)
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# jq 'type == "array" and all(.[]; (type == "object") and has("user_id") and has("username") and has("email") and has("last_login") and has("role_count") and has("primary_role") and (.last_login | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")) and (.primary_role == null or (type == "object"|not)))' /app/active_users_report.json
+[?2004l[0;39mfalse[0m
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# jq -r 'map(.username) == (map(.username) | sort)' /app/active_users_report.json
+[?2004l[0;39mtrue[0m
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# jq -r 'map(select(.primary_role == null) | .role_count) | all(. == 0)' /app/active_users_report.json && jq -r 'map(select(.primary_role != null) | (.role_count > 0)) | all' /app/active_users_report.json
+[?2004l[0;39mtrue[0m
+[0;39mtrue[0m
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# jq -e 'type == "array" and all(.[]; type == "object" and (.user_id|type == "number") and (.username|type == "string") and (.email|type == "string") and (.last_login|type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")) and (.role_count|type == "number") and (.primary_role == null or (.primary_role|type == "string")))' /app/active_users_report.json
+[?2004l[0;39mtrue[0m
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# sed -n '1,16p' /app/active_users_report.json
+[?2004l[
+  {
+    "user_id": 273,
+    "username": "alexisrogers",
+    "email": "gregorychase@yahoo.com",
+    "last_login": "2026-02-17",
+    "role_count": 1,
+    "primary_role": "contributor"
+  },
+  {
+    "user_id": 292,
+    "username": "allencarlos",
+    "email": "griffinemily@hotmail.com",
+    "last_login": "2025-10-25",
+    "role_count": 3,
+    "primary_role": "viewer"
+[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# cmp -s <(printf '%s\n' "jq $(yq -r '.args[]' /app/jq_args.yaml | paste -sd ' ' -) \"$(yq -r '.filter' /app/jq_args.yaml)\" /app/users.json > /app/active_users_report.json") /app/cmd.sh && echo OK
+[?2004l[?2004hroot@2ba8ac21caf6:/app# true; tmux wait -S done
+[?2004l[?2004hroot@2ba8ac21caf6:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@2ba8ac21caf6:/app# set -e
+[?2004l[?2004hroot@2ba8ac21caf6:/app# filter=$(yq -r '.filter' /app/jq_args.yaml)
+[?2004l[?2004hroot@2ba8ac21caf6:/app# args=$(yq -r '.args[]' /app/jq_args.yaml)
+[?2004l[?2004hroot@2ba8ac21caf6:/app# expected=$(mktemp)
+[?2004l[?2004hroot@2ba8ac21caf6:/app# jq --indent 2 "$filter" /app/users.json > "$expected"
+[?2004l[?2004hroot@2ba8ac21caf6:/app# cmp -s "$expected" /app/active_users_report.json
+[?2004l[?2004hroot@2ba8ac21caf6:/app# jq -e 'all(.[]; .status == "active")' /app/users.json >/dev/null
+[?2004l[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@2ba8ac21caf6:/app# [?2004l
+logout

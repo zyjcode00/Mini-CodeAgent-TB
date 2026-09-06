@@ -1,0 +1,118 @@
+root@c2646ebe8d34:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2646ebe8d34:/app# set +e
+root@c2646ebe8d34:/app#
+root@c2646ebe8d34:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@c2646ebe8d34:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@c2646ebe8d34:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@c2646ebe8d34:/app#
+root@c2646ebe8d34:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@c2646ebe8d34:/app#
+root@c2646ebe8d34:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@c2646ebe8d34:/app#
+root@c2646ebe8d34:/app# mkdir -p /root/.config/uv
+root@c2646ebe8d34:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@c2646ebe8d34:/app#
+root@c2646ebe8d34:/app# apt-get update || true
+Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:4 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1530 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:6 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1237 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1786 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2151 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1562 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1903 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Fetched 32.6 MB in 55s (587 kB/s)
+Reading package lists... Done
+root@c2646ebe8d34:/app# true; tmux wait -S done
+root@c2646ebe8d34:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2646ebe8d34:/app# find /app/logs -type f -name '*.log' -print | sort && echo '---COUNTS---' && awk '
+> BEGIN { e=0; w=0; i=0 }
+> /ERROR/ { e++ }
+> /WARNING/ { w++ }
+> /INFO/ { i++ }
+> END { printf "ERROR,%d\nWARNING,%d\nINFO,%d\n", e, w, i }
+> ' $(find /app/logs -type f -name '*.log' -print | sort)
+/app/logs/app1.log
+/app/logs/app2.log
+/app/logs/db.log
+---COUNTS---
+ERROR,4
+WARNING,3
+INFO,8
+root@c2646ebe8d34:/app# true; tmux wait -S done
+root@c2646ebe8d34:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2646ebe8d34:/app# python3 - /app/summary.csv <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'severity,count\nERROR,4\nWARNING,3\nINFO,8\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/summary.csv
+root@c2646ebe8d34:/app# true; tmux wait -S done
+root@c2646ebe8d34:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2646ebe8d34:/app# printf '%s
+> ' '--- /app/summary.csv ---'; cat /app/summary.csv; printf '%s
+> ' '--- validation ---'; python3 - <<'PY'
+> from pathlib import Path
+> import csv
+> path=Path('/app/summary.csv')
+> text=path.read_text(encoding='utf-8')
+> lines=text.splitlines()
+> print('line_count=', len(lines))
+> rows=list(csv.reader(lines))
+> print('rows=', rows)
+> assert len(lines)==4, f'expected 4 lines, got {len(lines)}'
+> assert rows[0]==['severity','count']
+> assert [r[0] for r in rows[1:]]==['ERROR','WARNING','INFO']
+> assert all(len(r)==2 and r[1].isdigit() for r in rows[1:])
+> print('OK')
+> PY
+--- /app/summary.csv ---
+severity,count
+ERROR,4
+WARNING,3
+INFO,8
+--- validation ---
+line_count= 4
+rows= [['severity', 'count'], ['ERROR', '4'], ['WARNING', '3'], ['INFO', '8']]
+OK
+root@c2646ebe8d34:/app# true; tmux wait -S done
+root@c2646ebe8d34:/app#

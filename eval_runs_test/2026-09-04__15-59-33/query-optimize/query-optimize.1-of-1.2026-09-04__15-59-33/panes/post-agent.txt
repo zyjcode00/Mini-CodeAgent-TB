@@ -1,0 +1,720 @@
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# set +e
+root@5ec6d299675a:/app#
+root@5ec6d299675a:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@5ec6d299675a:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@5ec6d299675a:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@5ec6d299675a:/app#
+root@5ec6d299675a:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@5ec6d299675a:/app#
+root@5ec6d299675a:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@5ec6d299675a:/app#
+root@5ec6d299675a:/app# mkdir -p /root/.config/uv
+root@5ec6d299675a:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@5ec6d299675a:/app#
+root@5ec6d299675a:/app# apt-get update || true
+Hit:1 http://mirrors.ustc.edu.cn/ubuntu noble InRelease
+Hit:2 http://mirrors.ustc.edu.cn/ubuntu noble-updates InRelease
+Hit:3 http://mirrors.ustc.edu.cn/ubuntu noble-backports InRelease
+Hit:4 http://mirrors.ustc.edu.cn/ubuntu noble-security InRelease
+Reading package lists... Done
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# if [ -f /app/my-sql-query.sql ]; then cat -- /app/my-sql-query.sql; else echo '错误: 找不到文件 /app/my-sql-query.sql'; fi
+SELECT
+  w.wordid AS word_id,
+  w.word AS word,
+  total_synsets,
+  total_senses,
+  distinct_domains,
+  distinct_posids,
+  (SELECT s.synsetid FROM senses s
+   WHERE s.wordid = w.wordid
+   GROUP BY s.synsetid
+   ORDER BY COUNT(*) DESC, s.synsetid ASC
+   LIMIT 1) AS top_synsetid,
+  (SELECT COUNT(*) FROM senses s
+   WHERE s.wordid = w.wordid
+   AND s.synsetid = (SELECT s2.synsetid FROM senses s2
+                     WHERE s2.wordid = w.wordid
+                     GROUP BY s2.synsetid
+                     ORDER BY COUNT(*) DESC, s2.synsetid ASC
+                     LIMIT 1)) AS top_synset_sense_count
+FROM (
+  SELECT
+    w.wordid,
+    w.word,
+    COUNT(DISTINCT s.synsetid) AS total_synsets,
+    COUNT(*) AS total_senses,
+    COUNT(DISTINCT syn.domainid) AS distinct_domains,
+    COUNT(DISTINCT syn.posid) AS distinct_posids
+  FROM words w
+  JOIN senses s ON w.wordid = s.wordid
+  JOIN synsets syn ON s.synsetid = syn.synsetid
+  GROUP BY w.wordid, w.word
+  HAVING total_synsets >= 2
+    AND distinct_domains >= 2
+    AND total_senses >= 2
+) w
+ORDER BY
+  total_senses DESC,
+  total_synsets DESC,
+  distinct_domains DESC,
+  word_id ASC
+LIMIT 500;root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# sqlite3 /app/oewn.sqlite '.tables' && sqlite3 /app/oewn.sqlite '.schema' | sed -n '1,240p'
+adjpositions          morphs                senses_vframes
+casedwords            poses                 senses_vtemplates
+domains               pronunciations        synsets
+ilis                  relations             usages
+lexes                 samples               vframes
+lexes_morphs          semrelations          vtemplates
+lexes_pronunciations  senses                wikidatas
+lexrelations          senses_adjpositions   words
+CREATE TABLE `synsets` (
+`synsetid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`domainid` INT NOT NULL,
+`definition` MEDIUMTEXT NOT NULL
+);
+CREATE TABLE `words` (
+`wordid` INT NOT NULL,
+`word` VARCHAR(80) NOT NULL
+);
+CREATE TABLE `casedwords` (
+`casedwordid` INT NOT NULL,
+`wordid` INT NOT NULL ,
+`casedword` VARCHAR(80) NOT NULL
+);
+CREATE TABLE `pronunciations` (
+`pronunciationid` INT NOT NULL,
+`pronunciation` VARCHAR(50) NOT NULL
+);
+CREATE TABLE `morphs` (
+`morphid` INT NOT NULL,
+`morph` VARCHAR(70) NOT NULL
+);
+CREATE TABLE `poses` (
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`pos` VARCHAR(20) NOT NULL
+);
+CREATE TABLE `relations` (
+`relationid` INT NOT NULL,
+`relation` VARCHAR(50) NOT NULL,
+`recurses` TINYINT(1) NOT NULL
+);
+CREATE TABLE `domains` (
+`domainid` INT NOT NULL,
+`domain` VARCHAR(32) NOT NULL,
+`domainname` VARCHAR(32) NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL
+);
+CREATE TABLE `samples` (
+`sampleid` INT NOT NULL,
+`sample` MEDIUMTEXT NOT NULL,
+`source` MEDIUMTEXT NULL,
+`synsetid` INT NOT NULL,
+`luid` INT DEFAULT NULL,
+`wordid` INT DEFAULT NULL
+);
+CREATE TABLE `vframes` (
+`frameid` INT NOT NULL,
+`frame` VARCHAR(50) NOT NULL
+);
+CREATE TABLE `vtemplates` (
+`templateid` INT NOT NULL,
+`template` MEDIUMTEXT NOT NULL
+);
+CREATE TABLE `adjpositions` (
+`positionid` CHARACTER (1) CHECK( `positionid` IN ('a','p','ip') ) NOT NULL,
+`position` VARCHAR(24) NOT NULL
+);
+CREATE TABLE `lexes` (
+`luid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`wordid` INT NOT NULL,
+`casedwordid` INT DEFAULT NULL
+);
+CREATE TABLE `senses` (
+`senseid` INT NOT NULL,
+`sensekey` VARCHAR(100) DEFAULT NULL,
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`casedwordid` INT DEFAULT NULL,
+`lexid` INT NOT NULL,
+`sensenum` INT DEFAULT NULL,
+`tagcount` INT DEFAULT NULL
+);
+CREATE TABLE `lexes_morphs` (
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`morphid` INT NOT NULL
+);
+CREATE TABLE `lexes_pronunciations` (
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`pronunciationid` INT NOT NULL,
+`variety` VARCHAR(2) DEFAULT NULL
+);
+CREATE TABLE `senses_adjpositions` (
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`positionid` CHARACTER (1) CHECK( `positionid` IN ('a','p','ip') ) NOT NULL
+);
+CREATE TABLE `lexrelations` (
+`synset1id` INT NOT NULL,
+`lu1id` INT NOT NULL,
+`word1id` INT NOT NULL,
+`synset2id` INT NOT NULL,
+`lu2id` INT NOT NULL,
+`word2id` INT NOT NULL,
+`relationid` INT NOT NULL
+);
+CREATE TABLE `senses_vframes` (
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`frameid` INT NOT NULL
+);
+CREATE TABLE `senses_vtemplates` (
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`templateid` INT NOT NULL
+);
+CREATE TABLE `semrelations` (
+`synset1id` INT NOT NULL,
+`synset2id` INT NOT NULL,
+`relationid` INT NOT NULL
+);
+CREATE TABLE `usages` (
+`usageid` INT NOT NULL,
+`usagenote` MEDIUMTEXT NOT NULL,
+`synsetid` INT NOT NULL,
+`luid` INT DEFAULT NULL,
+`wordid` INT DEFAULT NULL
+);
+CREATE TABLE `ilis` (
+`ili` VARCHAR(7) NOT NULL,
+`synsetid` INT NOT NULL
+);
+CREATE TABLE `wikidatas` (
+`wikidata` VARCHAR(12) NOT NULL,
+`synsetid` INT NOT NULL
+);
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# ls -lh /app/oewn.sqlite /app/my-sql-query.sql 2>/dev/null; sqlite3 /app/oewn.sqlite "SELECT name, type, sql FROM sqlite_master WHERE typ
+e IN ('index','table') ORDER BY type, name;"
+-rwxr-xr-x 1 root root 1.2K Aug 10 16:30 /app/my-sql-query.sql
+-r--r--r-- 1 root root  49M Sep  4 08:00 /app/oewn.sqlite
+adjpositions|table|CREATE TABLE `adjpositions` (
+`positionid` CHARACTER (1) CHECK( `positionid` IN ('a','p','ip') ) NOT NULL,
+`position` VARCHAR(24) NOT NULL
+)
+casedwords|table|CREATE TABLE `casedwords` (
+`casedwordid` INT NOT NULL,
+`wordid` INT NOT NULL ,
+`casedword` VARCHAR(80) NOT NULL
+)
+domains|table|CREATE TABLE `domains` (
+`domainid` INT NOT NULL,
+`domain` VARCHAR(32) NOT NULL,
+`domainname` VARCHAR(32) NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL
+)
+ilis|table|CREATE TABLE `ilis` (
+`ili` VARCHAR(7) NOT NULL,
+`synsetid` INT NOT NULL
+)
+lexes|table|CREATE TABLE `lexes` (
+`luid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`wordid` INT NOT NULL,
+`casedwordid` INT DEFAULT NULL
+)
+lexes_morphs|table|CREATE TABLE `lexes_morphs` (
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`morphid` INT NOT NULL
+)
+lexes_pronunciations|table|CREATE TABLE `lexes_pronunciations` (
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`pronunciationid` INT NOT NULL,
+`variety` VARCHAR(2) DEFAULT NULL
+)
+lexrelations|table|CREATE TABLE `lexrelations` (
+`synset1id` INT NOT NULL,
+`lu1id` INT NOT NULL,
+`word1id` INT NOT NULL,
+`synset2id` INT NOT NULL,
+`lu2id` INT NOT NULL,
+`word2id` INT NOT NULL,
+`relationid` INT NOT NULL
+)
+morphs|table|CREATE TABLE `morphs` (
+`morphid` INT NOT NULL,
+`morph` VARCHAR(70) NOT NULL
+)
+poses|table|CREATE TABLE `poses` (
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`pos` VARCHAR(20) NOT NULL
+)
+pronunciations|table|CREATE TABLE `pronunciations` (
+`pronunciationid` INT NOT NULL,
+`pronunciation` VARCHAR(50) NOT NULL
+)
+relations|table|CREATE TABLE `relations` (
+`relationid` INT NOT NULL,
+`relation` VARCHAR(50) NOT NULL,
+`recurses` TINYINT(1) NOT NULL
+)
+samples|table|CREATE TABLE `samples` (
+`sampleid` INT NOT NULL,
+`sample` MEDIUMTEXT NOT NULL,
+`source` MEDIUMTEXT NULL,
+`synsetid` INT NOT NULL,
+`luid` INT DEFAULT NULL,
+`wordid` INT DEFAULT NULL
+)
+semrelations|table|CREATE TABLE `semrelations` (
+`synset1id` INT NOT NULL,
+`synset2id` INT NOT NULL,
+`relationid` INT NOT NULL
+)
+senses|table|CREATE TABLE `senses` (
+`senseid` INT NOT NULL,
+`sensekey` VARCHAR(100) DEFAULT NULL,
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`casedwordid` INT DEFAULT NULL,
+`lexid` INT NOT NULL,
+`sensenum` INT DEFAULT NULL,
+`tagcount` INT DEFAULT NULL
+)
+senses_adjpositions|table|CREATE TABLE `senses_adjpositions` (
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`positionid` CHARACTER (1) CHECK( `positionid` IN ('a','p','ip') ) NOT NULL
+)
+senses_vframes|table|CREATE TABLE `senses_vframes` (
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`frameid` INT NOT NULL
+)
+senses_vtemplates|table|CREATE TABLE `senses_vtemplates` (
+`synsetid` INT NOT NULL,
+`luid` INT NOT NULL,
+`wordid` INT NOT NULL,
+`templateid` INT NOT NULL
+)
+synsets|table|CREATE TABLE `synsets` (
+`synsetid` INT NOT NULL,
+`posid` CHARACTER (1) CHECK( `posid` IN ('n','v','a','r','s') ) NOT NULL,
+`domainid` INT NOT NULL,
+`definition` MEDIUMTEXT NOT NULL
+)
+usages|table|CREATE TABLE `usages` (
+`usageid` INT NOT NULL,
+`usagenote` MEDIUMTEXT NOT NULL,
+`synsetid` INT NOT NULL,
+`luid` INT DEFAULT NULL,
+`wordid` INT DEFAULT NULL
+)
+vframes|table|CREATE TABLE `vframes` (
+`frameid` INT NOT NULL,
+`frame` VARCHAR(50) NOT NULL
+)
+vtemplates|table|CREATE TABLE `vtemplates` (
+`templateid` INT NOT NULL,
+`template` MEDIUMTEXT NOT NULL
+)
+wikidatas|table|CREATE TABLE `wikidatas` (
+`wikidata` VARCHAR(12) NOT NULL,
+`synsetid` INT NOT NULL
+)
+words|table|CREATE TABLE `words` (
+`wordid` INT NOT NULL,
+`word` VARCHAR(80) NOT NULL
+)
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# sqlite3 /app/oewn.sqlite <<'SQL'
+> .timer on
+> SELECT 'words', count(*) FROM words;
+> SELECT 'senses', count(*) FROM senses;
+> SELECT 'synsets', count(*) FROM synsets;
+> SELECT 'distinct sense word/synset', count(*) FROM (SELECT DISTINCT wordid, synsetid FROM senses);
+> SELECT 'duplicate word/synset groups', count(*) FROM (SELECT wordid, synsetid, count(*) c FROM senses GROUP BY wordid, synsetid HAVING c>1);
+> SQL
+words|152332
+Run Time: real 0.005 user 0.004876 sys 0.000000
+senses|212508
+Run Time: real 0.005 user 0.001477 sys 0.004125
+synsets|120569
+Run Time: real 0.006 user 0.000795 sys 0.004930
+distinct sense word/synset|212461
+Run Time: real 0.047 user 0.034533 sys 0.010740
+duplicate word/synset groups|47
+Run Time: real 0.054 user 0.045454 sys 0.008511
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# sqlite3 /app/oewn.sqlite <<'SQL'
+> EXPLAIN QUERY PLAN
+> SELECT
+>   w.wordid AS word_id,
+>   w.word AS word,
+>   total_synsets,
+>   total_senses,
+>   distinct_domains,
+>   distinct_posids,
+>   (SELECT s.synsetid FROM senses s
+>    WHERE s.wordid = w.wordid
+>    GROUP BY s.synsetid
+>    ORDER BY COUNT(*) DESC, s.synsetid ASC
+>    LIMIT 1) AS top_synsetid,
+>   (SELECT COUNT(*) FROM senses s
+>    WHERE s.wordid = w.wordid
+>    AND s.synsetid = (SELECT s2.synsetid FROM senses s2
+>                      WHERE s2.wordid = w.wordid
+>                      GROUP BY s2.synsetid
+>                      ORDER BY COUNT(*) DESC, s2.synsetid ASC
+>                      LIMIT 1)) AS top_synset_sense_count
+> FROM (
+>   SELECT
+>     w.wordid,
+>     w.word,
+>     COUNT(DISTINCT s.synsetid) AS total_synsets,
+>     COUNT(*) AS total_senses,
+>     COUNT(DISTINCT syn.domainid) AS distinct_domains,
+>     COUNT(DISTINCT syn.posid) AS distinct_posids
+>   FROM words w
+>   JOIN senses s ON w.wordid = s.wordid
+>   JOIN synsets syn ON s.synsetid = syn.synsetid
+>   GROUP BY w.wordid, w.word
+>   HAVING total_synsets >= 2
+>     AND distinct_domains >= 2
+>     AND total_senses >= 2
+> ) w
+> ORDER BY
+>   total_senses DESC,
+>   total_synsets DESC,
+>   distinct_domains DESC,
+>   word_id ASC
+> LIMIT 500;
+> SQL
+QUERY PLAN
+|--CO-ROUTINE w
+|  |--SCAN w
+|  |--BLOOM FILTER ON s (wordid=?)
+|  |--SEARCH s USING AUTOMATIC COVERING INDEX (wordid=?)
+|  |--BLOOM FILTER ON syn (synsetid=?)
+|  |--SEARCH syn USING AUTOMATIC COVERING INDEX (synsetid=?)
+|  |--USE TEMP B-TREE FOR GROUP BY
+|  |--USE TEMP B-TREE FOR count(DISTINCT)
+|  |--USE TEMP B-TREE FOR count(DISTINCT)
+|  `--USE TEMP B-TREE FOR count(DISTINCT)
+|--SCAN w
+|--CORRELATED SCALAR SUBQUERY 1
+|  |--SCAN s
+|  |--USE TEMP B-TREE FOR GROUP BY
+|  `--USE TEMP B-TREE FOR ORDER BY
+|--CORRELATED SCALAR SUBQUERY 3
+|  |--SCAN s
+|  `--CORRELATED SCALAR SUBQUERY 2
+|     |--SCAN s2
+|     |--USE TEMP B-TREE FOR GROUP BY
+|     `--USE TEMP B-TREE FOR ORDER BY
+`--USE TEMP B-TREE FOR ORDER BY
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# /usr/bin/time -f 'elapsed=%e user=%U sys=%S' sqlite3 /app/oewn.sqlite < /app/my-sql-query.sql > /tmp/orig.out && wc -l /tmp/orig.out &&
+head -5 /tmp/orig.out
+bash: /usr/bin/time: No such file or directory
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# sqlite3 /app/oewn.sqlite <<'SQL'
+> SELECT 'duplicate words.wordid', count(*) FROM (SELECT wordid FROM words GROUP BY wordid HAVING count(*)>1);
+> SELECT 'duplicate synsets.synsetid', count(*) FROM (SELECT synsetid FROM synsets GROUP BY synsetid HAVING count(*)>1);
+> SELECT sqlite_version();
+> SQL
+duplicate words.wordid|0
+duplicate synsets.synsetid|0
+3.45.1
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# python3 - /app/sol.sql <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'WITH sense_counts AS (\n  SELECT wordid, synsetid, COUNT(*) AS sense_count\n  FROM senses\n  GROUP BY wordid, synsetid\n),\nword_stats AS (\n  SELE
+CT\n    sc.wordid,\n    w.word,\n    COUNT(*) AS total_synsets,\n    SUM(sc.sense_count) AS total_senses,\n    COUNT(DISTINCT syn.domainid) AS distinct_domains,
+\n    COUNT(DISTINCT syn.posid) AS distinct_posids\n  FROM sense_counts sc\n  JOIN words w ON w.wordid = sc.wordid\n  JOIN synsets syn ON syn.synsetid = sc.syns
+etid\n  GROUP BY sc.wordid, w.word\n  HAVING COUNT(*) >= 2\n    AND COUNT(DISTINCT syn.domainid) >= 2\n    AND SUM(sc.sense_count) >= 2\n),\nmax_counts AS (\n
+SELECT wordid, MAX(sense_count) AS top_synset_sense_count\n  FROM sense_counts\n  GROUP BY wordid\n),\ntop_synsets AS (\n  SELECT\n    sc.wordid,\n    MIN(sc.sy
+nsetid) AS top_synsetid,\n    mc.top_synset_sense_count\n  FROM sense_counts sc\n  JOIN max_counts mc\n    ON mc.wordid = sc.wordid\n   AND mc.top_synset_sense_
+count = sc.sense_count\n  GROUP BY sc.wordid\n)\nSELECT\n  ws.wordid AS word_id,\n  ws.word AS word,\n  ws.total_synsets,\n  ws.total_senses,\n  ws.distinct_dom
+ains,\n  ws.distinct_posids,\n  ts.top_synsetid,\n  ts.top_synset_sense_count\nFROM word_stats ws\nJOIN top_synsets ts ON ts.wordid = ws.wordid\nORDER BY\n  ws.
+total_senses DESC,\n  ws.total_synsets DESC,\n  ws.distinct_domains DESC,\n  word_id ASC\nLIMIT 500;\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/sol.sql
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# if [ -f /app/sol.sql ]; then cat -- /app/sol.sql; else echo '错误: 找不到文件 /app/sol.sql'; fi
+WITH sense_counts AS (
+  SELECT wordid, synsetid, COUNT(*) AS sense_count
+  FROM senses
+  GROUP BY wordid, synsetid
+),
+word_stats AS (
+  SELECT
+    sc.wordid,
+    w.word,
+    COUNT(*) AS total_synsets,
+    SUM(sc.sense_count) AS total_senses,
+    COUNT(DISTINCT syn.domainid) AS distinct_domains,
+    COUNT(DISTINCT syn.posid) AS distinct_posids
+  FROM sense_counts sc
+  JOIN words w ON w.wordid = sc.wordid
+  JOIN synsets syn ON syn.synsetid = sc.synsetid
+  GROUP BY sc.wordid, w.word
+  HAVING COUNT(*) >= 2
+    AND COUNT(DISTINCT syn.domainid) >= 2
+    AND SUM(sc.sense_count) >= 2
+),
+max_counts AS (
+  SELECT wordid, MAX(sense_count) AS top_synset_sense_count
+  FROM sense_counts
+  GROUP BY wordid
+),
+top_synsets AS (
+  SELECT
+    sc.wordid,
+    MIN(sc.synsetid) AS top_synsetid,
+    mc.top_synset_sense_count
+  FROM sense_counts sc
+  JOIN max_counts mc
+    ON mc.wordid = sc.wordid
+   AND mc.top_synset_sense_count = sc.sense_count
+  GROUP BY sc.wordid
+)
+SELECT
+  ws.wordid AS word_id,
+  ws.word AS word,
+  ws.total_synsets,
+  ws.total_senses,
+  ws.distinct_domains,
+  ws.distinct_posids,
+  ts.top_synsetid,
+  ts.top_synset_sense_count
+FROM word_stats ws
+JOIN top_synsets ts ON ts.wordid = ws.wordid
+ORDER BY
+  ws.total_senses DESC,
+  ws.total_synsets DESC,
+  ws.distinct_domains DESC,
+  word_id ASC
+LIMIT 500;
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# python3 - <<'PY'
+> from pathlib import Path
+> p=Path('/app/sol.sql')
+> s=p.read_text()
+> print('bytes', len(s.encode()))
+> print('semicolon_count', s.count(';'))
+> print('ends_semicolon', s.rstrip().endswith(';'))
+> print('comment_markers', any(x in s for x in ['--','/*','*/']))
+> PY
+bytes 1315
+semicolon_count 1
+ends_semicolon True
+comment_markers False
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# sqlite3 /app/oewn.sqlite 'EXPLAIN QUERY PLAN '"$(cat /app/sol.sql)" | sed -n '1,120p'
+QUERY PLAN
+|--CO-ROUTINE word_stats
+|  |--MATERIALIZE sense_counts
+|  |  |--SCAN senses
+|  |  `--USE TEMP B-TREE FOR GROUP BY
+|  |--SCAN sc
+|  |--BLOOM FILTER ON w (wordid=?)
+|  |--SEARCH w USING AUTOMATIC COVERING INDEX (wordid=?)
+|  |--BLOOM FILTER ON syn (synsetid=?)
+|  |--SEARCH syn USING AUTOMATIC COVERING INDEX (synsetid=?)
+|  |--USE TEMP B-TREE FOR GROUP BY
+|  |--USE TEMP B-TREE FOR count(DISTINCT)
+|  `--USE TEMP B-TREE FOR count(DISTINCT)
+|--MATERIALIZE top_synsets
+|  |--MATERIALIZE max_counts
+|  |  |--SCAN sense_counts
+|  |  `--USE TEMP B-TREE FOR GROUP BY
+|  |--SCAN mc
+|  |--BLOOM FILTER ON sc (sense_count=? AND wordid=?)
+|  |--SEARCH sc USING AUTOMATIC COVERING INDEX (sense_count=? AND wordid=?)
+|  `--USE TEMP B-TREE FOR GROUP BY
+|--SCAN ws
+|--BLOOM FILTER ON ts (wordid=?)
+|--SEARCH ts USING AUTOMATIC COVERING INDEX (wordid=?)
+`--USE TEMP B-TREE FOR ORDER BY
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# python3 - /app/test_sql_solution.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import sqlite3\nimport time\nfrom pathlib import Path\n\nDB = "/app/oewn.sqlite"\nORIG = Path("/app/my-sql-query.sql")\nSOL = Path("/app/sol.sql")\
+n\n\ndef read_sql(path: Path) -> str:\n    sql = path.read_text(encoding="utf-8")\n    assert sql.strip().endswith(";"), f"{path} must end with semicolon"\n
+return sql\n\n\ndef run_query(conn: sqlite3.Connection, sql: str):\n    start = time.perf_counter()\n    rows = conn.execute(sql).fetchall()\n    elapsed = time
+.perf_counter() - start\n    return rows, elapsed\n\n\ndef main():\n    sol_text = read_sql(SOL)\n    assert sol_text.count(";") == 1, "solution must contain ex
+actly one semicolon"\n    assert "--" not in sol_text and "/*" not in sol_text and "*/" not in sol_text, "solution must contain no comments"\n\n    orig_sql = r
+ead_sql(ORIG)\n    with sqlite3.connect(DB) as conn:\n        conn.execute("PRAGMA temp_store=MEMORY")\n        orig_rows, orig_time = run_query(conn, orig_sql)
+\n        sol_rows, sol_time = run_query(conn, sol_text)\n\n    assert orig_rows == sol_rows, (\n        f"outputs differ: original={len(orig_rows)} rows soluti
+on={len(sol_rows)} rows\\n"\n        f"first original rows={orig_rows[:3]}\\nfirst solution rows={sol_rows[:3]}"\n    )\n    print(f"rows={len(sol_rows)}")\n
+ print(f"original_seconds={orig_time:.6f}")\n    print(f"solution_seconds={sol_time:.6f}")\n    if sol_time:\n        print(f"speedup={orig_time / sol_time:.2f}
+x")\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_sql_solution.py
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# python3 /app/test_sql_solution.py
+rows=500
+original_seconds=223.101754
+solution_seconds=0.607890
+speedup=367.01x
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# python3 - /tmp/alt.sql <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "WITH sense_counts AS (\n  SELECT wordid, synsetid, COUNT(*) AS sense_count\n  FROM senses\n  GROUP BY wordid, synsetid\n),\nword_stats AS (\n  SELE
+CT\n    sc.wordid,\n    w.word,\n    COUNT(*) AS total_synsets,\n    SUM(sc.sense_count) AS total_senses,\n    COUNT(DISTINCT syn.domainid) AS distinct_domains,
+\n    COUNT(DISTINCT syn.posid) AS distinct_posids,\n    CAST(substr(group_concat(sc.synsetid ORDER BY sc.sense_count DESC, sc.synsetid ASC), 1, instr(group_con
+cat(sc.synsetid ORDER BY sc.sense_count DESC, sc.synsetid ASC) || ',', ',') - 1) AS INT) AS top_synsetid,\n    MAX(sc.sense_count) AS top_synset_sense_count\n
+FROM sense_counts sc\n  JOIN words w ON w.wordid = sc.wordid\n  JOIN synsets syn ON syn.synsetid = sc.synsetid\n  GROUP BY sc.wordid, w.word\n  HAVING COUNT(*)
+>= 2\n    AND COUNT(DISTINCT syn.domainid) >= 2\n    AND SUM(sc.sense_count) >= 2\n)\nSELECT\n  wordid AS word_id,\n  word,\n  total_synsets,\n  total_senses,\n
+  distinct_domains,\n  distinct_posids,\n  top_synsetid,\n  top_synset_sense_count\nFROM word_stats\nORDER BY\n  total_senses DESC,\n  total_synsets DESC,\n  di
+stinct_domains DESC,\n  word_id ASC\nLIMIT 500;\n"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /tmp/alt.sql
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# python3 - <<'PY'
+> import sqlite3, time
+> from pathlib import Path
+> DB='/app/oewn.sqlite'
+> sol=Path('/app/sol.sql').read_text()
+> alt=Path('/tmp/alt.sql').read_text()
+> with sqlite3.connect(DB) as conn:
+>     conn.execute('PRAGMA temp_store=MEMORY')
+>     t=time.perf_counter(); sol_rows=conn.execute(sol).fetchall(); sol_t=time.perf_counter()-t
+>     t=time.perf_counter(); alt_rows=conn.execute(alt).fetchall(); alt_t=time.perf_counter()-t
+> print('sol_rows', len(sol_rows), 'sol_seconds', f'{sol_t:.6f}')
+> print('alt_rows', len(alt_rows), 'alt_seconds', f'{alt_t:.6f}')
+> print('equal', sol_rows == alt_rows)
+> if sol_rows != alt_rows:
+>     for i,(a,b) in enumerate(zip(sol_rows, alt_rows)):
+>         if a != b:
+>             print('first_diff', i, a, b)
+>             break
+> PY
+sol_rows 500 sol_seconds 0.646643
+alt_rows 500 alt_seconds 0.413601
+equal True
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# cp /tmp/alt.sql /app/sol.sql && python3 - <<'PY'
+> from pathlib import Path
+> s=Path('/app/sol.sql').read_text()
+> print('bytes', len(s.encode()))
+> print('semicolon_count', s.count(';'))
+> print('ends_semicolon', s.rstrip().endswith(';'))
+> print('comment_markers', any(x in s for x in ['--','/*','*/']))
+> PY
+bytes 1117
+semicolon_count 1
+ends_semicolon True
+comment_markers False
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5ec6d299675a:/app# python3 /app/test_sql_solution.py && sqlite3 /app/oewn.sqlite 'EXPLAIN QUERY PLAN '"$(cat /app/sol.sql)" | sed -n '1,120p'
+rows=500
+original_seconds=228.743657
+solution_seconds=0.411010
+speedup=556.54x
+QUERY PLAN
+|--CO-ROUTINE word_stats
+|  |--CO-ROUTINE sense_counts
+|  |  |--SCAN senses
+|  |  `--USE TEMP B-TREE FOR GROUP BY
+|  |--SCAN sc
+|  |--BLOOM FILTER ON w (wordid=?)
+|  |--SEARCH w USING AUTOMATIC COVERING INDEX (wordid=?)
+|  |--BLOOM FILTER ON syn (synsetid=?)
+|  |--SEARCH syn USING AUTOMATIC COVERING INDEX (synsetid=?)
+|  |--USE TEMP B-TREE FOR GROUP BY
+|  |--USE TEMP B-TREE FOR count(DISTINCT)
+|  |--USE TEMP B-TREE FOR count(DISTINCT)
+|  `--USE TEMP B-TREE FOR group_concat(ORDER BY)
+|--SCAN word_stats
+`--USE TEMP B-TREE FOR ORDER BY
+root@5ec6d299675a:/app# true; tmux wait -S done
+root@5ec6d299675a:/app#

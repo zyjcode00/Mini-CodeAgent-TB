@@ -1,0 +1,367 @@
+asciinema rec --stdin /logs/agent.cast
+root@1ff060905968:/taichi-dev/taichi# asciinema rec --stdin /logs/agent.cast
+asciinema: recording asciicast to /logs/agent.cast
+asciinema: press <ctrl-d> or type "exit" when you're done
+root@1ff060905968:/taichi-dev/taichi# clear
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# set +e
+root@1ff060905968:/taichi-dev/taichi#
+root@1ff060905968:/taichi-dev/taichi# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@1ff060905968:/taichi-dev/taichi# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@1ff060905968:/taichi-dev/taichi# UV_INDEX_URL="https://pypi.org/simple"
+root@1ff060905968:/taichi-dev/taichi#
+root@1ff060905968:/taichi-dev/taichi# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@1ff060905968:/taichi-dev/taichi#
+root@1ff060905968:/taichi-dev/taichi# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@1ff060905968:/taichi-dev/taichi#
+root@1ff060905968:/taichi-dev/taichi# mkdir -p /root/.config/uv
+root@1ff060905968:/taichi-dev/taichi# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@1ff060905968:/taichi-dev/taichi#
+root@1ff060905968:/taichi-dev/taichi# apt-get update || true
+Hit:1 http://security.ubuntu.com/ubuntu bionic-security InRelease
+Hit:2 http://archive.ubuntu.com/ubuntu bionic InRelease
+Hit:3 http://archive.ubuntu.com/ubuntu bionic-updates InRelease
+Hit:4 http://archive.ubuntu.com/ubuntu bionic-backports InRelease
+Reading package lists... Done
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# ls -l /app && python - <<'PY'
+> import importlib.util
+> mods=['numba','numpy','scipy','skimage','cv2','bottleneck']
+> for m in mods:
+>     spec=importlib.util.find_spec(m)
+>     print(m, 'FOUND' if spec else 'missing')
+> PY
+ls: cannot access '/app': No such file or directory
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# if [ -f /app/maximal_square.py ]; then cat -- /app/maximal_square.py; else echo '错误: 找不到文件 /app/maximal_square.py';
+ fi
+错误: 找不到文件 /app/maximal_square.py
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# pwd; python - <<'PY'
+> import importlib.util, sys
+> print(sys.version)
+> mods=['numba','numpy','scipy','skimage','cv2','bottleneck','cython']
+> for m in mods:
+>     spec=importlib.util.find_spec(m)
+>     print(m, 'FOUND' if spec else 'missing')
+> PY
+/taichi-dev/taichi
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: No module named util
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# python3 - <<'PY'
+> import importlib.util, sys, os
+> print(sys.version)
+> print('cwd', os.getcwd())
+> mods=['numba','numpy','scipy','skimage','cv2','bottleneck','cython']
+> for m in mods:
+>     spec=importlib.util.find_spec(m)
+>     print(m, 'FOUND' if spec else 'missing')
+> PY
+3.6.9 (default, Jan 26 2021, 15:33:00)
+[GCC 8.4.0]
+cwd /taichi-dev/taichi
+numba missing
+numpy FOUND
+scipy missing
+skimage missing
+cv2 missing
+bottleneck missing
+cython missing
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+ b;\n    return m < c ? m : c;\n}\n\nEXPORT long long maximal_square_u8(const uint8_t *data, long long rows, long long cols) {\n    if (data == NULL || rows <=
+0 || cols <= 0) return 0;\n\n    int *dp = (int *)calloc((size_t)cols + 1u, sizeof(int));\n    if (dp == NULL) return -1;\n\n    int maxsqlen = 0;\n    for (lon
+g long i = 0; i < rows; ++i) {\n        int prev = 0;\n        const uint8_t *row = data + i * cols;\n        for (long long j = 1; j <= cols; ++j) {\n
+   int temp = dp[j];\n            if (row[j - 1] != 0) {\n                int v = min3_int(dp[j - 1], prev, dp[j]) + 1;\n                dp[j] = v;\n
+     if (v > maxsqlen) maxsqlen = v;\n            } else {\n                dp[j] = 0;\n            }\n            prev = temp;\n        }\n    }\n\n    free(dp
+);\n    return (long long)maxsqlen * (long long)maxsqlen;\n}\n\'\'\'\n\n\n_LIB = None\n_COMPILE_ERROR = None\n\n\ndef _compile_and_load_backend():\n    """Build
+ and load the tiny C backend, caching it in the temp directory."root@1ff060905968:/taichi-dev/taichi# python3 - /app/maximal_square.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '"""Fast CPU implementation of maximal square for NumPy arrays.\n\nThe public API intentionally matches the reference implementation:\n\n    maximal
+_square(matrix: np.ndarray) -> int\n\nFor large inputs this module uses a small C backend compiled on first import and\ncalled through ctypes.  The one-time com
+pilation cost is acceptable for long\nruns; the actual computation is the same dynamic-programming recurrence as the\nreference code, but executed in native cod
+e instead of Python loops.\n"""\n\nimport ctypes\nimport hashlib\nimport os\nimport subprocess\nimport tempfile\n\nimport numpy as np\n\n\n_C_SOURCE = r\'\'\'\n
+#include <stdint.h>\n#include <stdlib.h>\n\n#if defined(_WIN32)\n#  define EXPORT __declspec(dllexport)\n#else\n#  define EXPORT __attribute__((visibility("defa
+ult")))\n#endif\n\nstatic inline int min3_int(int a, int b, int c) {\n    int m = a < b ? a : b;\n    return m < c ? m : c;\n}\n\nEXPORT long long maximal_squar
+e_u8(const uint8_t *data, long long rows, long long cols) {\n    if (data == NULL || rows <= 0 || cols <= 0) return 0;\n\n    int *dp = (int *)calloc((size_t)co
+ls + 1u, sizeof(int));\n    if (dp == NULL) return -1;\n\n    int maxsqlen = 0;\n    for (long long i = 0; i < rows; ++i) {\n        int prev = 0;\n        cons
+t uint8_t *row = data + i * cols;\n        for (long long j = 1; j <= cols; ++j) {\n            int temp = dp[j];\n            if (row[j - 1] != 0) {\n
+       int v = min3_int(dp[j - 1], prev, dp[j]) + 1;\n                dp[j] = v;\n                if (v > maxsqlen) maxsqlen = v;\n            } else {\n
+         dp[j] = 0;\n            }\n            prev = temp;\n        }\n    }\n\n    free(dp);\n    return (long long)maxsqlen * (long long)maxsqlen;\n}\n\'\'\
+'\n\n\n_LIB = None\n_COMPILE_ERROR = None\n\n\ndef _compile_and_load_backend():\n    """Build and load the tiny C backend, caching it in the temp directory."""\
+n    global _COMPILE_ERROR\n\n    key = hashlib.sha256(_C_SOURCE.encode("utf-8")).hexdigest()[:16]\n    build_dir = os.path.join(tempfile.gettempdir(), "maximal
+_square_c_backend")\n    src_path = os.path.join(build_dir, "maximal_square_%s.c" % key)\n    so_path = os.path.join(build_dir, "maximal_square_%s.so" % key)\n\
+n    try:\n        if not os.path.isdir(build_dir):\n            os.makedirs(build_dir)\n        if not os.path.exists(so_path):\n            with open(src_path
+, "w") as f:\n                f.write(_C_SOURCE)\n            cmd = [\n                "gcc", "-O3", "-march=native", "-std=c99", "-shared", "-fPIC",\n
+       src_path, "-o", so_path,\n            ]\n            subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n\n        lib = ct
+ypes.CDLL(so_path)\n        func = lib.maximal_square_u8\n        func.argtypes = [\n            ctypes.POINTER(ctypes.c_uint8),\n            ctypes.c_longlong,
+\n            ctypes.c_longlong,\n        ]\n        func.restype = ctypes.c_longlong\n        return lib\n    except Exception as exc:  # pragma: no cover - fa
+llback path is environment dependent\n        _COMPILE_ERROR = exc\n        return None\n\n\ndef _python_fallback(matrix):\n    """Reference-equivalent fallback
+ used only if a C compiler is unavailable."""\n    rows = len(matrix)\n    cols = len(matrix[0]) if rows > 0 else 0\n    dp = [0] * (cols + 1)\n    maxsqlen = 0
+\n    for i in range(1, rows + 1):\n        prev = 0\n        for j in range(1, cols + 1):\n            temp = dp[j]\n            if matrix[i - 1, j - 1] == 1:\
+n                v = min(dp[j - 1], prev, dp[j]) + 1\n                dp[j] = v\n                if v > maxsqlen:\n                    maxsqlen = v\n
+ else:\n                dp[j] = 0\n            prev = temp\n    return maxsqlen * maxsqlen\n\n\ndef maximal_square(matrix: np.ndarray) -> int:\n    """Return th
+e area of the largest all-1 square in a binary NumPy array.\n\n    Parameters\n    ----------\n    matrix : np.ndarray\n        Two-dimensional array containing
+ only 0s and 1s.  Non-zero values are\n        treated as 1 by the accelerated backend, which is equivalent for valid\n        binary inputs.\n\n    Returns\n
+  -------\n    int\n        Area of the largest square containing only 1s.\n    """\n    arr = np.asarray(matrix)\n    if arr.ndim != 2:\n        raise ValueErr
+or("matrix must be a 2-dimensional numpy ndarray")\n\n    rows, cols = arr.shape\n    if rows == 0 or cols == 0:\n        return 0\n\n    # The C kernel is spec
+ialized for dense uint8 row-major input.  For the\n    # expected large binary matrices this copy/conversion is tiny compared with\n    # eliminating ~1,000,000
+ Python-loop iterations per call.\n    arr_u8 = np.ascontiguousarray(arr, dtype=np.uint8)\n\n    global _LIB\n    if _LIB is None:\n        _LIB = _compile_and_
+load_backend()\n\n    if _LIB is not None:\n        ptr = arr_u8.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8))\n        result = _LIB.maximal_square_u8(ptr, in
+t(rows), int(cols))\n        if result >= 0:\n            return int(result)\n        # Allocation failure inside the C routine is very unlikely; fall back to\n
+        # the Python implementation rather than returning an invalid value.\n\n    return int(_python_fallback(arr_u8))\n\n\n__all__ = ["maximal_square"]\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/maximal_square.py
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+ected, "case %d: got %r expected %r" % (idx, got, expected)\n\n\ndef test_performance_smoke():\n    candidate = load_candidate()\n    rng = np.random.RandomStat
+e(456)\n    mat = (rng.rand(700, 700) < 0.58).astype(np.uint8)\n\n    # Warm up import-time C compilation and any dynamic loader work.\n    assert candidate(mat
+) == reference_maximal_square(mat)\n\n    t0 = time.perf_counter()\n    ref = reference_maximal_square(mat)\n    t_ref = time.perf_counter() - t0\n\n    best =
+1e100\n    got = None\n    for _ in range(5):\n        t0 = time.perf_counter()\n        got = candidate(mat)\n        best = min(best, time.perf_counter() - t0
+)\n\n    assert got == ref\n    speedup = t_ref / best if best > 0 else float("inf")\n    print("reference %.6fs candidate_best %.6fs speedup %.1fx" % (t_ref, b
+est, speedup))\n    # Conservative CI/local smoke threshold; the user-facing target is tested on\n    # larger warm workloads, where call overhead is negligible
+.\n    assert speedup > 20.0\n\n\nif __name__ == "__main__":\n    test_correctness()\n    test_performance_smoke()\n    print("OK")\n'
+dir_path = os.path.dirname(path)
+if dir_path:
+    os.makedirs(dir_path, exist_ok=True)
+try:
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(content)
+    print(f"成功: 已写入 {path}")
+except Exception as exc:
+    print(f"写入失败: {exc}")
+PY
+true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# python3 - /app/test_maximal_square.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import importlib.util\nimport os\nimport sys\nimport time\n\nimport numpy as np\n\n\nMODULE_PATH = "/app/maximal_square.py"\n\n\ndef reference_maxi
+mal_square(matrix: np.ndarray) -> int:\n    rows = len(matrix)\n    cols = len(matrix[0]) if rows > 0 else 0\n    dp = [0] * (cols + 1)\n    maxsqlen = 0\n    p
+rev = 0\n    for i in range(1, rows + 1):\n        for j in range(1, cols + 1):\n            temp = dp[j]\n            if matrix[i - 1, j - 1] == 1:\n
+      dp[j] = min(min(dp[j - 1], prev), dp[j]) + 1\n                maxsqlen = max(maxsqlen, dp[j])\n            else:\n                dp[j] = 0\n            p
+rev = temp\n    return maxsqlen * maxsqlen\n\n\ndef load_candidate():\n    assert os.path.exists(MODULE_PATH), "%s does not exist" % MODULE_PATH\n    spec = imp
+ortlib.util.spec_from_file_location("candidate_maximal_square", MODULE_PATH)\n    module = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(mo
+dule)\n    assert hasattr(module, "maximal_square")\n    return module.maximal_square\n\n\ndef test_correctness():\n    candidate = load_candidate()\n    cases
+= [\n        np.zeros((0, 0), dtype=np.uint8),\n        np.zeros((1, 1), dtype=np.uint8),\n        np.ones((1, 1), dtype=np.uint8),\n        np.array([[1, 0, 1,
+ 0, 0], [1, 0, 1, 1, 1], [1, 1, 1, 1, 1], [1, 0, 0, 1, 0]], dtype=np.uint8),\n        np.ones((8, 9), dtype=np.uint8),\n        np.eye(16, dtype=np.uint8),\n
+ ]\n    rng = np.random.RandomState(123)\n    for shape in [(1, 20), (20, 1), (2, 3), (5, 7), (16, 16), (31, 29), (64, 65)]:\n        for p in [0.1, 0.35, 0.5,
+0.8, 0.95]:\n            cases.append((rng.rand(*shape) < p).astype(np.uint8))\n\n    for idx, mat in enumerate(cases):\n        expected = reference_maximal_sq
+uare(mat)\n        got = candidate(mat)\n        assert isinstance(got, (int, np.integer)), "result is not integer-like"\n        assert int(got) == expected, "
+case %d: got %r expected %r" % (idx, got, expected)\n\n\ndef test_performance_smoke():\n    candidate = load_candidate()\n    rng = np.random.RandomState(456)\n
+    mat = (rng.rand(700, 700) < 0.58).astype(np.uint8)\n\n    # Warm up import-time C compilation and any dynamic loader work.\n    assert candidate(mat) == ref
+erence_maximal_square(mat)\n\n    t0 = time.perf_counter()\n    ref = reference_maximal_square(mat)\n    t_ref = time.perf_counter() - t0\n\n    best = 1e100\n
+   got = None\n    for _ in range(5):\n        t0 = time.perf_counter()\n        got = candidate(mat)\n        best = min(best, time.perf_counter() - t0)\n\n
+ assert got == ref\n    speedup = t_ref / best if best > 0 else float("inf")\n    print("reference %.6fs candidate_best %.6fs speedup %.1fx" % (t_ref, best, spe
+edup))\n    # Conservative CI/local smoke threshold; the user-facing target is tested on\n    # larger warm workloads, where call overhead is negligible.\n    a
+ssert speedup > 20.0\n\n\nif __name__ == "__main__":\n    test_correctness()\n    test_performance_smoke()\n    print("OK")\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_maximal_square.py
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# CUDA_VISIBLE_DEVICES="" python3 /app/test_maximal_square.py
+reference 0.502651s candidate_best 0.001377s speedup 365.0x
+OK
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# CUDA_VISIBLE_DEVICES="" python3 - <<'PY'
+> import importlib.util, time
+> import numpy as np
+>
+> spec = importlib.util.spec_from_file_location('ms', '/app/maximal_square.py')
+> mod = importlib.util.module_from_spec(spec)
+> spec.loader.exec_module(mod)
+>
+> def ref(matrix):
+>     rows = len(matrix)
+>     cols = len(matrix[0]) if rows > 0 else 0
+>     dp = [0] * (cols + 1)
+>     maxsqlen = 0
+>     prev = 0
+>     for i in range(1, rows + 1):
+>         for j in range(1, cols + 1):
+>             temp = dp[j]
+>             if matrix[i - 1, j - 1] == 1:
+>                 dp[j] = min(min(dp[j - 1], prev), dp[j]) + 1
+>                 maxsqlen = max(maxsqlen, dp[j])
+>             else:
+>                 dp[j] = 0
+>             prev = temp
+>     return maxsqlen * maxsqlen
+>
+> rng=np.random.RandomState(789)
+> for dtype in [np.uint8, np.int64, np.bool_]:
+>     mat=(rng.rand(1000,1000)<0.6).astype(dtype)
+>     got=mod.maximal_square(mat)  # warmup
+>     t0=time.perf_counter(); expected=ref(mat); tref=time.perf_counter()-t0
+>     best=999
+>     for _ in range(5):
+>         t0=time.perf_counter(); got=mod.maximal_square(mat); best=min(best,time.perf_counter()-t0)
+>     print(dtype, 'expected', expected, 'got', got, 'ref', tref, 'best', best, 'speedup', tref/best)
+> PY
+<class 'numpy.uint8'> expected 25 got 25 ref 1.044173377995321 best 0.0027721560036297888 speedup 376.66472472260136
+<class 'numpy.int64'> expected 25 got 25 ref 0.3294021590045304 best 0.0034336550015723333 speedup 95.93338843118809
+<class 'numpy.bool_'> expected 25 got 25 ref 0.9036697070041555 best 0.002982899997732602 speedup 302.95005118879743
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+aximal_square_i8,  int8_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_u16, uint16_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_i16, int16_t)\nDEFINE_MAXIMAL_SQUARE(maxim
+al_square_u32, uint32_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_i32, int32_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_u64, uint64_t)\nDEFINE_MAXIMAL_SQUARE(maximal
+_square_i64, int64_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_f32, float)\nDEFINE_MAXIMAL_SQUARE(maximal_square_f64, double)\n\'\'\'\n\n\n_LIB = None\n_COMPILE_ER
+ROR = None\n_DISPATCH = None\n\n\ndef _compile_and_load_backend():\n    """Build and load the C backend, caching it in the temp directory."""\n    global _COMPI
+LE_ERROR\n    key = hashlib.sha256(_C_SOURCE.encode("utf-8")).hexdigest()[:16]\n    build_dir = os.path.join(tempfile.gettempdir(), "maximal_square_c_backend")\
+n    src_path = os.path.join(build_dir, "maximal_square_%s.c" % key)\n    so_path = os.path.join(build_dir, "maximal_square_%s.so" % key)\n\n    try:\n        i
+f not os.path.isdir(build_dir):\n            os.makedirs(build_dir)\n        if not os.path.exists(so_path):\n            with open(src_path, "w") as f:\n
+          f.write(_C_SOURCE)\n            subprocess.check_call(\n                ["gcc", "-O3", "-march=native", "-std=c99", "-shared", "-fPIC", src_path, "-o"
+, so_path],\n                stdout=subprocess.DEVNULL,\n                stderr=subprocess.DEVNULL,\n            )\n        return ctypes.CDLL(so_path)\n    exc
+ept Exception as exc:  # pragma: no cover - depends on compiler availability\n        _COMPILE_ERROR = exc\n        return None\n\n\ndef _init_dispatch(lib):\n
+   """Create dtype -> (ctypes function, pointer type) dispatch table."""\n    specs = [\n        (np.dtype(np.bool_), "maximal_square_u8", ctypes.c_uint8),\n
+     (np.dtype(np.uint8), "maximal_square_u8", ctypes.c_uint8),\n        (np.dtype(np.int8), "maximal_square_i8", ctypes.c_int8),\n        (np.dtype(np.uint16),
+ "maximal_square_u16", ctypes.c_uint16),\n        (np.dtype(np.int16), "maximal_square_i16", ctypes.c_int16),\n        (np.dtype(np.uint32), "maximal_square_u32
+", ctypes.c_uint32),root@1ff060905968:/taichi-dev/taichi# python3 - /app/maximal_square.py <<'PY'
+imal_> import os
+> import sys
+> path = sys.argv[1]
+> content = '"""Fast CPU implementation of maximal square for NumPy arrays.\n\nPublic API:\n    maximal_square(matrix: np.ndarray) -> int\n\nThe implementation
+keeps the same dynamic-programming recurrence as the\nreference Python code, but executes the nested loops in a tiny native C shared\nlibrary loaded through cty
+pes.  The backend is compiled once on first use and\ncached under the system temporary directory.  This is intended for large CPU-only\nworkloads where warmup t
+ime is negligible.\n"""\n\nimport ctypes\nimport hashlib\nimport os\nimport subprocess\nimport tempfile\n\nimport numpy as np\n\n\n_C_SOURCE = r\'\'\'\n#include
+ <stdint.h>\n#include <stdlib.h>\n\n#if defined(_WIN32)\n#  define EXPORT __declspec(dllexport)\n#else\n#  define EXPORT __attribute__((visibility("default")))\
+n#endif\n\nstatic inline int min3_int(int a, int b, int c) {\n    int m = a < b ? a : b;\n    return m < c ? m : c;\n}\n\n#define DEFINE_MAXIMAL_SQUARE(NAME, TY
+PE) \\\nEXPORT long long NAME(const TYPE *data, long long rows, long long cols) { \\\n    if (data == NULL || rows <= 0 || cols <= 0) return 0; \\\n    int *dp
+= (int *)calloc((size_t)cols + 1u, sizeof(int)); \\\n    if (dp == NULL) return -1; \\\n    int maxsqlen = 0; \\\n    for (long long i = 0; i < rows; ++i) { \\\
+n        int prev = 0; \\\n        const TYPE *row = data + i * cols; \\\n        for (long long j = 1; j <= cols; ++j) { \\\n            int temp = dp[j]; \\\n
+            if (row[j - 1] != (TYPE)0) { \\\n                int v = min3_int(dp[j - 1], prev, dp[j]) + 1; \\\n                dp[j] = v; \\\n                if
+ (v > maxsqlen) maxsqlen = v; \\\n            } else { \\\n                dp[j] = 0; \\\n            } \\\n            prev = temp; \\\n        } \\\n    } \\\
+n    free(dp); \\\n    return (long long)maxsqlen * (long long)maxsqlen; \\\n}\n\nDEFINE_MAXIMAL_SQUARE(maximal_square_u8,  uint8_t)\nDEFINE_MAXIMAL_SQUARE(maxi
+mal_square_i8,  int8_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_u16, uint16_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_i16, int16_t)\nDEFINE_MAXIMAL_SQUARE(maximal_
+square_u32, uint32_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_i32, int32_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_u64, uint64_t)\nDEFINE_MAXIMAL_SQUARE(maximal_sq
+uare_i64, int64_t)\nDEFINE_MAXIMAL_SQUARE(maximal_square_f32, float)\nDEFINE_MAXIMAL_SQUARE(maximal_square_f64, double)\n\'\'\'\n\n\n_LIB = None\n_COMPILE_ERROR
+ = None\n_DISPATCH = None\n\n\ndef _compile_and_load_backend():\n    """Build and load the C backend, caching it in the temp directory."""\n    global _COMPILE_
+ERROR\n    key = hashlib.sha256(_C_SOURCE.encode("utf-8")).hexdigest()[:16]\n    build_dir = os.path.join(tempfile.gettempdir(), "maximal_square_c_backend")\n
+  src_path = os.path.join(build_dir, "maximal_square_%s.c" % key)\n    so_path = os.path.join(build_dir, "maximal_square_%s.so" % key)\n\n    try:\n        if n
+ot os.path.isdir(build_dir):\n            os.makedirs(build_dir)\n        if not os.path.exists(so_path):\n            with open(src_path, "w") as f:\n
+       f.write(_C_SOURCE)\n            subprocess.check_call(\n                ["gcc", "-O3", "-march=native", "-std=c99", "-shared", "-fPIC", src_path, "-o", s
+o_path],\n                stdout=subprocess.DEVNULL,\n                stderr=subprocess.DEVNULL,\n            )\n        return ctypes.CDLL(so_path)\n    except
+ Exception as exc:  # pragma: no cover - depends on compiler availability\n        _COMPILE_ERROR = exc\n        return None\n\n\ndef _init_dispatch(lib):\n
+"""Create dtype -> (ctypes function, pointer type) dispatch table."""\n    specs = [\n        (np.dtype(np.bool_), "maximal_square_u8", ctypes.c_uint8),\n
+  (np.dtype(np.uint8), "maximal_square_u8", ctypes.c_uint8),\n        (np.dtype(np.int8), "maximal_square_i8", ctypes.c_int8),\n        (np.dtype(np.uint16), "m
+aximal_square_u16", ctypes.c_uint16),\n        (np.dtype(np.int16), "maximal_square_i16", ctypes.c_int16),\n        (np.dtype(np.uint32), "maximal_square_u32",
+ctypes.c_uint32),\n        (np.dtype(np.int32), "maximal_square_i32", ctypes.c_int32),\n        (np.dtype(np.uint64), "maximal_square_u64", ctypes.c_uint64),\n
+       (np.dtype(np.int64), "maximal_square_i64", ctypes.c_int64),\n        (np.dtype(np.float32), "maximal_square_f32", ctypes.c_float),\n        (np.dtype(np.
+float64), "maximal_square_f64", ctypes.c_double),\n    ]\n    out = {}\n    for dtype, name, ctype in specs:\n        func = getattr(lib, name)\n        ptr_typ
+e = ctypes.POINTER(ctype)\n        func.argtypes = [ptr_type, ctypes.c_longlong, ctypes.c_longlong]\n        func.restype = ctypes.c_longlong\n        out[dtype
+] = (func, ptr_type)\n    return out\n\n\ndef _get_backend():\n    global _LIB, _DISPATCH\n    if _LIB is None:\n        _LIB = _compile_and_load_backend()\n
+     if _LIB is not None:\n            _DISPATCH = _init_dispatch(_LIB)\n    return _LIB, _DISPATCH\n\n\ndef _python_fallback(matrix):\n    rows = len(matrix)\n
+    cols = len(matrix[0]) if rows > 0 else 0\n    dp = [0] * (cols + 1)\n    maxsqlen = 0\n    for i in range(1, rows + 1):\n        prev = 0\n        for j in
+range(1, cols + 1):\n            temp = dp[j]\n            if matrix[i - 1, j - 1] == 1:\n                v = min(dp[j - 1], prev, dp[j]) + 1\n                d
+p[j] = v\n                if v > maxsqlen:\n                    maxsqlen = v\n            else:\n                dp[j] = 0\n            prev = temp\n    return
+maxsqlen * maxsqlen\n\n\ndef maximal_square(matrix: np.ndarray) -> int:\n    """Return the area of the largest all-1 square in a 2-D binary ndarray."""\n    arr
+ = np.asarray(matrix)\n    if arr.ndim != 2:\n        raise ValueError("matrix must be a 2-dimensional numpy ndarray")\n\n    rows, cols = arr.shape\n    if row
+s == 0 or cols == 0:\n        return 0\n\n    lib, dispatch = _get_backend()\n    if lib is not None and dispatch is not None:\n        dtype = arr.dtype\n
+   entry = dispatch.get(dtype)\n        if entry is None:\n            # Unsupported dtypes are converted to uint8.  For valid binary input\n            # this
+preserves the reference result while retaining native speed.\n            arr2 = np.ascontiguousarray(arr, dtype=np.uint8)\n            func, ptr_type = dispatc
+h[np.dtype(np.uint8)]\n        else:\n            # For already C-contiguous common dtypes (including default int64),\n            # this is zero-copy and avoid
+s the conversion overhead entirely.\n            arr2 = np.ascontiguousarray(arr)\n            func, ptr_type = entry\n        ptr = arr2.ctypes.data_as(ptr_typ
+e)\n        result = func(ptr, int(rows), int(cols))\n        if result >= 0:\n            return int(result)\n\n    # Only used if gcc/shared-library loading f
+ails or C allocation fails.\n    return int(_python_fallback(np.ascontiguousarray(arr)))\n\n\n__all__ = ["maximal_square"]\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/maximal_square.py
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ff060905968:/taichi-dev/taichi# CUDA_VISIBLE_DEVICES="" python3 /app/test_maximal_square.py && CUDA_VISIBLE_DEVICES="" python3 - <<'PY'
+> import importlib.util, time
+> import numpy as np
+>
+> spec = importlib.util.spec_from_file_location('ms', '/app/maximal_square.py')
+> mod = importlib.util.module_from_spec(spec)
+> spec.loader.exec_module(mod)
+>
+> def ref(matrix):
+>     rows = len(matrix)
+>     cols = len(matrix[0]) if rows > 0 else 0
+>     dp = [0] * (cols + 1)
+>     maxsqlen = 0
+>     prev = 0
+>     for i in range(1, rows + 1):
+>         for j in range(1, cols + 1):
+>             temp = dp[j]
+>             if matrix[i - 1, j - 1] == 1:
+>                 dp[j] = min(min(dp[j - 1], prev), dp[j]) + 1
+>                 maxsqlen = max(maxsqlen, dp[j])
+>             else:
+>                 dp[j] = 0
+>             prev = temp
+>     return maxsqlen * maxsqlen
+>
+> rng=np.random.RandomState(789)
+> for dtype in [np.uint8, np.int64, np.bool_]:
+>     mat=(rng.rand(1000,1000)<0.6).astype(dtype)
+>     got=mod.maximal_square(mat)  # warmup / compile
+>     t0=time.perf_counter(); expected=ref(mat); tref=time.perf_counter()-t0
+>     best=999
+>     for _ in range(7):
+>         t0=time.perf_counter(); got=mod.maximal_square(mat); best=min(best,time.perf_counter()-t0)
+>     print(dtype, 'expected', expected, 'got', got, 'ref', tref, 'best', best, 'speedup', tref/best)
+>     assert got == expected
+>     assert tref / best > 100.0
+> PY
+reference 0.504388s candidate_best 0.001366s speedup 369.3x
+OK
+<class 'numpy.uint8'> expected 25 got 25 ref 1.0503728549956577 best 0.0026666289995773695 speedup 393.89538445810416
+<class 'numpy.int64'> expected 25 got 25 ref 0.3178028859983897 best 0.0027075949983554892 speedup 117.37460225455192
+<class 'numpy.bool_'> expected 25 got 25 ref 0.8734830100002 best 0.002696453004318755 speedup 323.93778367403104
+root@1ff060905968:/taichi-dev/taichi# true; tmux wait -S done
+root@1ff060905968:/taichi-dev/taichi#

@@ -1,0 +1,1657 @@
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# set +e
+root@5854e9ec5ae1:/app/filesystem_spec#
+root@5854e9ec5ae1:/app/filesystem_spec# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@5854e9ec5ae1:/app/filesystem_spec# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@5854e9ec5ae1:/app/filesystem_spec# UV_INDEX_URL="https://pypi.org/simple"
+root@5854e9ec5ae1:/app/filesystem_spec#
+root@5854e9ec5ae1:/app/filesystem_spec# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@5854e9ec5ae1:/app/filesystem_spec#
+root@5854e9ec5ae1:/app/filesystem_spec# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@5854e9ec5ae1:/app/filesystem_spec#
+root@5854e9ec5ae1:/app/filesystem_spec# mkdir -p /root/.config/uv
+root@5854e9ec5ae1:/app/filesystem_spec# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@5854e9ec5ae1:/app/filesystem_spec#
+root@5854e9ec5ae1:/app/filesystem_spec# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [336 kB]
+Fetched 9374 kB in 2s (3755 kB/s)
+Reading package lists... Done
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+./.codespellrc
+./.coveragerc
+./.gitattributes
+./.github
+./.github/workflows
+./.github/workflows/codespell.yml
+./.github/workflows/main.yaml
+./.github/workflows/pypipublish.yaml
+./.gitignore
+./.pre-commit-config.yaml
+./LICENSE
+./README.md
+./ci
+./ci/environment-downstream.yml
+./ci/environment-friends.yml
+./ci/environment-py38.yml
+./ci/environment-typecheck.yml
+./ci/environment-win.yml
+./docs
+./docs/Makefile
+./docs/README.md
+./docs/environment.yml
+./docs/make.bat
+./docs/source
+./docs/source/_static
+./docs/source/_static/custom.css
+./docs/source/api.rst
+./docs/source/async.rst
+./docs/source/changelog.rst
+./docs/source/conf.py
+./docs/source/copying.rst
+./docs/source/developer.rst
+./docs/source/features.rst
+./docs/source/img
+./docs/source/img/gui.png
+./docs/source/index.rst
+./docs/source/intro.rst
+./docs/source/usage.rst
+./fsspec
+./fsspec/__init__.py
+./fsspec/archive.py
+./fsspec/asyn.py
+./fsspec/caching.py
+./fsspec/callbacks.py
+./fsspec/compression.py
+./fsspec/config.py
+./fsspec/conftest.py
+./fsspec/core.py
+./fsspec/dircache.py
+./fsspec/exceptions.py
+./fsspec/fuse.py
+./fsspec/generic.py
+./fsspec/gui.py
+./fsspec/implementations
+./fsspec/implementations/__init__.py
+./fsspec/implementations/arrow.py
+./fsspec/implementations/cache_mapper.py
+./fsspec/implementations/cache_metadata.py
+./fsspec/implementations/cached.py
+./fsspec/implementations/dask.py
+./fsspec/implementations/data.py
+./fsspec/implementations/dbfs.py
+./fsspec/implementations/dirfs.py
+./fsspec/implementations/ftp.py
+./fsspec/implementations/git.py
+./fsspec/implementations/github.py
+./fsspec/implementations/http.py
+./fsspec/implementations/jupyter.py
+./fsspec/implementations/libarchive.py
+./fsspec/implementations/local.py
+./fsspec/implementations/memory.py
+./fsspec/implementations/reference.py
+./fsspec/implementations/sftp.py
+./fsspec/implementations/smb.py
+./fsspec/implementations/tar.py
+./fsspec/implementations/tests
+./fsspec/implementations/tests/__init__.py
+./fsspec/implementations/tests/cassettes
+./fsspec/implementations/tests/cassettes/test_dbfs
+./fsspec/implementations/tests/cassettes/test_dbfs/test_dbfs_file_listing.yaml
+./fsspec/implementations/tests/cassettes/test_dbfs/test_dbfs_mkdir.yaml
+./fsspec/implementations/tests/cassettes/test_dbfs/test_dbfs_read_pyarrow_non_partitioned.yaml
+./fsspec/implementations/tests/cassettes/test_dbfs/test_dbfs_read_range.yaml
+./fsspec/implementations/tests/cassettes/test_dbfs/test_dbfs_read_range_chunked.yaml
+./fsspec/implementations/tests/cassettes/test_dbfs/test_dbfs_write_and_read.yaml
+./fsspec/implementations/tests/cassettes/test_dbfs/test_dbfs_write_pyarrow_non_partitioned.yaml
+./fsspec/implementations/tests/conftest.py
+./fsspec/implementations/tests/ftp_tls.py
+./fsspec/implementations/tests/keycert.pem
+./fsspec/implementations/tests/local
+./fsspec/implementations/tests/local/__init__.py
+./fsspec/implementations/tests/local/local_fixtures.py
+./fsspec/implementations/tests/local/local_test.py
+./fsspec/implementations/tests/memory
+./fsspec/implementations/tests/memory/__init__.py
+./fsspec/implementations/tests/memory/memory_fixtures.py
+./fsspec/implementations/tests/memory/memory_test.py
+./fsspec/implementations/tests/out.zip
+./fsspec/implementations/tests/test_archive.py
+./fsspec/implementations/tests/test_arrow.py
+./fsspec/implementations/tests/test_cached.py
+./fsspec/implementations/tests/test_common.py
+./fsspec/implementations/tests/test_dask.py
+./fsspec/implementations/tests/test_data.py
+./fsspec/implementations/tests/test_dbfs.py
+./fsspec/implementations/tests/test_dirfs.py
+./fsspec/implementations/tests/test_ftp.py
+./fsspec/implementations/tests/test_git.py
+./fsspec/implementations/tests/test_http.py
+./fsspec/implementations/tests/test_jupyter.py
+./fsspec/implementations/tests/test_libarchive.py
+./fsspec/implementations/tests/test_local.py
+./fsspec/implementations/tests/test_memory.py
+./fsspec/implementations/tests/test_reference.py
+./fsspec/implementations/tests/test_sftp.py
+./fsspec/implementations/tests/test_smb.py
+./fsspec/implementations/tests/test_tar.py
+./fsspec/implementations/tests/test_webhdfs.py
+./fsspec/implementations/tests/test_zip.py
+./fsspec/implementations/webhdfs.py
+./fsspec/implementations/zip.py
+./fsspec/json.py
+./fsspec/mapping.py
+./fsspec/parquet.py
+./fsspec/registry.py
+./fsspec/spec.py
+./fsspec/tests
+./fsspec/tests/__init__.py
+./fsspec/tests/abstract
+./fsspec/tests/abstract/__init__.py
+./fsspec/tests/abstract/common.py
+./fsspec/tests/abstract/copy.py
+./fsspec/tests/abstract/get.py
+./fsspec/tests/abstract/mv.py
+./fsspec/tests/abstract/put.py
+./fsspec/tests/conftest.py
+./fsspec/tests/data
+./fsspec/tests/data/listing.html
+./fsspec/tests/test_api.py
+./fsspec/tests/test_async.py
+./fsspec/tests/test_caches.py
+./fsspec/tests/test_callbacks.py
+./fsspec/tests/test_compression.py
+./fsspec/tests/test_config.py
+./fsspec/tests/test_core.py
+./fsspec/tests/test_downstream.py
+./fsspec/tests/test_file.py
+./fsspec/tests/test_fuse.py
+./fsspec/tests/test_generic.py
+./fsspec/tests/test_gui.py
+./fsspec/tests/test_mapping.py
+./fsspec/tests/test_parquet.py
+./fsspec/tests/test_registry.py
+./fsspec/tests/test_spec.py
+./fsspec/tests/test_utils.py
+./fsspec/transaction.py
+./fsspec/utils.py
+./install_s3fs.sh
+./pyproject.toml
+./readthedocs.yml
+./setup.cfg
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+zdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogICAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7b
+jgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICA
+gcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHByaW50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSI
+gKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgICAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2l
+uKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICA
+gICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmludChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0
+g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogImNsYXNzIERpckZpbGVTeXN0ZW18ZGVmIG9
+wZW5fYXN5bmN8YXN5bmMgZGVmIC4qb3BlbiIsICJwYXRoIjogIi4iLCAiY29udGV4dCI6IDMsICJmaWxlX3BhdHRlcm4iOiAiKi5weSIsICJjYXNlX3NlbnNpdGl2ZSI6IHRydWV9'"'"'));exec(compile(ba
+se64.b64decode('"'"'CmltcG9ydCBmbm1hdGNoLCBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhpc3Rz
+KCk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCLplJnor686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog
+6Lev5b6E5LiN5piv55uu5b2VICIgKyBhcmdzWyJwYXRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJlLklH
+Tk9SRUNBU0UpCmV4Y2VwdCByZS5lcnJvciBhcyBlcnJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0IiwgIl9f
+cHljYWNoZV9fIiwgIi52ZW52IiwgIm5vZGVfbW9kdWxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFyZ3Nb
+ImZpbGVfcGF0dGVybiJdKToKICAgIGlmIGFueShwYXJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGludWUK
+ICAgIHRyeToKICAgICAgICBsaW5lcyA9IGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAgICAg
+IGNvbnRpbnVlCiAgICBmaWxlcyArPSAxCiAgICBtYXRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6CiAg
+ICAgICAgICAgIGJlZm9yZSA9IFtmIntpKzE6NGR9IHwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAgYWZ0
+ZXIgPSBbZiJ7aSsxOjRkfSB8IHtsaW5lc1tpXX0iIGZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5hcHBl
+bmQoKG51bWJlciwgbGluZSwgYmVmb3JlLCBhZnRlcikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwg
+bWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogICAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDm
+kJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0
+Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHByaW50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBi
+ZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgICAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAg
+ICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50
+KCJcXG4iICsgIj0iICogODApCiAgICBwcmludChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq
+5paH5Lu2IikK'"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+[SEARCH] 搜索结果: 共找到 4 处匹配，分布在 4 个文件中
+================================================================================
+\n[FILE] fsspec/asyn.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n     904 |     async def _makedirs(self, path, exist_ok=False):\n     905 |         pass  # not necessary to implement, may not have directories\n
+     906 |
+>>>  907 |     async def open_async(self, path, mode="rb", **kwargs):
+     908 |         if "b" not in mode or kwargs.get("compression"):\n     909 |             raise ValueError\n     910 |         raise NotImplementedError
+\n[FILE] fsspec/implementations/dirfs.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n       2 | from ..asyn import AsyncFileSystem\n       3 | \n       4 |
+>>>    5 | class DirFileSystem(AsyncFileSystem):
+       6 |     """Directory prefix filesystem\n       7 | \n       8 |     The DirFileSystem is a filesystem-wrapper. It assumes every path it is dealing with
+\n[FILE] fsspec/implementations/http.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n     384 |                 **kw,\n     385 |             )\n     386 |
+>>>  387 |     async def open_async(self, path, mode="rb", size=None, **kwargs):
+     388 |         session = await self.set_session()\n     389 |         if size is None:\n     390 |             try:
+\n[FILE] fsspec/tests/test_async.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n     165 |     async def _info(self, path, **kwargs):\n     166 |         return {"name": "misc/foo.txt", "type": "file", "size": 100}\n     167 |
+
+>>>  168 |     async def open_async(
+     169 |         self,\n     170 |         path,\n     171 |         mode="rb",
+\n================================================================================
+[DONE] 搜索完成: 4 处匹配，4 个文件，共搜索 100 个文件
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/implementations/dirfs.py 1 260 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+from .. import filesystem
+from ..asyn import AsyncFileSystem
+
+
+class DirFileSystem(AsyncFileSystem):
+    """Directory prefix filesystem
+
+    The DirFileSystem is a filesystem-wrapper. It assumes every path it is dealing with
+    is relative to the `path`. After performing the necessary paths operation it
+    delegates everything to the wrapped filesystem.
+    """
+
+    protocol = "dir"
+
+    def __init__(
+        self,
+        path=None,
+        fs=None,
+        fo=None,
+        target_protocol=None,
+        target_options=None,
+        **storage_options,
+    ):
+        """
+        Parameters
+        ----------
+        path: str
+            Path to the directory.
+        fs: AbstractFileSystem
+            An instantiated filesystem to wrap.
+        target_protocol, target_options:
+            if fs is none, construct it from these
+        fo: str
+            Alternate for path; do not provide both
+        """
+        super().__init__(**storage_options)
+        if fs is None:
+            fs = filesystem(protocol=target_protocol, **(target_options or {}))
+        if (path is not None) ^ (fo is not None) is False:
+            raise ValueError("Provide path or fo, not both")
+        path = path or fo
+
+        if self.asynchronous and not fs.async_impl:
+            raise ValueError("can't use asynchronous with non-async fs")
+
+        if fs.async_impl and self.asynchronous != fs.asynchronous:
+            raise ValueError("both dirfs and fs should be in the same sync/async mode")
+
+        self.path = fs._strip_protocol(path)
+        self.fs = fs
+
+    def _join(self, path):
+        if isinstance(path, str):
+            if not self.path:
+                return path
+            if not path:
+                return self.path
+            return self.fs.sep.join((self.path, self._strip_protocol(path)))
+        if isinstance(path, dict):
+            return {self._join(_path): value for _path, value in path.items()}
+        return [self._join(_path) for _path in path]
+
+    def _relpath(self, path):
+        if isinstance(path, str):
+            if not self.path:
+                return path
+            # We need to account for S3FileSystem returning paths that do not
+            # start with a '/'
+            if path == self.path or (
+                self.path.startswith(self.fs.sep) and path == self.path[1:]
+            ):
+                return ""
+            prefix = self.path + self.fs.sep
+            if self.path.startswith(self.fs.sep) and not path.startswith(self.fs.sep):
+                prefix = prefix[1:]
+            assert path.startswith(prefix)
+            return path[len(prefix) :]
+        return [self._relpath(_path) for _path in path]
+
+    # Wrappers below
+
+    @property
+    def sep(self):
+        return self.fs.sep
+
+    async def set_session(self, *args, **kwargs):
+        return await self.fs.set_session(*args, **kwargs)
+
+    async def _rm_file(self, path, **kwargs):
+        return await self.fs._rm_file(self._join(path), **kwargs)
+
+    def rm_file(self, path, **kwargs):
+        return self.fs.rm_file(self._join(path), **kwargs)
+
+    async def _rm(self, path, *args, **kwargs):
+        return await self.fs._rm(self._join(path), *args, **kwargs)
+
+    def rm(self, path, *args, **kwargs):
+        return self.fs.rm(self._join(path), *args, **kwargs)
+
+    async def _cp_file(self, path1, path2, **kwargs):
+        return await self.fs._cp_file(self._join(path1), self._join(path2), **kwargs)
+
+    def cp_file(self, path1, path2, **kwargs):
+        return self.fs.cp_file(self._join(path1), self._join(path2), **kwargs)
+
+    async def _copy(
+        self,
+        path1,
+        path2,
+        *args,
+        **kwargs,
+    ):
+        return await self.fs._copy(
+            self._join(path1),
+            self._join(path2),
+            *args,
+            **kwargs,
+        )
+
+    def copy(self, path1, path2, *args, **kwargs):
+        return self.fs.copy(
+            self._join(path1),
+            self._join(path2),
+            *args,
+            **kwargs,
+        )
+
+    async def _pipe(self, path, *args, **kwargs):
+        return await self.fs._pipe(self._join(path), *args, **kwargs)
+
+    def pipe(self, path, *args, **kwargs):
+        return self.fs.pipe(self._join(path), *args, **kwargs)
+
+    async def _pipe_file(self, path, *args, **kwargs):
+        return await self.fs._pipe_file(self._join(path), *args, **kwargs)
+
+    def pipe_file(self, path, *args, **kwargs):
+        return self.fs.pipe_file(self._join(path), *args, **kwargs)
+
+    async def _cat_file(self, path, *args, **kwargs):
+        return await self.fs._cat_file(self._join(path), *args, **kwargs)
+
+    def cat_file(self, path, *args, **kwargs):
+        return self.fs.cat_file(self._join(path), *args, **kwargs)
+
+    async def _cat(self, path, *args, **kwargs):
+        ret = await self.fs._cat(
+            self._join(path),
+            *args,
+            **kwargs,
+        )
+
+        if isinstance(ret, dict):
+            return {self._relpath(key): value for key, value in ret.items()}
+
+        return ret
+
+    def cat(self, path, *args, **kwargs):
+        ret = self.fs.cat(
+            self._join(path),
+            *args,
+            **kwargs,
+        )
+
+        if isinstance(ret, dict):
+            return {self._relpath(key): value for key, value in ret.items()}
+
+        return ret
+
+    async def _put_file(self, lpath, rpath, **kwargs):
+        return await self.fs._put_file(lpath, self._join(rpath), **kwargs)
+
+    def put_file(self, lpath, rpath, **kwargs):
+        return self.fs.put_file(lpath, self._join(rpath), **kwargs)
+
+    async def _put(
+        self,
+        lpath,
+        rpath,
+        *args,
+        **kwargs,
+    ):
+        return await self.fs._put(
+            lpath,
+            self._join(rpath),
+            *args,
+            **kwargs,
+        )
+
+    def put(self, lpath, rpath, *args, **kwargs):
+        return self.fs.put(
+            lpath,
+            self._join(rpath),
+            *args,
+            **kwargs,
+        )
+
+    async def _get_file(self, rpath, lpath, **kwargs):
+        return await self.fs._get_file(self._join(rpath), lpath, **kwargs)
+
+    def get_file(self, rpath, lpath, **kwargs):
+        return self.fs.get_file(self._join(rpath), lpath, **kwargs)
+
+    async def _get(self, rpath, *args, **kwargs):
+        return await self.fs._get(self._join(rpath), *args, **kwargs)
+
+    def get(self, rpath, *args, **kwargs):
+        return self.fs.get(self._join(rpath), *args, **kwargs)
+
+    async def _isfile(self, path):
+        return await self.fs._isfile(self._join(path))
+
+    def isfile(self, path):
+        return self.fs.isfile(self._join(path))
+
+    async def _isdir(self, path):
+        return await self.fs._isdir(self._join(path))
+
+    def isdir(self, path):
+        return self.fs.isdir(self._join(path))
+
+    async def _size(self, path):
+        return await self.fs._size(self._join(path))
+
+    def size(self, path):
+        return self.fs.size(self._join(path))
+
+    async def _exists(self, path):
+        return await self.fs._exists(self._join(path))
+
+    def exists(self, path):
+        return self.fs.exists(self._join(path))
+
+    async def _info(self, path, **kwargs):
+        return await self.fs._info(self._join(path), **kwargs)
+
+    def info(self, path, **kwargs):
+        return self.fs.info(self._join(path), **kwargs)
+
+    async def _ls(self, path, detail=True, **kwargs):
+        ret = (await self.fs._ls(self._join(path), detail=detail, **kwargs)).copy()
+        if detail:
+            out = []
+            for entry in ret:
+                entry = entry.copy()
+                entry["name"] = self._relpath(entry["name"])
+                out.append(entry)
+            return out
+
+        return self._relpath(ret)
+
+    def ls(self, path, detail=True, **kwargs):
+        ret = self.fs.ls(self._join(path), detail=detail, **kwargs).copy()
+        if detail:
+            out = []
+            for entry in ret:
+                entry = entry.copy()
+                entry["name"] = self._relpath(entry["name"])
+                out.append(entry)
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/implementations/tests/test_dirfs.py 1 260 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+import pytest
+
+from fsspec.asyn import AsyncFileSystem
+from fsspec.implementations.dirfs import DirFileSystem
+from fsspec.spec import AbstractFileSystem
+
+PATH = "path/to/dir"
+ARGS = ["foo", "bar"]
+KWARGS = {"baz": "baz", "qux": "qux"}
+
+
+@pytest.fixture
+def make_fs(mocker):
+    def _make_fs(async_impl=False, asynchronous=False):
+        attrs = {
+            "sep": "/",
+            "async_impl": async_impl,
+            "_strip_protocol": lambda path: path,
+        }
+
+        if async_impl:
+            attrs["asynchronous"] = asynchronous
+            cls = AsyncFileSystem
+        else:
+            cls = AbstractFileSystem
+
+        fs = mocker.MagicMock(spec=cls, **attrs)
+
+        return fs
+
+    return _make_fs
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(False, id="sync"),
+        pytest.param(True, id="async"),
+    ]
+)
+def fs(make_fs, request):
+    return make_fs(async_impl=request.param)
+
+
+@pytest.fixture
+def asyncfs(make_fs):
+    return make_fs(async_impl=True, asynchronous=True)
+
+
+@pytest.fixture
+def make_dirfs():
+    def _make_dirfs(fs, asynchronous=False):
+        return DirFileSystem(PATH, fs, asynchronous=asynchronous)
+
+    return _make_dirfs
+
+
+@pytest.fixture
+def dirfs(make_dirfs, fs):
+    return make_dirfs(fs)
+
+
+@pytest.fixture
+def adirfs(make_dirfs, asyncfs):
+    return make_dirfs(asyncfs, asynchronous=True)
+
+
+def test_dirfs(fs, asyncfs):
+    DirFileSystem("path", fs)
+    DirFileSystem("path", asyncfs, asynchronous=True)
+
+    with pytest.raises(ValueError):
+        DirFileSystem("path", asyncfs)
+
+    with pytest.raises(ValueError):
+        DirFileSystem("path", fs, asynchronous=True)
+
+
+@pytest.mark.parametrize(
+    "root, rel, full",
+    [
+        ("", "", ""),
+        ("", "foo", "foo"),
+        ("root", "", "root"),
+        ("root", "foo", "root/foo"),
+        ("/root", "", "/root"),
+        ("/root", "foo", "/root/foo"),
+    ],
+)
+def test_path(fs, root, rel, full):
+    dirfs = DirFileSystem(root, fs)
+    assert dirfs._join(rel) == full
+    assert dirfs._relpath(full) == rel
+
+
+@pytest.mark.parametrize(
+    "root, rel, full",
+    [
+        ("/root", "foo", "root/foo"),
+        ("/root", "", "root"),
+    ],
+)
+def test_path_no_leading_slash(fs, root, rel, full):
+    dirfs = DirFileSystem(root, fs)
+    assert dirfs._relpath(full) == rel
+
+
+def test_sep(mocker, dirfs):
+    sep = mocker.Mock()
+    dirfs.fs.sep = sep
+    assert dirfs.sep == sep
+
+
+@pytest.mark.asyncio
+async def test_set_session(mocker, adirfs):
+    adirfs.fs.set_session = mocker.AsyncMock()
+    assert (
+        await adirfs.set_session(*ARGS, **KWARGS) == adirfs.fs.set_session.return_value
+    )
+    adirfs.fs.set_session.assert_called_once_with(*ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_rm_file(adirfs):
+    await adirfs._rm_file("file", **KWARGS)
+    adirfs.fs._rm_file.assert_called_once_with(f"{PATH}/file", **KWARGS)
+
+
+def test_rm_file(dirfs):
+    dirfs.rm_file("file", **KWARGS)
+    dirfs.fs.rm_file.assert_called_once_with("path/to/dir/file", **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_rm(adirfs):
+    await adirfs._rm("file", *ARGS, **KWARGS)
+    adirfs.fs._rm.assert_called_once_with("path/to/dir/file", *ARGS, **KWARGS)
+
+
+def test_rm(dirfs):
+    dirfs.rm("file", *ARGS, **KWARGS)
+    dirfs.fs.rm.assert_called_once_with("path/to/dir/file", *ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_cp_file(adirfs):
+    await adirfs._cp_file("one", "two", **KWARGS)
+    adirfs.fs._cp_file.assert_called_once_with(f"{PATH}/one", f"{PATH}/two", **KWARGS)
+
+
+def test_cp_file(dirfs):
+    dirfs.cp_file("one", "two", **KWARGS)
+    dirfs.fs.cp_file.assert_called_once_with(f"{PATH}/one", f"{PATH}/two", **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_copy(adirfs):
+    await adirfs._copy("one", "two", *ARGS, **KWARGS)
+    adirfs.fs._copy.assert_called_once_with(
+        f"{PATH}/one", f"{PATH}/two", *ARGS, **KWARGS
+    )
+
+
+def test_copy(dirfs):
+    dirfs.copy("one", "two", *ARGS, **KWARGS)
+    dirfs.fs.copy.assert_called_once_with(f"{PATH}/one", f"{PATH}/two", *ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_pipe(adirfs):
+    await adirfs._pipe("file", *ARGS, **KWARGS)
+    adirfs.fs._pipe.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+def test_pipe(dirfs):
+    dirfs.pipe("file", *ARGS, **KWARGS)
+    dirfs.fs.pipe.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+def test_pipe_dict(dirfs):
+    dirfs.pipe({"file": b"foo"}, *ARGS, **KWARGS)
+    dirfs.fs.pipe.assert_called_once_with({f"{PATH}/file": b"foo"}, *ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_pipe_file(adirfs):
+    await adirfs._pipe_file("file", *ARGS, **KWARGS)
+    adirfs.fs._pipe_file.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+def test_pipe_file(dirfs):
+    dirfs.pipe_file("file", *ARGS, **KWARGS)
+    dirfs.fs.pipe_file.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_cat_file(adirfs):
+    assert (
+        await adirfs._cat_file("file", *ARGS, **KWARGS)
+        == adirfs.fs._cat_file.return_value
+    )
+    adirfs.fs._cat_file.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+def test_cat_file(dirfs):
+    assert dirfs.cat_file("file", *ARGS, **KWARGS) == dirfs.fs.cat_file.return_value
+    dirfs.fs.cat_file.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_cat(adirfs):
+    assert await adirfs._cat("file", *ARGS, **KWARGS) == adirfs.fs._cat.return_value
+    adirfs.fs._cat.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+def test_cat(dirfs):
+    assert dirfs.cat("file", *ARGS, **KWARGS) == dirfs.fs.cat.return_value
+    dirfs.fs.cat.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_cat_list(adirfs):
+    adirfs.fs._cat.return_value = {f"{PATH}/one": "foo", f"{PATH}/two": "bar"}
+    assert await adirfs._cat(["one", "two"], *ARGS, **KWARGS) == {
+        "one": "foo",
+        "two": "bar",
+    }
+    adirfs.fs._cat.assert_called_once_with(
+        [f"{PATH}/one", f"{PATH}/two"], *ARGS, **KWARGS
+    )
+
+
+def test_cat_list(dirfs):
+    dirfs.fs.cat.return_value = {f"{PATH}/one": "foo", f"{PATH}/two": "bar"}
+    assert dirfs.cat(["one", "two"], *ARGS, **KWARGS) == {"one": "foo", "two": "bar"}
+    dirfs.fs.cat.assert_called_once_with(
+        [f"{PATH}/one", f"{PATH}/two"], *ARGS, **KWARGS
+    )
+
+
+@pytest.mark.asyncio
+async def test_async_put_file(adirfs):
+    await adirfs._put_file("local", "file", **KWARGS)
+    adirfs.fs._put_file.assert_called_once_with("local", f"{PATH}/file", **KWARGS)
+
+
+def test_put_file(dirfs):
+    dirfs.put_file("local", "file", **KWARGS)
+    dirfs.fs.put_file.assert_called_once_with("local", f"{PATH}/file", **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_put(adirfs):
+    await adirfs._put("local", "file", **KWARGS)
+    adirfs.fs._put.assert_called_once_with("local", f"{PATH}/file", **KWARGS)
+
+
+def test_put(dirfs):
+    dirfs.put("local", "file", **KWARGS)
+    dirfs.fs.put.assert_called_once_with("local", f"{PATH}/file", **KWARGS)
+
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/tests/test_async.py 130 230 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+    monkeypatch.setitem(fsspec.config.conf, "gather_batch_size", 4)
+    assert sum(asyncio.run(main())) == 32  # override
+
+
+@pytest.mark.skipif(os.name != "nt", reason="only for windows")
+def test_windows_policy():
+    from asyncio.windows_events import SelectorEventLoop
+
+    loop = fsspec.asyn.get_loop()
+    policy = asyncio.get_event_loop_policy()
+
+    # Ensure that the created loop always uses selector policy
+    assert isinstance(loop, SelectorEventLoop)
+
+    # Ensure that the global policy is not changed and it is
+    # set to the default one. This is important since the
+    # get_loop() method will temporarily override the policy
+    # with the one which uses selectors on windows, so this
+    # check ensures that we are restoring the old policy back
+    # after our change.
+    assert isinstance(policy, asyncio.DefaultEventLoopPolicy)
+
+
+def test_running_async():
+    assert not fsspec.asyn.running_async()
+
+    async def go():
+        assert fsspec.asyn.running_async()
+
+    asyncio.run(go())
+
+
+class DummyAsyncFS(fsspec.asyn.AsyncFileSystem):
+    _file_class = fsspec.asyn.AbstractAsyncStreamedFile
+
+    async def _info(self, path, **kwargs):
+        return {"name": "misc/foo.txt", "type": "file", "size": 100}
+
+    async def open_async(
+        self,
+        path,
+        mode="rb",
+        block_size=None,
+        autocommit=True,
+        cache_options=None,
+        **kwargs,
+    ):
+        return DummyAsyncStreamedFile(
+            self,
+            path,
+            mode,
+            block_size,
+            autocommit,
+            cache_options=cache_options,
+            **kwargs,
+        )
+
+
+class DummyAsyncStreamedFile(fsspec.asyn.AbstractAsyncStreamedFile):
+    def __init__(self, fs, path, mode, block_size, autocommit, **kwargs):
+        super().__init__(fs, path, mode, block_size, autocommit, **kwargs)
+        self.temp_buffer = io.BytesIO(b"foo-bar" * 20)
+
+    async def _fetch_range(self, start, end):
+        return self.temp_buffer.read(end - start)
+
+    async def _initiate_upload(self):
+        # Reinitialize for new uploads.
+        self.temp_buffer = io.BytesIO()
+
+    async def _upload_chunk(self, final=False):
+        self.temp_buffer.write(self.buffer.getbuffer())
+
+    async def get_data(self):
+        return self.temp_buffer.getbuffer().tobytes()
+
+
+@pytest.mark.asyncio
+async def test_async_streamed_file_write():
+    test_fs = DummyAsyncFS()
+    streamed_file = await test_fs.open_async("misc/foo.txt", mode="wb")
+    inp_data = "foo-bar".encode("utf8") * streamed_file.blocksize * 2
+    await streamed_file.write(inp_data)
+    assert streamed_file.loc == len(inp_data)
+    await streamed_file.close()
+    out_data = await streamed_file.get_data()
+    assert out_data.count(b"foo-bar") == streamed_file.blocksize * 2
+
+
+@pytest.mark.asyncio
+async def test_async_streamed_file_read():
+    test_fs = DummyAsyncFS()
+    streamed_file = await test_fs.open_async("misc/foo.txt", mode="rb")
+    assert (
+        await streamed_file.read(7 * 3) + await streamed_file.read(7 * 18)
+        == b"foo-bar" * 20
+    )
+    await streamed_file.close()
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/implementations/dirfs.py 240 520 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+
+    async def _ls(self, path, detail=True, **kwargs):
+        ret = (await self.fs._ls(self._join(path), detail=detail, **kwargs)).copy()
+        if detail:
+            out = []
+            for entry in ret:
+                entry = entry.copy()
+                entry["name"] = self._relpath(entry["name"])
+                out.append(entry)
+            return out
+
+        return self._relpath(ret)
+
+    def ls(self, path, detail=True, **kwargs):
+        ret = self.fs.ls(self._join(path), detail=detail, **kwargs).copy()
+        if detail:
+            out = []
+            for entry in ret:
+                entry = entry.copy()
+                entry["name"] = self._relpath(entry["name"])
+                out.append(entry)
+            return out
+
+        return self._relpath(ret)
+
+    async def _walk(self, path, *args, **kwargs):
+        async for root, dirs, files in self.fs._walk(self._join(path), *args, **kwargs):
+            yield self._relpath(root), dirs, files
+
+    def walk(self, path, *args, **kwargs):
+        for root, dirs, files in self.fs.walk(self._join(path), *args, **kwargs):
+            yield self._relpath(root), dirs, files
+
+    async def _glob(self, path, **kwargs):
+        detail = kwargs.get("detail", False)
+        ret = await self.fs._glob(self._join(path), **kwargs)
+        if detail:
+            return {self._relpath(path): info for path, info in ret.items()}
+        return self._relpath(ret)
+
+    def glob(self, path, **kwargs):
+        detail = kwargs.get("detail", False)
+        ret = self.fs.glob(self._join(path), **kwargs)
+        if detail:
+            return {self._relpath(path): info for path, info in ret.items()}
+        return self._relpath(ret)
+
+    async def _du(self, path, *args, **kwargs):
+        total = kwargs.get("total", True)
+        ret = await self.fs._du(self._join(path), *args, **kwargs)
+        if total:
+            return ret
+
+        return {self._relpath(path): size for path, size in ret.items()}
+
+    def du(self, path, *args, **kwargs):
+        total = kwargs.get("total", True)
+        ret = self.fs.du(self._join(path), *args, **kwargs)
+        if total:
+            return ret
+
+        return {self._relpath(path): size for path, size in ret.items()}
+
+    async def _find(self, path, *args, **kwargs):
+        detail = kwargs.get("detail", False)
+        ret = await self.fs._find(self._join(path), *args, **kwargs)
+        if detail:
+            return {self._relpath(path): info for path, info in ret.items()}
+        return self._relpath(ret)
+
+    def find(self, path, *args, **kwargs):
+        detail = kwargs.get("detail", False)
+        ret = self.fs.find(self._join(path), *args, **kwargs)
+        if detail:
+            return {self._relpath(path): info for path, info in ret.items()}
+        return self._relpath(ret)
+
+    async def _expand_path(self, path, *args, **kwargs):
+        return self._relpath(
+            await self.fs._expand_path(self._join(path), *args, **kwargs)
+        )
+
+    def expand_path(self, path, *args, **kwargs):
+        return self._relpath(self.fs.expand_path(self._join(path), *args, **kwargs))
+
+    async def _mkdir(self, path, *args, **kwargs):
+        return await self.fs._mkdir(self._join(path), *args, **kwargs)
+
+    def mkdir(self, path, *args, **kwargs):
+        return self.fs.mkdir(self._join(path), *args, **kwargs)
+
+    async def _makedirs(self, path, *args, **kwargs):
+        return await self.fs._makedirs(self._join(path), *args, **kwargs)
+
+    def makedirs(self, path, *args, **kwargs):
+        return self.fs.makedirs(self._join(path), *args, **kwargs)
+
+    def rmdir(self, path):
+        return self.fs.rmdir(self._join(path))
+
+    def mv(self, path1, path2, **kwargs):
+        return self.fs.mv(
+            self._join(path1),
+            self._join(path2),
+            **kwargs,
+        )
+
+    def touch(self, path, **kwargs):
+        return self.fs.touch(self._join(path), **kwargs)
+
+    def created(self, path):
+        return self.fs.created(self._join(path))
+
+    def modified(self, path):
+        return self.fs.modified(self._join(path))
+
+    def sign(self, path, *args, **kwargs):
+        return self.fs.sign(self._join(path), *args, **kwargs)
+
+    def __repr__(self):
+        return f"{self.__class__.__qualname__}(path='{self.path}', fs={self.fs})"
+
+    def open(
+        self,
+        path,
+        *args,
+        **kwargs,
+    ):
+        return self.fs.open(
+            self._join(path),
+            *args,
+            **kwargs,
+        )
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+f-8', newline='\n') as f:
+    f.write(content.replace(old_str, new_str))
+print(f"成功: 已更新 {path}。修改已持久化。")
+PY
+true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/implementations/dirfs.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = '    def __repr__(self):\n        return f"{self.__class__.__qualname__}(path=\'{self.path}\', fs={self.fs})"\n\n    def open(\n        self,\n
+   path,\n        *args,\n        **kwargs,\n    ):\n        return self.fs.open(\n            self._join(path),\n            *args,\n            **kwargs,\n
+     )\n'
+> new_str = '    def __repr__(self):\n        return f"{self.__class__.__qualname__}(path=\'{self.path}\', fs={self.fs})"\n\n    async def open_async(\n
+self,\n        path,\n        *args,\n        **kwargs,\n    ):\n        return await self.fs.open_async(\n            self._join(path),\n            *args,\n
+          **kwargs,\n        )\n\n    def open(\n        self,\n        path,\n        *args,\n        **kwargs,\n    ):\n        return self.fs.open(\n
+    self._join(path),\n            *args,\n            **kwargs,\n        )\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 fsspec/implementations/dirfs.py。修改已持久化。
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# grep -n "open_async\|def open" -C 4 fsspec/implementations/dirfs.py fsspec/implementations/tests/test_dirfs.py
+fsspec/implementations/dirfs.py-358-
+fsspec/implementations/dirfs.py-359-    def __repr__(self):
+fsspec/implementations/dirfs.py-360-        return f"{self.__class__.__qualname__}(path='{self.path}', fs={self.fs})"
+fsspec/implementations/dirfs.py-361-
+fsspec/implementations/dirfs.py:362:    async def open_async(
+fsspec/implementations/dirfs.py-363-        self,
+fsspec/implementations/dirfs.py-364-        path,
+fsspec/implementations/dirfs.py-365-        *args,
+fsspec/implementations/dirfs.py-366-        **kwargs,
+fsspec/implementations/dirfs.py-367-    ):
+fsspec/implementations/dirfs.py:368:        return await self.fs.open_async(
+fsspec/implementations/dirfs.py-369-            self._join(path),
+fsspec/implementations/dirfs.py-370-            *args,
+fsspec/implementations/dirfs.py-371-            **kwargs,
+fsspec/implementations/dirfs.py-372-        )
+fsspec/implementations/dirfs.py-373-
+fsspec/implementations/dirfs.py:374:    def open(
+fsspec/implementations/dirfs.py-375-        self,
+fsspec/implementations/dirfs.py-376-        path,
+fsspec/implementations/dirfs.py-377-        *args,
+fsspec/implementations/dirfs.py-378-        **kwargs,
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# grep -n "def test_.*open\|open(" -C 3 fsspec/implementations/tests/test_dirfs.py
+589-    dirfs.fs.sign.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+590-
+591-
+592:def test_open(mocker, dirfs):
+593-    dirfs.fs.open = mocker.Mock()
+594:    assert dirfs.open("file", *ARGS, **KWARGS) == dirfs.fs.open.return_value
+595-    dirfs.fs.open.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+596-
+597-
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/implementations/tests/test_dirfs.py 540 620 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+def test_mkdir(dirfs):
+    dirfs.mkdir("dir", *ARGS, **KWARGS)
+    dirfs.fs.mkdir.assert_called_once_with(f"{PATH}/dir", *ARGS, **KWARGS)
+
+
+@pytest.mark.asyncio
+async def test_async_makedirs(adirfs):
+    await adirfs._makedirs("dir", *ARGS, **KWARGS)
+    adirfs.fs._makedirs.assert_called_once_with(f"{PATH}/dir", *ARGS, **KWARGS)
+
+
+def test_makedirs(dirfs):
+    dirfs.makedirs("dir", *ARGS, **KWARGS)
+    dirfs.fs.makedirs.assert_called_once_with(f"{PATH}/dir", *ARGS, **KWARGS)
+
+
+def test_rmdir(mocker, dirfs):
+    dirfs.fs.rmdir = mocker.Mock()
+    dirfs.rmdir("dir")
+    dirfs.fs.rmdir.assert_called_once_with(f"{PATH}/dir")
+
+
+def test_mv(mocker, dirfs):
+    dirfs.fs.mv = mocker.Mock()
+    dirfs.mv("one", "two", **KWARGS)
+    dirfs.fs.mv.assert_called_once_with(f"{PATH}/one", f"{PATH}/two", **KWARGS)
+
+
+def test_touch(mocker, dirfs):
+    dirfs.fs.touch = mocker.Mock()
+    dirfs.touch("file", **KWARGS)
+    dirfs.fs.touch.assert_called_once_with(f"{PATH}/file", **KWARGS)
+
+
+def test_created(mocker, dirfs):
+    dirfs.fs.created = mocker.Mock(return_value="date")
+    assert dirfs.created("file") == "date"
+    dirfs.fs.created.assert_called_once_with(f"{PATH}/file")
+
+
+def test_modified(mocker, dirfs):
+    dirfs.fs.modified = mocker.Mock(return_value="date")
+    assert dirfs.modified("file") == "date"
+    dirfs.fs.modified.assert_called_once_with(f"{PATH}/file")
+
+
+def test_sign(mocker, dirfs):
+    dirfs.fs.sign = mocker.Mock(return_value="url")
+    assert dirfs.sign("file", *ARGS, **KWARGS) == "url"
+    dirfs.fs.sign.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+def test_open(mocker, dirfs):
+    dirfs.fs.open = mocker.Mock()
+    assert dirfs.open("file", *ARGS, **KWARGS) == dirfs.fs.open.return_value
+    dirfs.fs.open.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
+def test_from_url(m):
+    from fsspec.core import url_to_fs
+
+    m.pipe("inner/file", b"data")
+    fs, _ = url_to_fs("dir::memory://inner")
+    assert fs.ls("", False) == ["file"]
+    assert fs.ls("", True)[0]["name"] == "file"
+    assert fs.cat("file") == b"data"
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/implementations/tests/test_dirfs.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = 'def test_open(mocker, dirfs):\n    dirfs.fs.open = mocker.Mock()\n    assert dirfs.open("file", *ARGS, **KWARGS) == dirfs.fs.open.return_value\n
+ dirfs.fs.open.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)\n\n\ndef test_from_url(m):\n'
+> new_str = '@pytest.mark.asyncio\nasync def test_async_open(mocker, adirfs):\n    adirfs.fs.open_async = mocker.AsyncMock()\n    assert (\n        await adirfs
+.open_async("file", *ARGS, **KWARGS)\n        == adirfs.fs.open_async.return_value\n    )\n    adirfs.fs.open_async.assert_called_once_with(f"{PATH}/file", *ARG
+S, **KWARGS)\n\n\ndef test_open(mocker, dirfs):\n    dirfs.fs.open = mocker.Mock()\n    assert dirfs.open("file", *ARGS, **KWARGS) == dirfs.fs.open.return_value
+\n    dirfs.fs.open.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)\n\n\ndef test_from_url(m):\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 fsspec/implementations/tests/test_dirfs.py。修改已持久化。
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 -m pytest -v -- 'fsspec/implementations/tests/test_dirfs.py::test_async_open fsspec/implementations/tests/test_d
+irfs.py::test_open'
+/usr/local/bin/python3: No module named pytest
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - <<'PY'
+> import importlib.util
+> for name in ['pytest', 'pytest_asyncio']:
+>     print(name, importlib.util.find_spec(name))
+> PY
+pytest None
+pytest_asyncio None
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# sed -n '1,80p' fsspec/implementations/tests/test_dirfs.py && grep -R "def open_async" -n fsspec | head -20
+import pytest
+
+from fsspec.asyn import AsyncFileSystem
+from fsspec.implementations.dirfs import DirFileSystem
+from fsspec.spec import AbstractFileSystem
+
+PATH = "path/to/dir"
+ARGS = ["foo", "bar"]
+KWARGS = {"baz": "baz", "qux": "qux"}
+
+
+@pytest.fixture
+def make_fs(mocker):
+    def _make_fs(async_impl=False, asynchronous=False):
+        attrs = {
+            "sep": "/",
+            "async_impl": async_impl,
+            "_strip_protocol": lambda path: path,
+        }
+
+        if async_impl:
+            attrs["asynchronous"] = asynchronous
+            cls = AsyncFileSystem
+        else:
+            cls = AbstractFileSystem
+
+        fs = mocker.MagicMock(spec=cls, **attrs)
+
+        return fs
+
+    return _make_fs
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(False, id="sync"),
+        pytest.param(True, id="async"),
+    ]
+)
+def fs(make_fs, request):
+    return make_fs(async_impl=request.param)
+
+
+@pytest.fixture
+def asyncfs(make_fs):
+    return make_fs(async_impl=True, asynchronous=True)
+
+
+@pytest.fixture
+def make_dirfs():
+    def _make_dirfs(fs, asynchronous=False):
+        return DirFileSystem(PATH, fs, asynchronous=asynchronous)
+
+    return _make_dirfs
+
+
+@pytest.fixture
+def dirfs(make_dirfs, fs):
+    return make_dirfs(fs)
+
+
+@pytest.fixture
+def adirfs(make_dirfs, asyncfs):
+    return make_dirfs(asyncfs, asynchronous=True)
+
+
+def test_dirfs(fs, asyncfs):
+    DirFileSystem("path", fs)
+    DirFileSystem("path", asyncfs, asynchronous=True)
+
+    with pytest.raises(ValueError):
+        DirFileSystem("path", asyncfs)
+
+    with pytest.raises(ValueError):
+        DirFileSystem("path", fs, asynchronous=True)
+
+
+@pytest.mark.parametrize(
+    "root, rel, full",
+    [
+fsspec/asyn.py:907:    async def open_async(self, path, mode="rb", **kwargs):
+fsspec/implementations/dirfs.py:362:    async def open_async(
+fsspec/implementations/http.py:387:    async def open_async(self, path, mode="rb", size=None, **kwargs):
+fsspec/tests/test_async.py:168:    async def open_async(
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - <<'PY'
+> import asyncio
+> from unittest.mock import AsyncMock, MagicMock
+> from fsspec.asyn import AsyncFileSystem
+> from fsspec.implementations.dirfs import DirFileSystem
+>
+> async def main():
+>     fs = MagicMock(spec=AsyncFileSystem)
+>     fs.sep = '/'
+>     fs.async_impl = True
+>     fs.asynchronous = True
+>     fs._strip_protocol = lambda path: path
+>     fs.open_async = AsyncMock(return_value='opened')
+>
+>     dirfs = DirFileSystem('path/to/dir', fs, asynchronous=True)
+>     result = await dirfs.open_async('file', mode='rb', cache_type='none')
+>     assert result == 'opened', result
+>     fs.open_async.assert_awaited_once_with('path/to/dir/file', mode='rb', cache_type='none')
+>     print('custom async delegation regression passed')
+>
+> asyncio.run(main())
+> PY
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/app/filesystem_spec/fsspec/__init__.py", line 4, in <module>
+    from ._version import __version__  # noqa: F401
+ModuleNotFoundError: No module named 'fsspec._version'
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - <<'PY'
+> import asyncio
+> import sys
+> import types
+> from unittest.mock import AsyncMock, MagicMock
+>
+> version_mod = types.ModuleType('fsspec._version')
+> version_mod.__version__ = '0+test'
+> sys.modules['fsspec._version'] = version_mod
+>
+> from fsspec.asyn import AsyncFileSystem
+> from fsspec.implementations.dirfs import DirFileSystem
+>
+> async def main():
+>     fs = MagicMock(spec=AsyncFileSystem)
+>     fs.sep = '/'
+>     fs.async_impl = True
+>     fs.asynchronous = True
+>     fs._strip_protocol = lambda path: path
+>     fs.open_async = AsyncMock(return_value='opened')
+>
+>     dirfs = DirFileSystem('path/to/dir', fs, asynchronous=True)
+>     result = await dirfs.open_async('file', mode='rb', cache_type='none')
+>     assert result == 'opened', result
+>     fs.open_async.assert_awaited_once_with('path/to/dir/file', mode='rb', cache_type='none')
+>     print('custom async delegation regression passed')
+>
+> asyncio.run(main())
+> PY
+custom async delegation regression passed
+root@5854e9ec5ae1:/app/filesystem_spec# python3 -m py_compile fsspec/implementations/dirfs.py fsspec/implementations/tests/test_dirfs.py
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# git rev-parse --is-inside-work-tree
+true
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# git status --porcelain
+ M fsspec/implementations/dirfs.py
+ M fsspec/implementations/tests/test_dirfs.py
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# git branch --show-current
+master
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# git log -1 --oneline
+b842cf4 (HEAD -> master) http file system directed to stream by an "Accept-Ranges": "none" response (#1631)
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# git diff -- fsspec/implementations/dirfs.py fsspec/implementations/tests/test_dirfs.py
+diff --git a/fsspec/implementations/dirfs.py b/fsspec/implementations/dirfs.py
+index 6a28909..d82b7f3 100644
+--- a/fsspec/implementations/dirfs.py
++++ b/fsspec/implementations/dirfs.py
+@@ -359,6 +359,18 @@ class DirFileSystem(AsyncFileSystem):
+     def __repr__(self):
+         return f"{self.__class__.__qualname__}(path='{self.path}', fs={self.fs})"
+
++    async def open_async(
++        self,
++        path,
++        *args,
++        **kwargs,
++    ):
++        return await self.fs.open_async(
++            self._join(path),
++            *args,
++            **kwargs,
++        )
++
+     def open(
+         self,
+         path,
+diff --git a/fsspec/implementations/tests/test_dirfs.py b/fsspec/implementations/tests/test_dirfs.py
+index 990ab11..8e60613 100644
+--- a/fsspec/implementations/tests/test_dirfs.py
++++ b/fsspec/implementations/tests/test_dirfs.py
+@@ -589,6 +589,16 @@ def test_sign(mocker, dirfs):
+     dirfs.fs.sign.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
+
+
++@pytest.mark.asyncio
++async def test_async_open(mocker, adirfs):
++    adirfs.fs.open_async = mocker.AsyncMock()
++    assert (
++        await adirfs.open_async("file", *ARGS, **KWARGS)
++        == adirfs.fs.open_async.return_value
++    )
++    adirfs.fs.open_async.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)
++
++
+ def test_open(mocker, dirfs):
+     dirfs.fs.open = mocker.Mock()
+     assert dirfs.open("file", *ARGS, **KWARGS) == dirfs.fs.open.return_value
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - fsspec/implementations/tests/test_dirfs.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = '    adirfs.fs.open_async.assert_called_once_with(f"{PATH}/file", *ARGS, **KWARGS)\n'
+> new_str = '    adirfs.fs.open_async.assert_awaited_once_with(f"{PATH}/file", *ARGS, **KWARGS)\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 fsspec/implementations/tests/test_dirfs.py。修改已持久化。
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@5854e9ec5ae1:/app/filesystem_spec# python3 - <<'PY'
+> import asyncio
+> import sys
+> import types
+> from unittest.mock import AsyncMock, MagicMock
+>
+> version_mod = types.ModuleType('fsspec._version')
+> version_mod.__version__ = '0+test'
+> sys.modules['fsspec._version'] = version_mod
+>
+> from fsspec.asyn import AsyncFileSystem
+> from fsspec.implementations.dirfs import DirFileSystem
+>
+> async def main():
+>     fs = MagicMock(spec=AsyncFileSystem)
+>     fs.sep = '/'
+>     fs.async_impl = True
+>     fs.asynchronous = True
+>     fs._strip_protocol = lambda path: path
+>     fs.open_async = AsyncMock(return_value='opened')
+>
+>     dirfs = DirFileSystem('path/to/dir', fs, asynchronous=True)
+>     result = await dirfs.open_async('file', mode='rb', cache_type='none')
+>     assert result == 'opened', result
+>     fs.open_async.assert_awaited_once_with('path/to/dir/file', mode='rb', cache_type='none')
+>     print('custom async delegation regression passed')
+>
+> asyncio.run(main())
+> PY
+custom async delegation regression passed
+root@5854e9ec5ae1:/app/filesystem_spec# python3 -m py_compile fsspec/implementations/dirfs.py fsspec/implementations/tests/test_dirfs.py
+root@5854e9ec5ae1:/app/filesystem_spec# git diff --check
+root@5854e9ec5ae1:/app/filesystem_spec# true; tmux wait -S done
+root@5854e9ec5ae1:/app/filesystem_spec#

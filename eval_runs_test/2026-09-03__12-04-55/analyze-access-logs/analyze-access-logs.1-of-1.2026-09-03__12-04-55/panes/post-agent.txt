@@ -1,0 +1,161 @@
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# set +e
+root@0d658e486e0c:/app#
+root@0d658e486e0c:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@0d658e486e0c:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@0d658e486e0c:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@0d658e486e0c:/app#
+root@0d658e486e0c:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@0d658e486e0c:/app#
+root@0d658e486e0c:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@0d658e486e0c:/app#
+root@0d658e486e0c:/app# mkdir -p /root/.config/uv
+root@0d658e486e0c:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@0d658e486e0c:/app#
+root@0d658e486e0c:/app# apt-get update || true
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:4 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:7 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1529 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:10 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1211 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1852 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1532 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2150 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Fetched 32.4 MB in 39s (841 kB/s)
+Reading package lists... Done
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# wc -l /app/access_log && sed -n '1,8p' /app/access_log
+2000 /app/access_log
+132.100.175.127 - - [01/Jan/2024:00:00:05 +0000] "GET /missing-page HTTP/1.1" 200 4150
+102.138.184.159 - - [01/Jan/2024:00:00:03 +0000] "DELETE /checkout HTTP/1.1" 200 3405
+14.207.50.8 - - [01/Jan/2024:00:00:07 +0000] "POST /profile HTTP/1.1" 200 2010
+13.180.218.144 - - [01/Jan/2024:00:00:06 +0000] "GET /css/style.css HTTP/1.1" 200 14191
+245.104.117.113 - - [01/Jan/2024:00:00:09 +0000] "GET /blog/tech-news HTTP/1.1" 200 956
+78.223.140.33 - - [01/Jan/2024:00:00:05 +0000] "POST /api/products HTTP/1.1" 301 1585
+196.140.44.181 - - [01/Jan/2024:00:00:06 +0000] "GET /broken-link HTTP/1.1" 200 3570
+211.206.62.120 - - [01/Jan/2024:00:00:08 +0000] "GET /about.html HTTP/1.1" 200 1637
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# if [ -f /app/report.txt ]; then sed -n '1,20p' /app/report.txt; else printf '%s\n' 'report missing'; fi
+report missing
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# awk 'NF < 9 {bad++} {req++; ip[$1]++; url[$7]++; if ($9 == 404) e404++} END {print "Total requests:", req; print "Unique IP addresses:",
+ length(ip); print "404 errors:", e404+0; for (u in url) print url[u], u}' /app/access_log | sort -k1,1nr -k2,2 | head -n 12
+404 errors: 83
+54 /order-confirmation
+53 /product/456
+52 /about.html
+51 /news
+50 /api/users
+46 /favicon.ico
+45 /api/health
+45 /checkout
+45 /faq
+45 /register
+44 /contact.html
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# awk 'NF < 9 {bad++} {req++; ip[$1]++; url[$7]++; if ($9 == 404) e404++} END {print "requests=" req; print "unique=" length(ip); print "4
+04=" e404+0; print "bad=" bad+0; for (u in url) print url[u] "\t" u}' /app/access_log | awk -F '\t' 'NR<=4 {print} NR>4 {print}' | sort -t $'\t' -k1,1nr -k2,2 |
+ head -n 5
+404=83
+54      /order-confirmation
+53      /product/456
+52      /about.html
+51      /news
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# awk 'NF < 9 {bad++} {req++; ip[$1]++; url[$7]++; if ($9 == 404) e404++} END {print req, length(ip), e404+0, bad+0; for (u in url) print
+url[u] "\t" u}' /app/access_log | sort -t $'\t' -k1,1nr -k2,2 | head -n 3
+2000 273 83 0
+54      /order-confirmation
+53      /product/456
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# python3 - /app/report.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'Total requests: 2000\nUnique IP addresses: 273\nTop 3 URLs:\n  /order-confirmation: 54\n  /product/456: 53\n  /about.html: 52\n404 errors: 83\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/report.txt
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@0d658e486e0c:/app# python3 - <<'PY'
+> from collections import Counter
+> import re
+> from pathlib import Path
+>
+> log = Path('/app/access_log').read_text(encoding='utf-8').splitlines()
+> report = Path('/app/report.txt').read_text(encoding='utf-8')
+> expected_lines = [
+>     'Total requests: 2000',
+>     'Unique IP addresses: 273',
+>     'Top 3 URLs:',
+>     '  /order-confirmation: 54',
+>     '  /product/456: 53',
+>     '  /about.html: 52',
+>     '404 errors: 83',
+> ]
+> assert len(log) == 2000
+> assert sum(bool(line.strip()) for line in log) == 2000
+> ips = {line.split()[0] for line in log}
+> urls = Counter(line.split()[6] for line in log)
+> errors = sum(line.split()[8] == '404' for line in log)
+> assert len(ips) == 273
+> assert urls.most_common(3) == [('/order-confirmation', 54), ('/product/456', 53), ('/about.html', 52)]
+> assert errors == 83
+> assert report == '\n'.join(expected_lines) + '\n'
+> print('Verified: report has exact format and all metrics match access_log.')
+> print(report, end='')
+> PY
+Verified: report has exact format and all metrics match access_log.
+Total requests: 2000
+Unique IP addresses: 273
+Top 3 URLs:
+  /order-confirmation: 54
+  /product/456: 53
+  /about.html: 52
+404 errors: 83
+root@0d658e486e0c:/app# true; tmux wait -S done
+root@0d658e486e0c:/app#

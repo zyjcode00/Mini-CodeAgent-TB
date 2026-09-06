@@ -1,0 +1,244 @@
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# set +e
+root@1ea20653bb56:/app#
+root@1ea20653bb56:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@1ea20653bb56:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@1ea20653bb56:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@1ea20653bb56:/app#
+root@1ea20653bb56:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@1ea20653bb56:/app#
+root@1ea20653bb56:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@1ea20653bb56:/app#
+root@1ea20653bb56:/app# mkdir -p /root/.config/uv
+root@1ea20653bb56:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@1ea20653bb56:/app#
+root@1ea20653bb56:/app# apt-get update || true
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1786 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:4 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1530 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:6 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1237 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2151 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1562 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1903 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Fetched 32.6 MB in 46s (702 kB/s)
+Reading package lists... Done
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# python3 - /app/access_log 1 20 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+132.100.175.127 - - [01/Jan/2024:00:00:05 +0000] "GET /missing-page HTTP/1.1" 200 4150
+102.138.184.159 - - [01/Jan/2024:00:00:03 +0000] "DELETE /checkout HTTP/1.1" 200 3405
+14.207.50.8 - - [01/Jan/2024:00:00:07 +0000] "POST /profile HTTP/1.1" 200 2010
+13.180.218.144 - - [01/Jan/2024:00:00:06 +0000] "GET /css/style.css HTTP/1.1" 200 14191
+245.104.117.113 - - [01/Jan/2024:00:00:09 +0000] "GET /blog/tech-news HTTP/1.1" 200 956
+78.223.140.33 - - [01/Jan/2024:00:00:05 +0000] "POST /api/products HTTP/1.1" 301 1585
+196.140.44.181 - - [01/Jan/2024:00:00:06 +0000] "GET /broken-link HTTP/1.1" 200 3570
+211.206.62.120 - - [01/Jan/2024:00:00:08 +0000] "GET /about.html HTTP/1.1" 200 1637
+235.229.194.210 - - [01/Jan/2024:00:00:12 +0000] "POST /support HTTP/1.1" 200 1088
+18.144.65.216 - - [01/Jan/2024:00:00:14 +0000] "GET /favicon.ico HTTP/1.1" 304 2913
+7.102.189.227 - - [01/Jan/2024:00:00:13 +0000] "HEAD /cart HTTP/1.1" 200 4810
+244.185.166.14 - - [01/Jan/2024:00:00:11 +0000] "GET /category/books HTTP/1.1" 200 1587
+170.252.63.122 - - [01/Jan/2024:00:00:12 +0000] "GET /api/health HTTP/1.1" 200 1552
+206.204.157.236 - - [01/Jan/2024:00:00:17 +0000] "GET /about.html HTTP/1.1" 200 4940
+37.109.28.186 - - [01/Jan/2024:00:00:15 +0000] "GET /products.html HTTP/1.1" 200 1443
+234.172.1.70 - - [01/Jan/2024:00:00:17 +0000] "GET /checkout HTTP/1.1" 404 529
+104.177.84.31 - - [01/Jan/2024:00:00:20 +0000] "GET /api/users HTTP/1.1" 200 1937
+80.210.120.76 - - [01/Jan/2024:00:00:20 +0000] "POST /blog HTTP/1.1" 200 3441
+227.15.198.129 - - [01/Jan/2024:00:00:22 +0000] "PUT /product/789 HTTP/1.1" 200 3021
+188.16.254.191 - - [01/Jan/2024:00:00:22 +0000] "PUT /admin/users HTTP/1.1" 200 1103
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# python3 - /app/report.txt 1 20 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+错误: 找不到文件 /app/report.txt
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# python3 - <<'PY'
+> import re
+> from collections import Counter
+> path='/app/access_log'
+> line_re=re.compile(r'^(\S+) \S+ \S+ \[[^\]]+\] "\S+ (\S+) [^"]+" (\d{3}) ')
+> total=0
+> ips=set()
+> urls=Counter()
+> errors404=0
+> bad=[]
+> with open(path, encoding='utf-8', errors='replace') as f:
+>     for lineno,line in enumerate(f,1):
+>         line=line.rstrip('\n')
+>         if not line:
+>             continue
+>         m=line_re.match(line)
+>         if not m:
+>             bad.append((lineno,line))
+>             continue
+>         ip,url,status=m.groups()
+>         total += 1
+>         ips.add(ip)
+>         urls[url] += 1
+>         if status == '404':
+>             errors404 += 1
+> print('Total requests:', total)
+> print('Unique IP addresses:', len(ips))
+> print('Top 3 URLs:')
+> for url,count in urls.most_common(3):
+>     print(f'  {url}: {count}')
+> print('404 errors:', errors404)
+> print('Malformed lines:', len(bad))
+> if bad[:5]:
+>     print(bad[:5])
+> PY
+Total requests: 2000
+Unique IP addresses: 273
+Top 3 URLs:
+  /order-confirmation: 54
+  /product/456: 53
+  /about.html: 52
+404 errors: 83
+Malformed lines: 0
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# python3 - /app/report.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'Total requests: 2000\nUnique IP addresses: 273\nTop 3 URLs:\n  /order-confirmation: 54\n  /product/456: 53\n  /about.html: 52\n404 errors: 83\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/report.txt
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# python3 - /app/test_report.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\nimport re\nfrom collections import Counter\nfrom pathlib import Path\n\nLOG_PATH = Path(\'/app/access_log\')\nREPORT_PATH =
+ Path(\'/app/report.txt\')\n\n\ndef expected_report() -> str:\n    line_re = re.compile(r\'^(\\S+) \\S+ \\S+ \\[[^\\]]+\\] "\\S+ (\\S+) [^"]+" (\\d{3}) \')\n
+ total = 0\n    ips = set()\n    urls = Counter()\n    errors_404 = 0\n\n    with LOG_PATH.open(encoding=\'utf-8\', errors=\'replace\') as f:\n        for linen
+o, line in enumerate(f, 1):\n            line = line.rstrip(\'\\n\')\n            if not line:\n                continue\n            match = line_re.match(line
+)\n            if not match:\n                raise AssertionError(f\'Malformed log line {lineno}: {line}\')\n            ip, url, status = match.groups()\n
+        total += 1\n            ips.add(ip)\n            urls[url] += 1\n            if status == \'404\':\n                errors_404 += 1\n\n    lines = [\n
+      f\'Total requests: {total}\',\n        f\'Unique IP addresses: {len(ips)}\',\n        \'Top 3 URLs:\',\n    ]\n    lines.extend(f\'  {url}: {count}\' for
+url, count in urls.most_common(3))\n    lines.append(f\'404 errors: {errors_404}\')\n    return \'\\n\'.join(lines) + \'\\n\'\n\n\ndef main() -> None:\n    expe
+cted = expected_report()\n    actual = REPORT_PATH.read_text(encoding=\'utf-8\')\n    assert actual == expected, f\'Report mismatch\\nExpected:\\n{expected!r}\\
+nActual:\\n{actual!r}\'\n    print(\'Validation passed: /app/report.txt matches /app/access_log statistics and required format.\')\n\n\nif __name__ == \'__main_
+_\':\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_report.py
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# python3 /app/test_report.py
+Validation passed: /app/report.txt matches /app/access_log statistics and required format.
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@1ea20653bb56:/app# if [ -f /app/report.txt ]; then cat -- /app/report.txt; else echo '错误: 找不到文件 /app/report.txt'; fi
+Total requests: 2000
+Unique IP addresses: 273
+Top 3 URLs:
+  /order-confirmation: 54
+  /product/456: 53
+  /about.html: 52
+404 errors: 83
+root@1ea20653bb56:/app# true; tmux wait -S done
+root@1ea20653bb56:/app#

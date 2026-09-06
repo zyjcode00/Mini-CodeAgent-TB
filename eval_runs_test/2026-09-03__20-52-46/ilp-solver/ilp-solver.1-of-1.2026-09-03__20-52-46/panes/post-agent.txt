@@ -1,0 +1,66 @@
+root@cbcffbb7972e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cbcffbb7972e:/app# set +e
+root@cbcffbb7972e:/app#
+root@cbcffbb7972e:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@cbcffbb7972e:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@cbcffbb7972e:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@cbcffbb7972e:/app#
+root@cbcffbb7972e:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@cbcffbb7972e:/app#
+root@cbcffbb7972e:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@cbcffbb7972e:/app#
+root@cbcffbb7972e:/app# mkdir -p /root/.config/uv
+root@cbcffbb7972e:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@cbcffbb7972e:/app#
+root@cbcffbb7972e:/app# apt-get update || true
+Hit:1 http://mirrors.ustc.edu.cn/ubuntu noble InRelease
+Hit:2 http://mirrors.ustc.edu.cn/ubuntu noble-updates InRelease
+Hit:3 http://mirrors.ustc.edu.cn/ubuntu noble-backports InRelease
+Hit:4 http://mirrors.ustc.edu.cn/ubuntu noble-security InRelease
+Reading package lists... Done
+root@cbcffbb7972e:/app# true; tmux wait -S done
+root@cbcffbb7972e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cbcffbb7972e:/app# python3 - /app/ilp_output.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'Invest A: y\nInvest B: n\nDefer B: n\nInvest C: y\nMaximized NPV: 299.00\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/ilp_output.txt
+root@cbcffbb7972e:/app# true; tmux wait -S done
+root@cbcffbb7972e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cbcffbb7972e:/app# if [ -f /app/ilp_output.txt ]; then cat -- /app/ilp_output.txt; else echo '错误: 找不到文件 /app/ilp_output.txt'; fi
+Invest A: y
+Invest B: n
+Defer B: n
+Invest C: y
+Maximized NPV: 299.00
+root@cbcffbb7972e:/app# true; tmux wait -S done
+root@cbcffbb7972e:/app#

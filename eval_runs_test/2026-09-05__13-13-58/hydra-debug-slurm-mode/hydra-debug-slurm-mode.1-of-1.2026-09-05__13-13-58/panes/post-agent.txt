@@ -1,0 +1,355 @@
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# set +e
+root@4db3536f2361:/app/src#
+root@4db3536f2361:/app/src# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@4db3536f2361:/app/src# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@4db3536f2361:/app/src# UV_INDEX_URL="https://pypi.org/simple"
+root@4db3536f2361:/app/src#
+root@4db3536f2361:/app/src# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@4db3536f2361:/app/src#
+root@4db3536f2361:/app/src# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@4db3536f2361:/app/src#
+root@4db3536f2361:/app/src# mkdir -p /root/.config/uv
+root@4db3536f2361:/app/src# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@4db3536f2361:/app/src#
+root@4db3536f2361:/app/src# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [336 kB]
+Fetched 9375 kB in 3s (3174 kB/s)
+Reading package lists... Done
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+./config
+./config/config.yaml
+./main.py
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# git rev-parse --is-inside-work-tree
+fatal: not a git repository (or any of the parent directories): .git
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# git status --porcelain
+fatal: not a git repository (or any of the parent directories): .git
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# git branch --show-current
+fatal: not a git repository (or any of the parent directories): .git
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# git log -1 --oneline
+fatal: not a git repository (or any of the parent directories): .git
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# if [ -f main.py ]; then cat -- main.py; else echo '错误: 找不到文件 main.py'; fi
+import hydra
+from omegaconf import OmegaConf
+
+
+@hydra.main(config_path="config", config_name="config", version_base="1.3")
+def main(cfg):
+    print(OmegaConf.to_yaml(cfg, resolve=True, throw_on_missing=True))
+
+
+if __name__ == "__main__":
+    main()
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# if [ -f config/config.yaml ]; then cat -- config/config.yaml; else echo '错误: 找不到文件 config/config.yaml'; fi
+defaults:
+  - _self_
+
+notes: my-experiment
+
+debug: false
+train:
+  batch_size: 32
+  learning_rate: 1e-5
+  max_num_epochs: 100
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python -m pip install 'git+https://github.com/facebookresearch/hydra.git@v1.3.0#subdirectory=plugins/hydra_submitit_launcher'
+Collecting git+https://github.com/facebookresearch/hydra.git@v1.3.0#subdirectory=plugins/hydra_submitit_launcher
+  Cloning https://github.com/facebookresearch/hydra.git (to revision v1.3.0) to /tmp/pip-req-build-jkaz_lp_
+  Running command git clone --filter=blob:none --quiet https://github.com/facebookresearch/hydra.git /tmp/pip-req-build-jkaz_lp_
+  Running command git checkout -q 273ce9c6e1bd54cfb0b594a4a924a4d3c9b5425f
+  Resolved https://github.com/facebookresearch/hydra.git to commit 273ce9c6e1bd54cfb0b594a4a924a4d3c9b5425f
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+Requirement already satisfied: hydra-core>=1.1.0.dev7 in /usr/local/lib/python3.13/site-packages (from hydra-submitit-launcher==1.3.0.dev0) (1.3.0)
+Collecting submitit>=1.3.3 (from hydra-submitit-launcher==1.3.0.dev0)
+  WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.c
+onnection.HTTPSConnection object at 0x7bb0545b1e50>: Failed to establish a new connection: [Errno 101] Network is unreachable')': /packages/ea/bb/711e1c2ebd18a2
+1202c972dd5d5c8e09a921f2d3560e3a53d6350c808ab7/submitit-1.5.4-py3-none-any.whl.metadata
+  Downloading submitit-1.5.4-py3-none-any.whl.metadata (7.4 kB)
+Requirement already satisfied: omegaconf~=2.2 in /usr/local/lib/python3.13/site-packages (from hydra-core>=1.1.0.dev7->hydra-submitit-launcher==1.3.0.dev0) (2.3
+.1)
+Requirement already satisfied: antlr4-python3-runtime==4.9.* in /usr/local/lib/python3.13/site-packages (from hydra-core>=1.1.0.dev7->hydra-submitit-launcher==1
+.3.0.dev0) (4.9.3)
+Requirement already satisfied: packaging in /usr/local/lib/python3.13/site-packages (from hydra-core>=1.1.0.dev7->hydra-submitit-launcher==1.3.0.dev0) (26.3)
+Collecting cloudpickle>=1.2.1 (from submitit>=1.3.3->hydra-submitit-launcher==1.3.0.dev0)
+  Downloading cloudpickle-3.1.2-py3-none-any.whl.metadata (7.1 kB)
+Collecting typing_extensions>=3.7.4.2 (from submitit>=1.3.3->hydra-submitit-launcher==1.3.0.dev0)
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Requirement already satisfied: PyYAML>=5.1.0 in /usr/local/lib/python3.13/site-packages (from omegaconf~=2.2->hydra-core>=1.1.0.dev7->hydra-submitit-launcher==1
+.3.0.dev0) (6.0.3)
+Downloading submitit-1.5.4-py3-none-any.whl (76 kB)
+Downloading cloudpickle-3.1.2-py3-none-any.whl (22 kB)
+Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Building wheels for collected packages: hydra-submitit-launcher
+  Building wheel for hydra-submitit-launcher (pyproject.toml) ... done
+  Created wheel for hydra-submitit-launcher: filename=hydra_submitit_launcher-1.3.0.dev0-py3-none-any.whl size=5536 sha256=53f6c9c300f98a69918da6004b58e62ca868a
+b293af32d06f01594b0310a0ff7
+  Stored in directory: /tmp/pip-ephem-wheel-cache-42st604r/wheels/96/8f/bd/2050e89f3ab5829e1ef61b765bbd4695f8608389affdd1ab8e
+Successfully built hydra-submitit-launcher
+Installing collected packages: typing_extensions, cloudpickle, submitit, hydra-submitit-launcher
+Successfully installed cloudpickle-3.1.2 hydra-submitit-launcher-1.3.0.dev0 submitit-1.5.4 typing_extensions-4.16.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your syst
+em unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you ar
+e doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 24.3.1 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python - <<'PY'
+> import hydra_plugins.hydra_submitit_launcher.submitit_launcher as sl
+> print(sl.SlurmLauncher)
+> PY
+<class 'hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher'>
+root@4db3536f2361:/app/src# python -m pip show hydra-submitit-launcher submitit hydra-core
+Name: hydra-submitit-launcher
+Version: 1.3.0.dev0
+Summary: Submitit Launcher for Hydra apps
+Home-page: https://github.com/facebookincubator/submitit
+Author: Jeremy Rapin, Jieru Hu, Omry Yadan
+Author-email: jrapin@fb.com, jieru@fb.com, omry@fb.com
+License:
+Location: /usr/local/lib/python3.13/site-packages
+Requires: hydra-core, submitit
+Required-by:
+---
+Name: submitit
+Version: 1.5.4
+Summary: "Python 3.8+ toolbox for submitting jobs to Slurm
+Home-page:
+Author: Facebook AI Research
+Author-email:
+License:
+Location: /usr/local/lib/python3.13/site-packages
+Requires: cloudpickle, typing_extensions
+Required-by: hydra-submitit-launcher
+---
+Name: hydra-core
+Version: 1.3.0
+Summary: A framework for elegantly configuring complex applications
+Home-page: https://github.com/facebookresearch/hydra
+Author: Omry Yadan
+Author-email: omry@fb.com
+License: MIT
+Location: /usr/local/lib/python3.13/site-packages
+Requires: antlr4-python3-runtime, omegaconf, packaging
+Required-by: hydra-submitit-launcher
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# mkdir -p config/mode
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python3 - config/mode/debug.yaml <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '# @package _global_\n\ndebug: true\ntrain:\n  max_num_epochs: 1\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 config/mode/debug.yaml
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python3 - config/slurm.yaml <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "defaults:\n  - config\n  - override hydra/launcher: submitit_slurm\n  - _self_\n\nhydra:\n  launcher:\n    additional_parameters:\n      wckey: ''\
+n    srun_args:\n      - --cpu-bind=none\n"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 config/slurm.yaml
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# if [ -f config/mode/debug.yaml ]; then cat -- config/mode/debug.yaml; else echo '错误: 找不到文件 config/mode/debug.yaml'; fi
+# @package _global_
+
+debug: true
+train:
+  max_num_epochs: 1
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# if [ -f config/slurm.yaml ]; then cat -- config/slurm.yaml; else echo '错误: 找不到文件 config/slurm.yaml'; fi
+defaults:
+  - config
+  - override hydra/launcher: submitit_slurm
+  - _self_
+
+hydra:
+  launcher:
+    additional_parameters:
+      wckey: ''
+    srun_args:
+      - --cpu-bind=none
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python /app/src/main.py +mode=debug --cfg job && printf '\n--- hydra slurm target check ---\n' && python /app/src/main.py -cn=slurm
+--cfg hydra | grep -E '_target_: hydra_plugins\.hydra_submitit_launcher\.submitit_launcher\.SlurmLauncher|additional_parameters:|wckey:|srun_args:|--cpu-bind=no
+ne'
+notes: my-experiment
+debug: true
+train:
+  batch_size: 32
+  learning_rate: 1.0e-05
+  max_num_epochs: 1
+
+--- hydra slurm target check ---
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    additional_parameters:
+      wckey: ''
+    srun_args:
+    - --cpu-bind=none
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python3 - test_hydra_configs.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import subprocess\nimport sys\nfrom pathlib import Path\n\nimport yaml\n\n\nAPP = Path(__file__).resolve().parent / "main.py"\n\n\ndef run_main(*ar
+gs: str) -> str:\n    result = subprocess.run(\n        [sys.executable, str(APP), *args],\n        check=True,\n        text=True,\n        stdout=subprocess.P
+IPE,\n        stderr=subprocess.PIPE,\n    )\n    return result.stdout\n\n\ndef test_debug_mode_job_config_matches_expected_output():\n    stdout = run_main("+m
+ode=debug", "--cfg", "job")\n    assert stdout == (\n        "notes: my-experiment\\n"\n        "debug: true\\n"\n        "train:\\n"\n        "  batch_size: 32
+\\n"\n        "  learning_rate: 1.0e-05\\n"\n        "  max_num_epochs: 1\\n"\n    )\n\n\ndef test_slurm_job_config_matches_base_job_config():\n    stdout = run
+_main("-cn=slurm", "--cfg", "job")\n    assert stdout == (\n        "notes: my-experiment\\n"\n        "debug: false\\n"\n        "train:\\n"\n        "  batch_
+size: 32\\n"\n        "  learning_rate: 1.0e-05\\n"\n        "  max_num_epochs: 100\\n"\n    )\n\n\ndef test_slurm_hydra_config_uses_submitit_launcher_with_clus
+ter_parameters():\n    stdout = run_main("-cn=slurm", "--cfg", "hydra")\n    cfg = yaml.safe_load(stdout)\n    launcher = cfg["hydra"]["launcher"]\n\n    assert
+ launcher["_target_"] == (\n        "hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher"\n    )\n    assert launcher["additional_parameters"]
+ == {"wckey": ""}\n    assert "--cpu-bind=none" in launcher["srun_args"]\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 test_hydra_configs.py
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python3 -m pytest -v -- test_hydra_configs.py
+/usr/local/bin/python3: No module named pytest
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python -m pip install pytest
+Collecting pytest
+  Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+Collecting iniconfig>=1.0.1 (from pytest)
+  Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+Requirement already satisfied: packaging>=22 in /usr/local/lib/python3.13/site-packages (from pytest) (26.3)
+Collecting pluggy<2,>=1.5 (from pytest)
+  Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+Collecting pygments>=2.7.2 (from pytest)
+  Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 8.8 MB/s eta 0:00:00
+Installing collected packages: pygments, pluggy, iniconfig, pytest
+Successfully installed iniconfig-2.3.0 pluggy-1.6.0 pygments-2.21.0 pytest-9.1.1
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your syst
+em unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you ar
+e doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 24.3.1 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# python3 -m pytest -v -- test_hydra_configs.py
+===================================================================== test session starts ======================================================================
+platform linux -- Python 3.13.1, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /app/src
+plugins: hydra-core-1.3.0
+collected 3 items
+
+test_hydra_configs.py::test_debug_mode_job_config_matches_expected_output PASSED                                                                         [ 33%]
+test_hydra_configs.py::test_slurm_job_config_matches_base_job_config PASSED                                                                              [ 66%]
+test_hydra_configs.py::test_slurm_hydra_config_uses_submitit_launcher_with_cluster_parameters PASSED                                                     [100%]
+
+====================================================================== 3 passed in 0.71s =======================================================================
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4db3536f2361:/app/src# printf '%s\n' '### python main.py +mode=debug --cfg job' && python main.py +mode=debug --cfg job
+### python main.py +mode=debug --cfg job
+notes: my-experiment
+debug: true
+train:
+  batch_size: 32
+  learning_rate: 1.0e-05
+  max_num_epochs: 1
+root@4db3536f2361:/app/src# printf '%s\n' '### python main.py -cn=slurm --cfg job' && python main.py -cn=slurm --cfg job
+### python main.py -cn=slurm --cfg job
+notes: my-experiment
+debug: false
+train:
+  batch_size: 32
+  learning_rate: 1.0e-05
+  max_num_epochs: 100
+root@4db3536f2361:/app/src# printf '%s\n' '### python main.py -cn=slurm --cfg hydra' && python main.py -cn=slurm --cfg hydra | grep -E '_target_: hydra_plugins\
+.hydra_submitit_launcher\.submitit_launcher\.SlurmLauncher|additional_parameters:|wckey:|srun_args:|--cpu-bind=none'
+### python main.py -cn=slurm --cfg hydra
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    additional_parameters:
+      wckey: ''
+    srun_args:
+    - --cpu-bind=none
+root@4db3536f2361:/app/src# true; tmux wait -S done
+root@4db3536f2361:/app/src#

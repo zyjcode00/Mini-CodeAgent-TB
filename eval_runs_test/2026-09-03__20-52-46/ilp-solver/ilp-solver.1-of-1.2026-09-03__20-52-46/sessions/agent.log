@@ -1,0 +1,74 @@
+[?2004hroot@cbcffbb7972e:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@cbcffbb7972e:/app# clear
+[?2004l[H[J[3J[?2004hroot@cbcffbb7972e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@cbcffbb7972e:/app# set +e
+[?2004l[?2004hroot@cbcffbb7972e:/app# 
+[?2004l[?2004hroot@cbcffbb7972e:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@cbcffbb7972e:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@cbcffbb7972e:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@cbcffbb7972e:/app# 
+[?2004l[?2004hroot@cbcffbb7972e:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@cbcffbb7972e:/app# 
+[?2004l[?2004hroot@cbcffbb7972e:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@cbcffbb7972e:/app# 
+[?2004l[?2004hroot@cbcffbb7972e:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@cbcffbb7972e:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@cbcffbb7972e:/app# 
+[?2004l[?2004hroot@cbcffbb7972e:/app# apt-get update || true
+[?2004l0% [Working]            Hit:1 http://mirrors.ustc.edu.cn/ubuntu noble InRelease
+0% [Working]            Hit:2 http://mirrors.ustc.edu.cn/ubuntu noble-updates InRelease
+            Hit:3 http://mirrors.ustc.edu.cn/ubuntu noble-backports InRelease
+            Hit:4 http://mirrors.ustc.edu.cn/ubuntu noble-security InRelease
+0% [Working]0% [Working]0% [Working]0% [Working]20% [Working]             Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 61%Reading package lists... 61%Reading package lists... 61%Reading package lists... 61%Reading package lists... 62%Reading package lists... 62%Reading package lists... 67%Reading package lists... 67%Reading package lists... 75%Reading package lists... 75%Reading package lists... 75%Reading package lists... 82%Reading package lists... 82%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 87%Reading package lists... 87%Reading package lists... 93%Reading package lists... 93%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@cbcffbb7972e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@cbcffbb7972e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@cbcffbb7972e:/app# python3 - /app/ilp_output.txt <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'Invest A: y\nInvest B: n\nDefer B: n\nInvest C: y\nMaximized NPV: 299.00\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/ilp_output.txt
+[?2004hroot@cbcffbb7972e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@cbcffbb7972e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@cbcffbb7972e:/app# if [ -f /app/ilp_output.txt ]; then cat -- /app/ilp_output.txt; else echo '错误: 找不到文件 /app/ilp_output.txt'; fi
+[?2004lInvest A: y
+Invest B: n
+Defer B: n
+Invest C: y
+Maximized NPV: 299.00
+[?2004hroot@cbcffbb7972e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@cbcffbb7972e:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@cbcffbb7972e:/app# 

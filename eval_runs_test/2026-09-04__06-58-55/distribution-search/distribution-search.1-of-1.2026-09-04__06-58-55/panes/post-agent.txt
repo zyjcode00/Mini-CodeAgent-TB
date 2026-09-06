@@ -1,0 +1,347 @@
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# set +e
+root@472702a5a58b:/app#
+root@472702a5a58b:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@472702a5a58b:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@472702a5a58b:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@472702a5a58b:/app#
+root@472702a5a58b:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@472702a5a58b:/app#
+root@472702a5a58b:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@472702a5a58b:/app#
+root@472702a5a58b:/app# mkdir -p /root/.config/uv
+root@472702a5a58b:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@472702a5a58b:/app#
+root@472702a5a58b:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (5542 kB/s)
+Reading package lists... Done
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# ls -l /app || true; python - <<'PY'
+> import os, numpy as np
+> p='/app/dist.npy'
+> print('exists', os.path.exists(p))
+> if os.path.exists(p):
+>     a=np.load(p)
+>     print('shape', a.shape, 'dtype', a.dtype, 'sum', a.sum(), 'min', a.min(), 'max', a.max())
+> PY
+total 0
+exists False
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+nt, float, float, float]:\n    """Find m and levels a,b,c satisfying both KL targets."""\n    # Several initial guesses make the script robust/reproducible.  Th
+e final\n    # solution currently lands at m=5 with one large, five medium, and the rest\n    # tiny probabilities.\n    guesses = [\n        (5, np.array([-1.5
+, -24.0])),\n        (5, np.array([-2.0, -25.0])),\n        (6, np.array([-1.8, -24.0])),\n        (4, np.array([-1.2, -24.5])),\n        (7, np.array([-2.2, -2
+4.0])),\n        (10, np.array([-2.5, -24.0])),\n    ]\n    best = None\n    for m, x0 in guesses:\n        sol = root(lambda x: equations(x, m), x0, method="hy
+br", tol=1e-12)\n        residual = equations(sol.x, m)\n        err = float(np.max(np.abs(residual)))\n        if best is None or err < best[0]:\n            b
+est = (err, m, sol)\n        if sol.success and err < 1e-10:\n            a, b, c = values_from_unconstrained(sol.x, m)\n            return m, a, b, c\n\n    as
+sert best is not None\n    err, m, sol = best\n    raise RuntimeError(f"Could not solve KL equations; best m={m}, err={err}, message={sol.message}")\n\n\ndef bu
+ild_distribution() -> np.ndarray:\n    m, a, b, c = solve_levels()\n    rest = N - 1 - m\n    p = np.empty(N, dtype=np.float64)\n    p[0] = a\n    p[1 : 1 + m]
+= b\n    p[1 + m :] = c\n\n    # Correct any last-bit summation drift without changing positivity.\n    p[-1] += 1.0 - float(p.sum())\n\n    fwd = kl_forward(p)
+\n    bwd = kl_backward(p)\n    if p.shape != (N,) or not np.all(np.isfinite(p)) or np.any(p <= 0):\n        raise RuntimeError("Generated distribution is not s
+trictly positive and finite")\n    if abs(float(p.sum()) - 1.0) > 1e-12:\n        raise RuntimeError(f"Generated distribution is not normalized: sum={p.sum()!r}
+")\n    if abs(fwd - TARGET) > 1e-6 or abs(bwd - TARGET) > 1e-6:\n        raise RuntimeError(f"KL targets not met tightly: forward={fwd}, backward={bwd}")\n\n
+  print(f"m={m}")\n    print(f"levels: a={a:.17g}, b={b:.17g}, c={c:.17g}")\n    print(f"sum={p.sum():.17g}, min={p.min():.17g}, max={p.max():.17g}")\n    print
+(f"forward_kl={fwd:.root@472702a5a58b:/app# python3 - /app/generate_dist.py <<'PY'
+> import os
+ > import sys
+> path = sys.argv[1]
+ N> content = '#!/usr/bin/env python3\n"""Generate a probability distribution with target KL divergences.\n\nWe construct a 150,000-dimensional distribution wit
+h three probability levels:\n  - one high-probability token: a\n  - m medium-probability tokens: b\n  - the remaining tokens: c\n\nFor fixed m, (a, b, c) are de
+termined by three equations:\n  1. total probability is 1\n  2. KL(P || U) = 10\n  3. KL(U || P) = 10\n\nThe root solve is done in transformed variables to main
+tain positivity and the\nnormalization equation is enforced by construction.\n"""\n\nfrom __future__ import annotations\n\nimport numpy as np\nfrom scipy.optimi
+ze import root\n\nN = 150_000\nTARGET = 10.0\nOUT = "/app/dist.npy"\n\n\ndef kl_forward(p: np.ndarray) -> float:\n    """KL(P || U) for uniform U over len(p) it
+ems."""\n    n = p.size\n    return float(np.sum(p * np.log(p * n)))\n\n\ndef kl_backward(p: np.ndarray) -> float:\n    """KL(U || P) for uniform U over len(p)
+items."""\n    n = p.size\n    return float(np.mean(np.log((1.0 / n) / p)))\n\n\ndef values_from_unconstrained(x: np.ndarray, m: int) -> tuple[float, float, flo
+at]:\n    """Map unconstrained x=(u,v) to positive a,b,c summing to 1.\n\n    Let r=exp(u)=b/a and s=exp(v)=c/a. Then\n        a + m*b + rest*c = a * (1 + m*r +
+ rest*s) = 1.\n    """\n    rest = N - 1 - m\n    u, v = x\n    r = np.exp(u)\n    s = np.exp(v)\n    denom = 1.0 + m * r + rest * s\n    a = 1.0 / denom\n    b
+ = r / denom\n    c = s / denom\n    return float(a), float(b), float(c)\n\n\ndef equations(x: np.ndarray, m: int) -> np.ndarray:\n    a, b, c = values_from_unc
+onstrained(x, m)\n    rest = N - 1 - m\n    fwd = a * np.log(a * N) + m * b * np.log(b * N) + rest * c * np.log(c * N)\n    bwd = (np.log(1.0 / (N * a)) + m * n
+p.log(1.0 / (N * b)) + rest * np.log(1.0 / (N * c))) / N\n    return np.array([fwd - TARGET, bwd - TARGET], dtype=np.float64)\n\n\ndef solve_levels() -> tuple[i
+nt, float, float, float]:\n    """Find m and levels a,b,c satisfying both KL targets."""\n    # Several initial guesses make the script robust/reproducible.  Th
+e final\n    # solution currently lands at m=5 with one large, five medium, and the rest\n    # tiny probabilities.\n    guesses = [\n        (5, np.array([-1.5
+, -24.0])),\n        (5, np.array([-2.0, -25.0])),\n        (6, np.array([-1.8, -24.0])),\n        (4, np.array([-1.2, -24.5])),\n        (7, np.array([-2.2, -2
+4.0])),\n        (10, np.array([-2.5, -24.0])),\n    ]\n    best = None\n    for m, x0 in guesses:\n        sol = root(lambda x: equations(x, m), x0, method="hy
+br", tol=1e-12)\n        residual = equations(sol.x, m)\n        err = float(np.max(np.abs(residual)))\n        if best is None or err < best[0]:\n            b
+est = (err, m, sol)\n        if sol.success and err < 1e-10:\n            a, b, c = values_from_unconstrained(sol.x, m)\n            return m, a, b, c\n\n    as
+sert best is not None\n    err, m, sol = best\n    raise RuntimeError(f"Could not solve KL equations; best m={m}, err={err}, message={sol.message}")\n\n\ndef bu
+ild_distribution() -> np.ndarray:\n    m, a, b, c = solve_levels()\n    rest = N - 1 - m\n    p = np.empty(N, dtype=np.float64)\n    p[0] = a\n    p[1 : 1 + m]
+= b\n    p[1 + m :] = c\n\n    # Correct any last-bit summation drift without changing positivity.\n    p[-1] += 1.0 - float(p.sum())\n\n    fwd = kl_forward(p)
+\n    bwd = kl_backward(p)\n    if p.shape != (N,) or not np.all(np.isfinite(p)) or np.any(p <= 0):\n        raise RuntimeError("Generated distribution is not s
+trictly positive and finite")\n    if abs(float(p.sum()) - 1.0) > 1e-12:\n        raise RuntimeError(f"Generated distribution is not normalized: sum={p.sum()!r}
+")\n    if abs(fwd - TARGET) > 1e-6 or abs(bwd - TARGET) > 1e-6:\n        raise RuntimeError(f"KL targets not met tightly: forward={fwd}, backward={bwd}")\n\n
+  print(f"m={m}")\n    print(f"levels: a={a:.17g}, b={b:.17g}, c={c:.17g}")\n    print(f"sum={p.sum():.17g}, min={p.min():.17g}, max={p.max():.17g}")\n    print
+(f"forward_kl={fwd:.17g}")\n    print(f"backward_kl={bwd:.17g}")\n    return p\n\n\ndef main() -> None:\n    p = build_distribution()\n    np.save(OUT, p)\n
+print(f"saved {OUT}")\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/generate_dist.py
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# python3 - /app/generate_dist.py 1 220 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+#!/usr/bin/env python3
+"""Generate a probability distribution with target KL divergences.
+
+We construct a 150,000-dimensional distribution with three probability levels:
+  - one high-probability token: a
+  - m medium-probability tokens: b
+  - the remaining tokens: c
+
+For fixed m, (a, b, c) are determined by three equations:
+  1. total probability is 1
+  2. KL(P || U) = 10
+  3. KL(U || P) = 10
+
+The root solve is done in transformed variables to maintain positivity and the
+normalization equation is enforced by construction.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+from scipy.optimize import root
+
+N = 150_000
+TARGET = 10.0
+OUT = "/app/dist.npy"
+
+
+def kl_forward(p: np.ndarray) -> float:
+    """KL(P || U) for uniform U over len(p) items."""
+    n = p.size
+    return float(np.sum(p * np.log(p * n)))
+
+
+def kl_backward(p: np.ndarray) -> float:
+    """KL(U || P) for uniform U over len(p) items."""
+    n = p.size
+    return float(np.mean(np.log((1.0 / n) / p)))
+
+
+def values_from_unconstrained(x: np.ndarray, m: int) -> tuple[float, float, float]:
+    """Map unconstrained x=(u,v) to positive a,b,c summing to 1.
+
+    Let r=exp(u)=b/a and s=exp(v)=c/a. Then
+        a + m*b + rest*c = a * (1 + m*r + rest*s) = 1.
+    """
+    rest = N - 1 - m
+    u, v = x
+    r = np.exp(u)
+    s = np.exp(v)
+    denom = 1.0 + m * r + rest * s
+    a = 1.0 / denom
+    b = r / denom
+    c = s / denom
+    return float(a), float(b), float(c)
+
+
+def equations(x: np.ndarray, m: int) -> np.ndarray:
+    a, b, c = values_from_unconstrained(x, m)
+    rest = N - 1 - m
+    fwd = a * np.log(a * N) + m * b * np.log(b * N) + rest * c * np.log(c * N)
+    bwd = (np.log(1.0 / (N * a)) + m * np.log(1.0 / (N * b)) + rest * np.log(1.0 / (N * c))) / N
+    return np.array([fwd - TARGET, bwd - TARGET], dtype=np.float64)
+
+
+def solve_levels() -> tuple[int, float, float, float]:
+    """Find m and levels a,b,c satisfying both KL targets."""
+    # Several initial guesses make the script robust/reproducible.  The final
+    # solution currently lands at m=5 with one large, five medium, and the rest
+    # tiny probabilities.
+    guesses = [
+        (5, np.array([-1.5, -24.0])),
+        (5, np.array([-2.0, -25.0])),
+        (6, np.array([-1.8, -24.0])),
+        (4, np.array([-1.2, -24.5])),
+        (7, np.array([-2.2, -24.0])),
+        (10, np.array([-2.5, -24.0])),
+    ]
+    best = None
+    for m, x0 in guesses:
+        sol = root(lambda x: equations(x, m), x0, method="hybr", tol=1e-12)
+        residual = equations(sol.x, m)
+        err = float(np.max(np.abs(residual)))
+        if best is None or err < best[0]:
+            best = (err, m, sol)
+        if sol.success and err < 1e-10:
+            a, b, c = values_from_unconstrained(sol.x, m)
+            return m, a, b, c
+
+    assert best is not None
+    err, m, sol = best
+    raise RuntimeError(f"Could not solve KL equations; best m={m}, err={err}, message={sol.message}")
+
+
+def build_distribution() -> np.ndarray:
+    m, a, b, c = solve_levels()
+    rest = N - 1 - m
+    p = np.empty(N, dtype=np.float64)
+    p[0] = a
+    p[1 : 1 + m] = b
+    p[1 + m :] = c
+
+    # Correct any last-bit summation drift without changing positivity.
+    p[-1] += 1.0 - float(p.sum())
+
+    fwd = kl_forward(p)
+    bwd = kl_backward(p)
+    if p.shape != (N,) or not np.all(np.isfinite(p)) or np.any(p <= 0):
+        raise RuntimeError("Generated distribution is not strictly positive and finite")
+    if abs(float(p.sum()) - 1.0) > 1e-12:
+        raise RuntimeError(f"Generated distribution is not normalized: sum={p.sum()!r}")
+    if abs(fwd - TARGET) > 1e-6 or abs(bwd - TARGET) > 1e-6:
+        raise RuntimeError(f"KL targets not met tightly: forward={fwd}, backward={bwd}")
+
+    print(f"m={m}")
+    print(f"levels: a={a:.17g}, b={b:.17g}, c={c:.17g}")
+    print(f"sum={p.sum():.17g}, min={p.min():.17g}, max={p.max():.17g}")
+    print(f"forward_kl={fwd:.17g}")
+    print(f"backward_kl={bwd:.17g}")
+    return p
+
+
+def main() -> None:
+    p = build_distribution()
+    np.save(OUT, p)
+    print(f"saved {OUT}")
+
+
+if __name__ == "__main__":
+    main()
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# python /app/generate_dist.py
+m=6
+levels: a=0.23251771635083107, b=0.12790615468000796, c=3.0238457208837693e-10
+sum=1, min=3.0238457208837693e-10, max=0.23251771635083107
+forward_kl=9.9999999999999929
+backward_kl=9.9999999999951079
+saved /app/dist.npy
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# python3 - /app/test_dist.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import os\n\nimport numpy as np\n\n\nN = 150_000\nTARGET = 10.0\nTOL = 0.001\nDIST_PATH = "/app/dist.npy"\n\n\ndef forward_kl_from_uniform(p: np.nd
+array) -> float:\n    return float(np.sum(p * np.log(p * N)))\n\n\ndef backward_kl_from_uniform(p: np.ndarray) -> float:\n    return float(np.mean(np.log((1.0 /
+ N) / p)))\n\n\ndef test_distribution_file_exists():\n    assert os.path.exists(DIST_PATH)\n\n\ndef test_distribution_is_valid_probability_vector():\n    p = np
+.load(DIST_PATH)\n    assert p.shape == (N,)\n    assert np.issubdtype(p.dtype, np.floating)\n    assert np.all(np.isfinite(p))\n    assert np.all(p >= 0)\n
+# Backward KL requires strictly positive probabilities.\n    assert np.all(p > 0)\n    assert abs(float(p.sum()) - 1.0) <= 1e-12\n\n\ndef test_distribution_kl_t
+argets():\n    p = np.load(DIST_PATH)\n    fwd = forward_kl_from_uniform(p)\n    bwd = backward_kl_from_uniform(p)\n    assert abs(fwd - TARGET) <= TOL, f"forwa
+rd KL {fwd} differs from {TARGET}"\n    assert abs(bwd - TARGET) <= TOL, f"backward KL {bwd} differs from {TARGET}"\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_dist.py
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# python3 -m pytest -v -- /app/test_dist.py
+/usr/local/bin/python3: No module named pytest
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# python3 - /app/test_dist.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import os\n\nimport numpy as np\n\n\nN = 150_000\nTARGET = 10.0\nTOL = 0.001\nDIST_PATH = "/app/dist.npy"\n\n\ndef forward_kl_from_uniform(p: np.nd
+array) -> float:\n    return float(np.sum(p * np.log(p * N)))\n\n\ndef backward_kl_from_uniform(p: np.ndarray) -> float:\n    return float(np.mean(np.log((1.0 /
+ N) / p)))\n\n\ndef test_distribution_file_exists():\n    assert os.path.exists(DIST_PATH)\n\n\ndef test_distribution_is_valid_probability_vector():\n    p = np
+.load(DIST_PATH)\n    assert p.shape == (N,)\n    assert np.issubdtype(p.dtype, np.floating)\n    assert np.all(np.isfinite(p))\n    assert np.all(p >= 0)\n
+# Backward KL requires strictly positive probabilities.\n    assert np.all(p > 0)\n    assert abs(float(p.sum()) - 1.0) <= 1e-12\n\n\ndef test_distribution_kl_t
+argets():\n    p = np.load(DIST_PATH)\n    fwd = forward_kl_from_uniform(p)\n    bwd = backward_kl_from_uniform(p)\n    assert abs(fwd - TARGET) <= TOL, f"forwa
+rd KL {fwd} differs from {TARGET}"\n    assert abs(bwd - TARGET) <= TOL, f"backward KL {bwd} differs from {TARGET}"\n    print(f"forward_kl={fwd:.17g}")\n    pr
+int(f"backward_kl={bwd:.17g}")\n\n\ndef main():\n    test_distribution_file_exists()\n    test_distribution_is_valid_probability_vector()\n    test_distribution
+_kl_targets()\n    p = np.load(DIST_PATH)\n    print(f"shape={p.shape}, dtype={p.dtype}, sum={p.sum():.17g}, min={p.min():.17g}, max={p.max():.17g}")\n    print
+("all validation tests passed")\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_dist.py
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@472702a5a58b:/app# python /app/test_dist.py
+forward_kl=9.9999999999999929
+backward_kl=9.9999999999951079
+shape=(150000,), dtype=float64, sum=1, min=3.0238457208837693e-10, max=0.23251771635083107
+all validation tests passed
+root@472702a5a58b:/app# true; tmux wait -S done
+root@472702a5a58b:/app#

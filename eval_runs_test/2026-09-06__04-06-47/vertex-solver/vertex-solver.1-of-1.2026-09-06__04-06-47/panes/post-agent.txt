@@ -1,0 +1,520 @@
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# set +e
+root@cf64f44511b7:/app#
+root@cf64f44511b7:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@cf64f44511b7:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@cf64f44511b7:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@cf64f44511b7:/app#
+root@cf64f44511b7:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@cf64f44511b7:/app#
+root@cf64f44511b7:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@cf64f44511b7:/app#
+root@cf64f44511b7:/app# mkdir -p /root/.config/uv
+root@cf64f44511b7:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@cf64f44511b7:/app#
+root@cf64f44511b7:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [336 kB]
+Fetched 9375 kB in 2s (4262 kB/s)
+Reading package lists... Done
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# find /app -maxdepth 1 -type f | sed 's#^#/##' | sort | head -200 && echo '--- counts ---' && ls /app/A_*.csv 2>/dev/null | wc -l && ls /
+app/b_*.csv 2>/dev/null | wc -l && echo '--- sample shapes ---' && python - <<'PY'
+> import glob, numpy as np, os, re
+> As=sorted(glob.glob('/app/A_*.csv'), key=lambda p:int(re.search(r'A_(\d+)\.csv$',p).group(1)) if re.search(r'A_(\d+)\.csv$',p) else -1)
+> bs=sorted(glob.glob('/app/b_*.csv'), key=lambda p:int(re.search(r'b_(\d+)\.csv$',p).group(1)) if re.search(r'b_(\d+)\.csv$',p) else -1)
+> print('first A:', As[:3])
+> print('last A:', As[-3:])
+> print('first b:', bs[:3])
+> print('last b:', bs[-3:])
+> for p in (As[:1]+bs[:1]):
+>     arr=np.loadtxt(p, delimiter=',')
+>     print(os.path.basename(p), arr.shape, arr[:2] if arr.ndim>1 else arr[:5])
+> print('indices A', [int(re.search(r'A_(\d+)\.csv$',p).group(1)) for p in As[:10]], '...', [int(re.search(r'A_(\d+)\.csv$',p).group(1)) for p in As[-10:]])
+> print('indices b', [int(re.search(r'b_(\d+)\.csv$',p).group(1)) for p in bs[:10]], '...', [int(re.search(r'b_(\d+)\.csv$',p).group(1)) for p in bs[-10:]])
+> PY
+//app/A_0.csv
+//app/A_1.csv
+//app/A_2.csv
+//app/b_0.csv
+//app/b_1.csv
+//app/b_2.csv
+--- counts ---
+3
+3
+--- sample shapes ---
+first A: ['/app/A_0.csv', '/app/A_1.csv', '/app/A_2.csv']
+last A: ['/app/A_0.csv', '/app/A_1.csv', '/app/A_2.csv']
+first b: ['/app/b_0.csv', '/app/b_1.csv', '/app/b_2.csv']
+last b: ['/app/b_0.csv', '/app/b_1.csv', '/app/b_2.csv']
+A_0.csv (6, 40) [[ 0.09762701  0.43037873  0.20552675  0.08976637 -0.1526904   0.29178823
+  -0.12482558  0.783546    0.92732552 -0.23311696  0.58345008  0.05778984
+   0.13608912  0.85119328 -0.85792788 -0.8257414  -0.95956321  0.66523969
+   0.5563135   0.7400243   0.95723668  0.59831713 -0.07704128  0.56105835
+  -0.76345115  0.27984204 -0.71329343  0.88933783  0.04369664 -0.17067612
+  -0.47088878  0.54846738 -0.08769934  0.1368679  -0.9624204   0.23527099
+   0.22419145  0.23386799  0.88749616  0.3636406 ]
+ [-0.2809842  -0.12593609  0.39526239 -0.87954906  0.33353343  0.34127574
+  -0.57923488 -0.7421474  -0.3691433  -0.27257846  0.14039354 -0.12279697
+   0.97674768 -0.79591038 -0.58224649 -0.67738096  0.30621665 -0.49341679
+  -0.06737845 -0.51114882 -0.68206083 -0.77924972  0.31265918 -0.7236341
+  -0.60683528 -0.26254966  0.64198646 -0.80579745  0.67588981 -0.80780318
+   0.95291893 -0.0626976   0.95352218  0.20969104  0.47852716 -0.92162442
+  -0.43438607 -0.75960688 -0.4077196  -0.76254456]]
+b_0.csv (6,) [ 0.72771121 -0.76493629  0.03475821 -0.73586379  0.43371936]
+indices A [0, 1, 2] ... [0, 1, 2]
+indices b [0, 1, 2] ... [0, 1, 2]
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+def count_corners_for_instance(A: np.ndarray, b: np.ndarray) -> int:\n    """Count all 6-variable basic feasible solutions for one instance."""\n    A = np.asar
+ray(A, dtype=float)\n    b = np.asarray(b, dtype=float).reshape(-1)\n    if A.shape != (N_ROWS, N_COLS):\n        raise ValueError(f"Expected A shape {(N_ROWS,
+N_COLS)}, got {A.shape}")\n    if b.shape != (N_ROWS,):\n        raise ValueError(f"Expected b shape {(N_ROWS,)}, got {b.shape}")\n\n    count = 0\n    rhs = np
+.broadcast_to(b, (BATCH_SIZE, N_ROWS))\n    for combos in batched(itertools.combinations(range(N_COLS), BASIS_SIZE), BATCH_SIZE):\n        # A[:, combos] would
+create axes in an inconvenient order; transpose to\n        # obtain a stack of square matrices with shape (batch, 6, 6).\n        matrices = A[:, combos].trans
+pose(2, 0, 1)\n        try:\n            solutions = np.linalg.solve(matrices, rhs[: len(combos)])\n            feasible = np.all(solutions >= -TOL, axis=1)\n
+          count += int(np.count_nonzero(feasible))\n        except np.linalg.LinAlgError:\n            # Random continuous matrices are nonsingular almost surel
+y, but this\n            # fallback handles any singular candidate bases safely.\n            for combo in combos:\n                matrix = A[:, combo]\n
+          try:\n                    solution = np.linalg.solve(matrix, b)\n                except np.linalg.LinAlgError:\n                    continue\n
+        if np.all(solution >= -TOL):\n                    count += 1\n    return count\n\n\ndef main() -> None:\n    indices = instance_indices()\n    if not in
+dices:\n        raise FileNotFoundError("No /app/A_i.csv and /app/b_i.csv instances found")\n\n    counts: list[int] = []\n    for i in indices:\n        A = np
+.loadtxt(os.path.join(APP_DIR, f"A_{i}.csv"), delimiter=",")\n        b = np.loadtxt(os.path.join(APP_DIR, f"b_{i}.csv"), delimiter=",")\n        count = count_
+corners_for_instance(A, b)\n        counts.append(count)\n        print(f"instance {i}: {count}", flush=True)\n\n    output_path = os.path.join(APP_DIR, "corner
+_counts.txt")\n    wroot@cf64f44511b7:/app# python3 - /app/count_corners.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Count basic feasible corner points for LP instances A_i x = b_i, x >= 0.\n\nFor each matching /app/A_i.csv and /app/b_i.
+csv pair, every 6-column basis is\nexamined.  The number of bases whose basic solution is componentwise\nnonnegative is written to /app/corner_counts.txt, one i
+nteger per line.\n"""\n\nfrom __future__ import annotations\n\nimport glob\nimport itertools\nimport os\nimport re\nfrom typing import Iterable, Iterator\n\nimp
+ort numpy as np\n\nAPP_DIR = "/app"\nN_ROWS = 6\nN_COLS = 40\nBASIS_SIZE = 6\nBATCH_SIZE = 100_000\nTOL = 1e-9\n\n\ndef instance_indices() -> list[int]:\n    ""
+"Return sorted indices i for which both A_i.csv and b_i.csv exist."""\n    a_indices: set[int] = set()\n    b_indices: set[int] = set()\n    a_re = re.compile(r
+"A_(\\d+)\\.csv$")\n    b_re = re.compile(r"b_(\\d+)\\.csv$")\n\n    for path in glob.glob(os.path.join(APP_DIR, "A_*.csv")):\n        match = a_re.search(os.pa
+th.basename(path))\n        if match:\n            a_indices.add(int(match.group(1)))\n    for path in glob.glob(os.path.join(APP_DIR, "b_*.csv")):\n        mat
+ch = b_re.search(os.path.basename(path))\n        if match:\n            b_indices.add(int(match.group(1)))\n\n    if a_indices != b_indices:\n        missing_b
+ = sorted(a_indices - b_indices)\n        missing_a = sorted(b_indices - a_indices)\n        raise FileNotFoundError(\n            f"Mismatched A/b files: missi
+ng b for {missing_b}, missing A for {missing_a}"\n        )\n    return sorted(a_indices)\n\n\ndef batched(iterable: Iterable[tuple[int, ...]], batch_size: int)
+ -> Iterator[np.ndarray]:\n    """Yield combinations from iterable as int arrays of shape (<=batch_size, 6)."""\n    iterator = iter(iterable)\n    while True:\
+n        chunk = list(itertools.islice(iterator, batch_size))\n        if not chunk:\n            return\n        yield np.asarray(chunk, dtype=np.intp)\n\n\nde
+f count_corners_for_instance(A: np.ndarray, b: np.ndarray) -> int:\n    """Count all 6-variable basic feasible solutions for one instance."""\n    A = np.asarra
+y(A, dtype=float)\n    b = np.asarray(b, dtype=float).reshape(-1)\n    if A.shape != (N_ROWS, N_COLS):\n        raise ValueError(f"Expected A shape {(N_ROWS, N_
+COLS)}, got {A.shape}")\n    if b.shape != (N_ROWS,):\n        raise ValueError(f"Expected b shape {(N_ROWS,)}, got {b.shape}")\n\n    count = 0\n    rhs = np.b
+roadcast_to(b, (BATCH_SIZE, N_ROWS))\n    for combos in batched(itertools.combinations(range(N_COLS), BASIS_SIZE), BATCH_SIZE):\n        # A[:, combos] would cr
+eate axes in an inconvenient order; transpose to\n        # obtain a stack of square matrices with shape (batch, 6, 6).\n        matrices = A[:, combos].transpo
+se(2, 0, 1)\n        try:\n            solutions = np.linalg.solve(matrices, rhs[: len(combos)])\n            feasible = np.all(solutions >= -TOL, axis=1)\n
+        count += int(np.count_nonzero(feasible))\n        except np.linalg.LinAlgError:\n            # Random continuous matrices are nonsingular almost surely,
+ but this\n            # fallback handles any singular candidate bases safely.\n            for combo in combos:\n                matrix = A[:, combo]\n
+        try:\n                    solution = np.linalg.solve(matrix, b)\n                except np.linalg.LinAlgError:\n                    continue\n
+      if np.all(solution >= -TOL):\n                    count += 1\n    return count\n\n\ndef main() -> None:\n    indices = instance_indices()\n    if not indi
+ces:\n        raise FileNotFoundError("No /app/A_i.csv and /app/b_i.csv instances found")\n\n    counts: list[int] = []\n    for i in indices:\n        A = np.l
+oadtxt(os.path.join(APP_DIR, f"A_{i}.csv"), delimiter=",")\n        b = np.loadtxt(os.path.join(APP_DIR, f"b_{i}.csv"), delimiter=",")\n        count = count_co
+rners_for_instance(A, b)\n        counts.append(count)\n        print(f"instance {i}: {count}", flush=True)\n\n    output_path = os.path.join(APP_DIR, "corner_c
+ounts.txt")\n    with open(output_path, "w", encoding="utf-8") as f:\n        for count in counts:\n            f.write(f"{count}\\n")\n\n\nif __name__ == "__ma
+in__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/count_corners.py
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# if [ -f /app/count_corners.py ]; then cat -- /app/count_corners.py; else echo '错误: 找不到文件 /app/count_corners.py'; fi
+#!/usr/bin/env python3
+"""Count basic feasible corner points for LP instances A_i x = b_i, x >= 0.
+
+For each matching /app/A_i.csv and /app/b_i.csv pair, every 6-column basis is
+examined.  The number of bases whose basic solution is componentwise
+nonnegative is written to /app/corner_counts.txt, one integer per line.
+"""
+
+from __future__ import annotations
+
+import glob
+import itertools
+import os
+import re
+from typing import Iterable, Iterator
+
+import numpy as np
+
+APP_DIR = "/app"
+N_ROWS = 6
+N_COLS = 40
+BASIS_SIZE = 6
+BATCH_SIZE = 100_000
+TOL = 1e-9
+
+
+def instance_indices() -> list[int]:
+    """Return sorted indices i for which both A_i.csv and b_i.csv exist."""
+    a_indices: set[int] = set()
+    b_indices: set[int] = set()
+    a_re = re.compile(r"A_(\d+)\.csv$")
+    b_re = re.compile(r"b_(\d+)\.csv$")
+
+    for path in glob.glob(os.path.join(APP_DIR, "A_*.csv")):
+        match = a_re.search(os.path.basename(path))
+        if match:
+            a_indices.add(int(match.group(1)))
+    for path in glob.glob(os.path.join(APP_DIR, "b_*.csv")):
+        match = b_re.search(os.path.basename(path))
+        if match:
+            b_indices.add(int(match.group(1)))
+
+    if a_indices != b_indices:
+        missing_b = sorted(a_indices - b_indices)
+        missing_a = sorted(b_indices - a_indices)
+        raise FileNotFoundError(
+            f"Mismatched A/b files: missing b for {missing_b}, missing A for {missing_a}"
+        )
+    return sorted(a_indices)
+
+
+def batched(iterable: Iterable[tuple[int, ...]], batch_size: int) -> Iterator[np.ndarray]:
+    """Yield combinations from iterable as int arrays of shape (<=batch_size, 6)."""
+    iterator = iter(iterable)
+    while True:
+        chunk = list(itertools.islice(iterator, batch_size))
+        if not chunk:
+            return
+        yield np.asarray(chunk, dtype=np.intp)
+
+
+def count_corners_for_instance(A: np.ndarray, b: np.ndarray) -> int:
+    """Count all 6-variable basic feasible solutions for one instance."""
+    A = np.asarray(A, dtype=float)
+    b = np.asarray(b, dtype=float).reshape(-1)
+    if A.shape != (N_ROWS, N_COLS):
+        raise ValueError(f"Expected A shape {(N_ROWS, N_COLS)}, got {A.shape}")
+    if b.shape != (N_ROWS,):
+        raise ValueError(f"Expected b shape {(N_ROWS,)}, got {b.shape}")
+
+    count = 0
+    rhs = np.broadcast_to(b, (BATCH_SIZE, N_ROWS))
+    for combos in batched(itertools.combinations(range(N_COLS), BASIS_SIZE), BATCH_SIZE):
+        # A[:, combos] would create axes in an inconvenient order; transpose to
+        # obtain a stack of square matrices with shape (batch, 6, 6).
+        matrices = A[:, combos].transpose(2, 0, 1)
+        try:
+            solutions = np.linalg.solve(matrices, rhs[: len(combos)])
+            feasible = np.all(solutions >= -TOL, axis=1)
+            count += int(np.count_nonzero(feasible))
+        except np.linalg.LinAlgError:
+            # Random continuous matrices are nonsingular almost surely, but this
+            # fallback handles any singular candidate bases safely.
+            for combo in combos:
+                matrix = A[:, combo]
+                try:
+                    solution = np.linalg.solve(matrix, b)
+                except np.linalg.LinAlgError:
+                    continue
+                if np.all(solution >= -TOL):
+                    count += 1
+    return count
+
+
+def main() -> None:
+    indices = instance_indices()
+    if not indices:
+        raise FileNotFoundError("No /app/A_i.csv and /app/b_i.csv instances found")
+
+    counts: list[int] = []
+    for i in indices:
+        A = np.loadtxt(os.path.join(APP_DIR, f"A_{i}.csv"), delimiter=",")
+        b = np.loadtxt(os.path.join(APP_DIR, f"b_{i}.csv"), delimiter=",")
+        count = count_corners_for_instance(A, b)
+        counts.append(count)
+        print(f"instance {i}: {count}", flush=True)
+
+    output_path = os.path.join(APP_DIR, "corner_counts.txt")
+    with open(output_path, "w", encoding="utf-8") as f:
+        for count in counts:
+            f.write(f"{count}\n")
+
+
+if __name__ == "__main__":
+    main()
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python /app/count_corners.py
+instance 0: 81618
+instance 1: 62762
+instance 2: 46940
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python3 - /app/test_corner_counts.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Validation tests for /app/corner_counts.txt."""\n\nfrom __future__ import annotations\n\nimport glob\nimport itertools\n
+import math\nimport os\nimport re\n\nimport numpy as np\n\nfrom count_corners import count_corners_for_instance, instance_indices\n\n\ndef test_output_loadable_
+and_basic_format() -> None:\n    path = "/app/corner_counts.txt"\n    assert os.path.exists(path), "corner_counts.txt was not created"\n\n    with open(path, "r
+", encoding="utf-8") as f:\n        lines = f.read().splitlines()\n    assert lines, "corner_counts.txt is empty"\n    assert all(re.fullmatch(r"\\d+", line) fo
+r line in lines), lines\n\n    values = np.loadtxt(path)\n    values = np.atleast_1d(values)\n    assert values.shape == (len(instance_indices()),)\n    assert
+np.all(values == np.floor(values))\n    assert np.all(values >= 0)\n    assert np.all(values <= math.comb(40, 6))\n\n\ndef test_counts_match_recomputed_instance
+s() -> None:\n    values = np.atleast_1d(np.loadtxt("/app/corner_counts.txt")).astype(int)\n    indices = instance_indices()\n    assert len(values) == len(indi
+ces)\n    recomputed = []\n    for i in indices:\n        A = np.loadtxt(f"/app/A_{i}.csv", delimiter=",")\n        b = np.loadtxt(f"/app/b_{i}.csv", delimiter=
+",")\n        recomputed.append(count_corners_for_instance(A, b))\n    assert values.tolist() == recomputed\n\n\ndef test_count_function_on_known_small_embedded
+_cases() -> None:\n    # Build a 6x40 matrix where first 6 variables satisfy x=b>=0.  Other columns\n    # are zero, so only the first six-column basis is nonsi
+ngular and feasible.\n    A = np.zeros((6, 40), dtype=float)\n    A[:, :6] = np.eye(6)\n    b = np.arange(1, 7, dtype=float)\n    assert count_corners_for_insta
+nce(A, b) == 1\n\n    # With negative b, that one nonsingular basis is not feasible.\n    assert count_corners_for_instance(A, -b) == 0\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_corner_counts.py
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+pe=np.intp)\n\n\ndef count_corners_for_instance(A: np.ndarray, b: np.ndarray) -> int:\n    """Count all 6-variable basic feasible solutions for one instance.\n\
+n    Singular bases are skipped because they do not define a unique basic\n    solution.  Random continuous input matrices are nonsingular almost surely,\n    b
+ut explicitly screening determinants keeps the function robust for tests\n    and any degenerate data.\n    """\n    A = np.asarray(A, dtype=float)\n    b = np.
+asarray(b, dtype=float).reshape(-1)\n    if A.shape != (N_ROWS, N_COLS):\n        raise ValueError(f"Expected A shape {(N_ROWS, N_COLS)}, got {A.shape}")\n    i
+f b.shape != (N_ROWS,):\n        raise ValueError(f"Expected b shape {(N_ROWS,)}, got {b.shape}")\n\n    count = 0\n    for combos in batched(itertools.combinat
+ions(range(N_COLS), BASIS_SIZE), BATCH_SIZE):\n        # A[:, combos] creates shape (6, 6, batch); transpose to a stack of\n        # square matrices with shape
+ (batch, 6, 6).\n        matrices = A[:, combos].transpose(2, 0, 1)\n        nonsingular = np.abs(np.linalg.det(matrices)) > DET_TOL\n        if not np.any(nons
+ingular):\n            continue\n\n        selected = matrices[nonsingular]\n        rhs = np.broadcast_to(b, (len(selected), N_ROWS))\n        try:\n
+  solutions = np.linalg.solve(selected, rhs)\n        except np.linalg.LinAlgError:\n            # Very rare numerical fallback for matrices that pass the deter
+minant\n            # threshold but are still rejected by LAPACK.\n            for matrix in selected:\n                try:\n                    solution = np.
+linalg.solve(matrix, b)\n                except np.linalg.LinAlgError:\n                    continue\n                if np.all(solution >= -TOL):\n
+        count += 1\n            continue\n\n        feasible = np.all(solutions >= -TOL, axis=1)\n        count += int(np.count_nonzero(feasible))\n    return c
+ount\n\n\ndef main() -> None:\n    indices = instance_indices()\n    if not indices:\n        raise FileNotFoundError("No /app/A_i.csv and /app/b_i.csv instance
+s found")\n\n    couroot@cf64f44511b7:/app# python3 - /app/count_corners.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Count basic feasible corner points for LP instances A_i x = b_i, x >= 0.\n\nFor each matching /app/A_i.csv and /app/b_i.
+csv pair, every 6-column basis is\nexamined.  The number of bases whose basic solution is componentwise\nnonnegative is written to /app/corner_counts.txt, one i
+nteger per line.\n"""\n\nfrom __future__ import annotations\n\nimport glob\nimport itertools\nimport os\nimport re\nfrom typing import Iterable, Iterator\n\nimp
+ort numpy as np\n\nAPP_DIR = "/app"\nN_ROWS = 6\nN_COLS = 40\nBASIS_SIZE = 6\nBATCH_SIZE = 100_000\nTOL = 1e-9\nDET_TOL = 1e-12\n\n\ndef instance_indices() -> l
+ist[int]:\n    """Return sorted indices i for which both A_i.csv and b_i.csv exist."""\n    a_indices: set[int] = set()\n    b_indices: set[int] = set()\n    a_
+re = re.compile(r"A_(\\d+)\\.csv$")\n    b_re = re.compile(r"b_(\\d+)\\.csv$")\n\n    for path in glob.glob(os.path.join(APP_DIR, "A_*.csv")):\n        match =
+a_re.search(os.path.basename(path))\n        if match:\n            a_indices.add(int(match.group(1)))\n    for path in glob.glob(os.path.join(APP_DIR, "b_*.csv
+")):\n        match = b_re.search(os.path.basename(path))\n        if match:\n            b_indices.add(int(match.group(1)))\n\n    if a_indices != b_indices:\n
+        missing_b = sorted(a_indices - b_indices)\n        missing_a = sorted(b_indices - a_indices)\n        raise FileNotFoundError(\n            f"Mismatched
+ A/b files: missing b for {missing_b}, missing A for {missing_a}"\n        )\n    return sorted(a_indices)\n\n\ndef batched(iterable: Iterable[tuple[int, ...]],
+ batch_size: int) -> Iterator[np.ndarray]:\n    """Yield combinations from iterable as int arrays of shape (<=batch_size, 6)."""\n    iterator = iter(iterable)\
+n    while True:\n        chunk = list(itertools.islice(iterator, batch_size))\n        if not chunk:\n            return\n        yield np.asarray(chunk, dtype
+=np.intp)\n\n\ndef count_corners_for_instance(A: np.ndarray, b: np.ndarray) -> int:\n    """Count all 6-variable basic feasible solutions for one instance.\n\n
+   Singular bases are skipped because they do not define a unique basic\n    solution.  Random continuous input matrices are nonsingular almost surely,\n    but
+ explicitly screening determinants keeps the function robust for tests\n    and any degenerate data.\n    """\n    A = np.asarray(A, dtype=float)\n    b = np.as
+array(b, dtype=float).reshape(-1)\n    if A.shape != (N_ROWS, N_COLS):\n        raise ValueError(f"Expected A shape {(N_ROWS, N_COLS)}, got {A.shape}")\n    if
+b.shape != (N_ROWS,):\n        raise ValueError(f"Expected b shape {(N_ROWS,)}, got {b.shape}")\n\n    count = 0\n    for combos in batched(itertools.combinatio
+ns(range(N_COLS), BASIS_SIZE), BATCH_SIZE):\n        # A[:, combos] creates shape (6, 6, batch); transpose to a stack of\n        # square matrices with shape (
+batch, 6, 6).\n        matrices = A[:, combos].transpose(2, 0, 1)\n        nonsingular = np.abs(np.linalg.det(matrices)) > DET_TOL\n        if not np.any(nonsin
+gular):\n            continue\n\n        selected = matrices[nonsingular]\n        rhs = np.broadcast_to(b, (len(selected), N_ROWS))\n        try:\n
+solutions = np.linalg.solve(selected, rhs)\n        except np.linalg.LinAlgError:\n            # Very rare numerical fallback for matrices that pass the determi
+nant\n            # threshold but are still rejected by LAPACK.\n            for matrix in selected:\n                try:\n                    solution = np.li
+nalg.solve(matrix, b)\n                except np.linalg.LinAlgError:\n                    continue\n                if np.all(solution >= -TOL):\n
+      count += 1\n            continue\n\n        feasible = np.all(solutions >= -TOL, axis=1)\n        count += int(np.count_nonzero(feasible))\n    return cou
+nt\n\n\ndef main() -> None:\n    indices = instance_indices()\n    if not indices:\n        raise FileNotFoundError("No /app/A_i.csv and /app/b_i.csv instances
+found")\n\n    counts: list[int] = []\n    for i in indices:\n        A = np.loadtxt(os.path.join(APP_DIR, f"A_{i}.csv"), delimiter=",")\n        b = np.loadtxt
+(os.path.join(APP_DIR, f"b_{i}.csv"), delimiter=",")\n        count = count_corners_for_instance(A, b)\n        counts.append(count)\n        print(f"instance {
+i}: {count}", flush=True)\n\n    output_path = os.path.join(APP_DIR, "corner_counts.txt")\n    with open(output_path, "w", encoding="utf-8") as f:\n        for
+count in counts:\n            f.write(f"{count}\\n")\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/count_corners.py
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python3 -m pytest -v -- /app/test_corner_counts.py
+/usr/local/bin/python3: No module named pytest
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python /app/count_corners.py && python - <<'PY'
+> import importlib.util
+> spec = importlib.util.spec_from_file_location('test_corner_counts', '/app/test_corner_counts.py')
+> mod = importlib.util.module_from_spec(spec)
+> spec.loader.exec_module(mod)
+> for name in sorted(n for n in dir(mod) if n.startswith('test_')):
+>     print(f'RUN {name}', flush=True)
+>     getattr(mod, name)()
+>     print(f'PASS {name}', flush=True)
+> print('ALL TESTS PASSED')
+> PY
+Traceback (most recent call last):
+  File "/app/count_corners.py", line 128, in <module>
+    main()
+  File "/app/count_corners.py", line 117, in main
+    count = count_corners_for_instance(A, b)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/count_corners.py", line 83, in count_corners_for_instance
+    nonsingular = np.abs(np.linalg.det(matrices)) > DET_TOL
+                         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numpy/linalg/_linalg.py", line 2427, in det
+    _assert_stacked_square(a)
+  File "/usr/local/lib/python3.12/site-packages/numpy/linalg/_linalg.py", line 264, in _assert_stacked_square
+    raise LinAlgError('Last 2 dimensions of the array must be square')
+numpy.linalg.LinAlgError: Last 2 dimensions of the array must be square
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python3 - /app/count_corners.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = '        # A[:, combos] creates shape (6, 6, batch); transpose to a stack of\n        # square matrices with shape (batch, 6, 6).\n        matrices
+= A[:, combos].transpose(2, 0, 1)\n'
+> new_str = '        # A.T[combos] has shape (batch, 6, 6), with basis columns as rows;\n        # transpose each small matrix so it represents A[:, combo].\n
+      matrices = A.T[combos].transpose(0, 2, 1)\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/count_corners.py。修改已持久化。
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python /app/count_corners.py && python - <<'PY'
+> import importlib.util
+> spec = importlib.util.spec_from_file_location('test_corner_counts', '/app/test_corner_counts.py')
+> mod = importlib.util.module_from_spec(spec)
+> spec.loader.exec_module(mod)
+> for name in sorted(n for n in dir(mod) if n.startswith('test_')):
+>     print(f'RUN {name}', flush=True)
+>     getattr(mod, name)()
+>     print(f'PASS {name}', flush=True)
+> print('ALL TESTS PASSED')
+> PY
+Traceback (most recent call last):
+  File "/app/count_corners.py", line 128, in <module>
+    main()
+  File "/app/count_corners.py", line 117, in main
+    count = count_corners_for_instance(A, b)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/count_corners.py", line 90, in count_corners_for_instance
+    solutions = np.linalg.solve(selected, rhs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numpy/linalg/_linalg.py", line 471, in solve
+    r = gufunc(a, b, signature=signature)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: solve: Input operand 1 has a mismatch in its core dimension 0, with gufunc signature (m,m),(m,n)->(m,n) (size 100000 is different from 6)
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python3 - /app/count_corners.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = '        selected = matrices[nonsingular]\n        rhs = np.broadcast_to(b, (len(selected), N_ROWS))\n        try:\n            solutions = np.linal
+g.solve(selected, rhs)\n'
+> new_str = '        selected = matrices[nonsingular]\n        rhs = np.broadcast_to(b, (len(selected), N_ROWS))[..., None]\n        try:\n            solutions
+ = np.linalg.solve(selected, rhs).squeeze(-1)\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/count_corners.py。修改已持久化。
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@cf64f44511b7:/app# python /app/count_corners.py && python - <<'PY'
+> import importlib.util
+> spec = importlib.util.spec_from_file_location('test_corner_counts', '/app/test_corner_counts.py')
+> mod = importlib.util.module_from_spec(spec)
+> spec.loader.exec_module(mod)
+> for name in sorted(n for n in dir(mod) if n.startswith('test_')):
+>     print(f'RUN {name}', flush=True)
+>     getattr(mod, name)()
+>     print(f'PASS {name}', flush=True)
+> print('ALL TESTS PASSED')
+> PY
+instance 0: 81618
+instance 1: 62762
+instance 2: 46940
+RUN test_count_function_on_known_small_embedded_cases
+PASS test_count_function_on_known_small_embedded_cases
+RUN test_counts_match_recomputed_instances
+PASS test_counts_match_recomputed_instances
+RUN test_output_loadable_and_basic_format
+PASS test_output_loadable_and_basic_format
+ALL TESTS PASSED
+root@cf64f44511b7:/app# true; tmux wait -S done
+root@cf64f44511b7:/app#

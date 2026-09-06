@@ -131,12 +131,23 @@ class AgentEngine:
         if self.is_openai_compat:
             oa_tools = [{"type": "function", "function": {"name": t["name"], "description": t["description"], "parameters": t["input_schema"]}} for t in self.tool_specs]
 
-            # 使用 await 调用异步客户端
-            resp = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "system", "content": system_ptr}] + messages_snapshot,
-                tools=oa_tools if oa_tools else None
-            )
+            # 使用 await 调用异步客户端（带超时保护 + 自动重试一次）
+            timeout_seconds = float(os.getenv("MAIN_LLM_TIMEOUT", "120"))
+            for _attempt in range(3):
+                try:
+                    resp = await asyncio.wait_for(
+                        self.client.chat.completions.create(
+                            model=self.model,
+                            messages=[{"role": "system", "content": system_ptr}] + messages_snapshot,
+                            tools=oa_tools if oa_tools else None
+                        ),
+                        timeout=timeout_seconds
+                    )
+                    break
+                except asyncio.TimeoutError:
+                    if _attempt == 1:
+                        raise
+                    print(f"[⚠️] 主 LLM 调用超时 ({timeout_seconds:g}s)，自动重试...")
 
             msg = resp.choices[0].message
             # 🔥 修复：转换为字典格式，避免后续 .get() 报错
@@ -175,11 +186,22 @@ class AgentEngine:
 
         else:
             # Anthropic 异步调用
-            # 🔥🔥🔥 Phase 4: 使用快照确保并发安全
-            resp = await self.client.messages.create(
-                model=self.model, system=system_ptr, tools=self.tool_specs,
-                messages=messages_snapshot, max_tokens=4096
-            )
+            # 🔥🔥🔥 Phase 4: 使用快照确保并发安全（带超时保护 + 自动重试一次）
+            timeout_seconds = float(os.getenv("MAIN_LLM_TIMEOUT", "120"))
+            for _attempt in range(3):
+                try:
+                    resp = await asyncio.wait_for(
+                        self.client.messages.create(
+                            model=self.model, system=system_ptr, tools=self.tool_specs,
+                            messages=messages_snapshot, max_tokens=4096
+                        ),
+                        timeout=timeout_seconds
+                    )
+                    break
+                except asyncio.TimeoutError:
+                    if _attempt == 1:
+                        raise
+                    print(f"[⚠️] 主 LLM 调用超时 ({timeout_seconds:g}s)，自动重试...")
             return resp.content, resp.stop_reason
 
     async def execute_query(self, user_input: str):
@@ -221,7 +243,14 @@ class AgentEngine:
 
             # 这里必须 await！
             # 🔥 修改：传递 user_input 用于 CLAUDE.md 按需注入
-            content_blocks, stop_reason = await self._call_llm(relevant_history, user_input=user_input)
+            try:
+                content_blocks, stop_reason = await self._call_llm(relevant_history, user_input=user_input)
+            except asyncio.TimeoutError:
+                # 🔥🔥🔥 主 LLM 连续超时：终止 Agent 循环，保留容器内已完成改动，让测试阶段判分
+                print(" [🛑] 主 LLM 调用连续超时，终止 Agent 循环")
+                self.save_session()
+                return ("主 LLM 调用连续超时，任务在此终止。"
+                        "已完成的文件改动已保留在容器中。")
 
             if self.is_openai_compat and self.last_oa_msg:
                 self.context.add_message(self.last_oa_msg)
@@ -275,6 +304,14 @@ class AgentEngine:
                 # 如果工具执行失败，删除已添加的 assistant 消息，避免孤立
                 try:
                     results = await asyncio.gather(*tasks)
+                except ExecutorShutdownError as shutdown_exc:
+                    # 🔥🔥🔥 关键修复：会话执行后端已关闭（cannot schedule new futures）。
+                    # 此时任何工具调用都不可能再成功，继续让 LLM 重试只会死循环直到 harness 超时。
+                    # 正确做法：立即终止 Agent 循环，保留已在容器内完成的文件改动，让测试阶段正常判分。
+                    print(f" [🛑] 会话执行后端已关闭，终止 Agent 循环: {shutdown_exc}")
+                    self.save_session()
+                    return ("会话执行后端已关闭，任务在此终止。"
+                            "已完成的文件改动已保留在容器中。")
                 except Exception as tool_exec_error:
                     print(f" [❌] 工具执行异常: {tool_exec_error}")
 

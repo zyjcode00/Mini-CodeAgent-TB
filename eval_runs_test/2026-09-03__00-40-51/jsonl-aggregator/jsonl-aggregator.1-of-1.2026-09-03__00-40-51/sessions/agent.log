@@ -1,0 +1,466 @@
+[?2004hroot@4c37174160ca:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@4c37174160ca:/app# clear
+[?2004l[H[J[3J[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# set +e
+[?2004l[?2004hroot@4c37174160ca:/app# 
+[?2004l[?2004hroot@4c37174160ca:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@4c37174160ca:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@4c37174160ca:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@4c37174160ca:/app# 
+[?2004l[?2004hroot@4c37174160ca:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@4c37174160ca:/app# 
+[?2004l[?2004hroot@4c37174160ca:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@4c37174160ca:/app# 
+[?2004l[?2004hroot@4c37174160ca:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@4c37174160ca:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@4c37174160ca:/app# 
+[?2004l[?2004hroot@4c37174160ca:/app# apt-get update || true
+[?2004l0% [Working]0% [Connecting to archive.ubuntu.com (91.189.91.81)] [Connecting to security.ubuntu.com (91.189.91.82)]                                                                                                       Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+                                                                                                       0% [Waiting for headers] [1 InRelease 8192 B/126 kB 6%]                                                       Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+0% [2 InRelease 2588 B/256 kB 1%] [1 InRelease 14.2 kB/126 kB 11%]0% [2 InRelease 15.6 kB/256 kB 6%] [1 InRelease 54.7 kB/126 kB 43%]                                                                   0% [2 InRelease 104 kB/256 kB 41%] [1 InRelease 102 kB/126 kB 81%]                                                                  0% [2 InRelease 110 kB/256 kB 43%]0% [2 InRelease 118 kB/256 kB 46%]                                  Get:3 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1211 kB]
+0% [2 InRelease 130 kB/256 kB 51%] [3 Packages 2655 B/1211 kB 0%]                                                                 0% [3 Packages 76.5 kB/1211 kB 6%]0% [Waiting for headers] [3 Packages 76.5 kB/1211 kB 6%]                                                        Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+0% [4 InRelease 5484 B/126 kB 4%] [3 Packages 130 kB/1211 kB 11%]0% [4 InRelease 124 kB/126 kB 98%] [3 Packages 294 kB/1211 kB 24%]                                                                  0% [3 Packages 385 kB/1211 kB 32%]0% [Waiting for headers] [3 Packages 399 kB/1211 kB 33%]                                                        Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+0% [5 InRelease 2588 B/126 kB 2%] [3 Packages 401 kB/1211 kB 33%]0% [5 InRelease 124 kB/126 kB 98%] [3 Packages 848 kB/1211 kB 70%]                                                                  0% [3 Packages 877 kB/1211 kB 72%]15% [Waiting for headers] [3 Packages 877 kB/1211 kB 72%]                                                         Get:6 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+16% [6 Packages 2657 B/117 kB 2%] [3 Packages 1125 kB/1211 kB 93%]                                                                  16% [6 Packages 67.8 kB/117 kB 58%]16% [3 Packages store 0 B] [6 Packages 67.8 kB/117 kB 58%] [Waiting for headers]                                                                                17% [6 Packages 67.8 kB/117 kB 58%] [Waiting for headers]                                                         Get:7 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+17% [6 Packages 67.8 kB/117 kB 58%] [7 Packages 2640 B/50.0 kB 5%]                                                                  17% [6 Packages 67.8 kB/117 kB 58%]17% [7 Packages store 0 B] [6 Packages 67.8 kB/117 kB 58%] [Connecting to security.ubuntu.com (91.189.91.82)]                                                                                                             18% [6 Packages 67.8 kB/117 kB 58%] [Connecting to security.ubuntu.com (91.189.91.82)]                                                                                      18% [Waiting for headers] [Connecting to security.ubuntu.com (91.189.91.82)]                                                                            Get:8 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+18% [8 Packages 81.2 kB/331 kB 25%] [Connecting to security.ubuntu.com (91.189.91.82)]18% [6 Packages store 0 B] [8 Packages 81.2 kB/331 kB 25%] [Connecting to security.ubuntu.com (91.189.91.82)]                                                                                                             19% [8 Packages 171 kB/331 kB 52%] [Connecting to security.ubuntu.com (91.189.91.82)]                                                                                     Get:9 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1529 kB]
+                                                                                     19% [8 Packages 299 kB/331 kB 90%] [9 Packages 8447 B/1529 kB 1%]                                                                 19% [Waiting for headers] [9 Packages 14.2 kB/1529 kB 1%]                                                         Get:10 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+19% [10 Packages 75.5 kB/1808 kB 4%] [9 Packages 14.2 kB/1529 kB 1%]19% [8 Packages store 0 B] [10 Packages 75.5 kB/1808 kB 4%] [9 Packages 14.2 kB/1529 kB 1%]                                                                                           20% [10 Packages 75.5 kB/1808 kB 4%] [9 Packages 14.2 kB/1529 kB 1%]21% [10 Packages 317 kB/1808 kB 18%] [9 Packages 49.0 kB/1529 kB 3%]                                                                          421 kB/s 1min 10s21% [10 Packages 435 kB/1808 kB 24%] [9 Packages 134 kB/1529 kB 9%]                                                                           421 kB/s 1min 10s22% [10 Packages 592 kB/1808 kB 33%] [9 Packages 270 kB/1529 kB 18%]                                                                           421 kB/s 1min 9s24% [10 Packages 911 kB/1808 kB 50%] [9 Packages 676 kB/1529 kB 44%]                                                                           421 kB/s 1min 7s26% [10 Packages 1104 kB/1808 kB 61%] [9 Packages 1351 kB/1529 kB 88%]                                                                         421 kB/s 1min 5s27% [10 Packages 1245 kB/1808 kB 69%]                                                                                                          421 kB/s 1min 4s27% [9 Packages store 0 B] [10 Packages 1245 kB/1808 kB 69%] [Waiting for headers]                                                             421 kB/s 1min 4s27% [10 Packages 1245 kB/1808 kB 69%] [Waiting for headers]                                                                                    421 kB/s 1min 4s                                                                                                                                                               Get:11 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+27% [10 Packages 1344 kB/1808 kB 74%] [11 Packages 4103 B/1730 kB 0%]                                                                          421 kB/s 1min 4s31% [10 Packages 1583 kB/1808 kB 88%] [11 Packages 1181 kB/1730 kB 68%]                                                                        421 kB/s 1min 1s32% [10 Packages 1583 kB/1808 kB 88%]                                                                                                              421 kB/s 59s32% [11 Packages store 0 B] [10 Packages 1583 kB/1808 kB 88%]                                                                                      421 kB/s 59s33% [10 Packages 1612 kB/1808 kB 89%]                                                                                                              421 kB/s 59s33% [Waiting for headers]                                                                                                                          421 kB/s 59s                                                                                                                                                               Get:12 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+33% [12 Packages 38.1 kB/19.3 MB 0%]                                                                                                               421 kB/s 59s33% [10 Packages store 0 B] [12 Packages 41.0 kB/19.3 MB 0%]                                                                                       421 kB/s 59s34% [12 Packages 85.2 kB/19.3 MB 0%]                                                                                                               421 kB/s 59s35% [12 Packages 305 kB/19.3 MB 2%]                                                                                                                421 kB/s 58s36% [12 Packages 715 kB/19.3 MB 4%]                                                                                                                421 kB/s 57s36% [12 Packages 845 kB/19.3 MB 4%]                                                                                                                421 kB/s 57s36% [12 Packages 1060 kB/19.3 MB 5%]                                                                                                               421 kB/s 56s38% [12 Packages 1490 kB/19.3 MB 8%]                                                                                                              1003 kB/s 23s38% [12 Packages 1782 kB/19.3 MB 9%]                                                                                                              1003 kB/s 23s38% [12 Packages 1782 kB/19.3 MB 9%]                                                                                                              1003 kB/s 23s40% [12 Packages 2532 kB/19.3 MB 13%]                                                                                                             1003 kB/s 22s42% [12 Packages 3130 kB/19.3 MB 16%]                                                                                                             1003 kB/s 21s43% [12 Packages 3504 kB/19.3 MB 18%]                                                                                                             1003 kB/s 21s43% [12 Packages 3872 kB/19.3 MB 20%]                                                                                                             1003 kB/s 21s45% [12 Packages 4504 kB/19.3 MB 23%]                                                                                                             1003 kB/s 20s46% [12 Packages 4811 kB/19.3 MB 25%]                                                                                                             1003 kB/s 20s46% [12 Packages 4958 kB/19.3 MB 26%]                                                                                                             1003 kB/s 19s48% [12 Packages 5669 kB/19.3 MB 29%]                                                                                                             1003 kB/s 19s49% [12 Packages 6162 kB/19.3 MB 32%]                                                                                                             1003 kB/s 18s50% [12 Packages 6585 kB/19.3 MB 34%]                                                                                                              848 kB/s 21s51% [12 Packages 6827 kB/19.3 MB 35%]                                                                                                              848 kB/s 21s53% [12 Packages 7553 kB/19.3 MB 39%]                                                                                                              848 kB/s 20s54% [12 Packages 8274 kB/19.3 MB 43%]                                                                                                              848 kB/s 19s55% [12 Packages 8374 kB/19.3 MB 43%]                                                                                                              848 kB/s 19s55% [12 Packages 8375 kB/19.3 MB 43%]                                                                                                              848 kB/s 19s55% [12 Packages 8491 kB/19.3 MB 44%]                                                                                                              848 kB/s 19s56% [12 Packages 8870 kB/19.3 MB 46%]                                                                                                              848 kB/s 18s57% [12 Packages 9332 kB/19.3 MB 48%]                                                                                                              848 kB/s 18s58% [12 Packages 9594 kB/19.3 MB 50%]                                                                                                              848 kB/s 18s60% [12 Packages 10.6 MB/19.3 MB 55%]                                                                                                              848 kB/s 16s60% [12 Packages 10.7 MB/19.3 MB 55%]                                                                                                              848 kB/s 16s63% [12 Packages 11.6 MB/19.3 MB 60%]                                                                                                              842 kB/s 15s64% [12 Packages 12.2 MB/19.3 MB 63%]                                                                                                              842 kB/s 15s66% [12 Packages 13.1 MB/19.3 MB 68%]                                                                                                              842 kB/s 14s67% [12 Packages 13.5 MB/19.3 MB 70%]                                                                                                              842 kB/s 13s68% [12 Packages 14.0 MB/19.3 MB 72%]                                                                                                              842 kB/s 13s70% [12 Packages 14.6 MB/19.3 MB 76%]                                                                                                              842 kB/s 12s73% [12 Packages 15.7 MB/19.3 MB 81%]                                                                                                              842 kB/s 11s74% [12 Packages 16.1 MB/19.3 MB 83%]                                                                                                              842 kB/s 10s76% [12 Packages 16.9 MB/19.3 MB 88%]                                                                                                               842 kB/s 9s78% [12 Packages 17.7 MB/19.3 MB 92%]                                                                                                               842 kB/s 8s80% [12 Packages 18.5 MB/19.3 MB 96%]                                                                                                               842 kB/s 7s81% [12 Packages 19.1 MB/19.3 MB 99%]                                                                                                               842 kB/s 6s82% [Waiting for headers]                                                                                                                           842 kB/s 6s                                                                                                                                                               Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1527 kB]
+82% [13 Packages 20.5 kB/1527 kB 1%]                                                                                                                842 kB/s 6s82% [12 Packages store 0 B] [13 Packages 20.5 kB/1527 kB 1%]                                                                                        842 kB/s 6s84% [12 Packages store 0 B] [13 Packages 792 kB/1527 kB 52%]                                                                                       1406 kB/s 3s84% [13 Packages 792 kB/1527 kB 52%]                                                                                                               1406 kB/s 3s85% [13 Packages 1161 kB/1527 kB 76%]                                                                                                              1406 kB/s 3s86% [Waiting for headers]                                                                                                                          1406 kB/s 2s                                                                                                                                                               Get:14 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1842 kB]
+86% [14 Packages 58.6 kB/1842 kB 3%]                                                                                                               1406 kB/s 2s86% [13 Packages store 0 B] [14 Packages 65.5 kB/1842 kB 4%]                                                                                       1406 kB/s 2s87% [14 Packages 381 kB/1842 kB 21%]                                                                                                               1406 kB/s 2s89% [14 Packages 1082 kB/1842 kB 59%]                                                                                                              1406 kB/s 2s91% [Waiting for headers]                                                                                                                          1406 kB/s 1s                                                                                                                                                               Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2150 kB]
+91% [15 Packages 20.0 kB/2150 kB 1%]                                                                                                               1406 kB/s 1s91% [14 Packages store 0 B] [15 Packages 20.0 kB/2150 kB 1%]                                                                                       1406 kB/s 1s92% [15 Packages 95.3 kB/2150 kB 4%]                                                                                                               1406 kB/s 1s93% [15 Packages 647 kB/2150 kB 30%]                                                                                                               1406 kB/s 1s95% [15 Packages 1523 kB/2150 kB 71%]                                                                                                              1406 kB/s 0s97% [15 Packages 2086 kB/2150 kB 97%]                                                                                                              1406 kB/s 0s97% [15 Packages 2144 kB/2150 kB 100%]                                                                                                             1406 kB/s 0s97% [15 Packages 2146 kB/2150 kB 100%]                                                                                                             1406 kB/s 0s97% [Waiting for headers]                                                                                                                          1406 kB/s 0s97% [15 Packages store 0 B] [Connecting to archive.ubuntu.com (91.189.91.82)]                                                                      1406 kB/s 0s97% [Connecting to archive.ubuntu.com (91.189.91.82)]                                                                                              1406 kB/s 0s                                                                                                                                                               Get:16 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+97% [16 Packages 7003 B/55.8 kB 13%]                                                                                                               1406 kB/s 0s98% [16 Packages 38.9 kB/55.8 kB 70%]                                                                                                              1406 kB/s 0s98% [Working]                                                                                                                                      1406 kB/s 0s98% [16 Packages store 0 B] [Waiting for headers]                                                                                                  1406 kB/s 0s98% [Waiting for headers]                                                                                                                          1406 kB/s 0s                                                                                                                                                               Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+98% [17 Packages 2659 B/48.9 kB 5%]                                                                                                                 782 kB/s 0s98% [Working]                                                                                                                                       782 kB/s 0s98% [17 Packages store 0 B] [Waiting for headers]                                                                                                   782 kB/s 0s99% [Waiting for headers]                                                                                                                           782 kB/s 0s                                                                                                                                                               Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+99% [18 Packages 2659 B/35.9 kB 7%]                                                                                                                 782 kB/s 0s99% [Working]                                                                                                                                       782 kB/s 0s99% [18 Packages store 0 B] [Waiting for headers]                                                                                                   782 kB/s 0s99% [Waiting for headers]                                                                                                                           782 kB/s 0s                                                                                                                                                               Get:19 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+99% [19 Packages 671 B/671 B 100%]                                                                                                                  782 kB/s 0s99% [Working]                                                                                                                                       782 kB/s 0s99% [19 Packages store 0 B]                                                                                                                         782 kB/s 0s100% [Working]                                                                                                                                      782 kB/s 0s                                                                                                                                                               Fetched 32.4 MB in 38s (849 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 61%Reading package lists... 61%Reading package lists... 61%Reading package lists... 61%Reading package lists... 62%Reading package lists... 62%Reading package lists... 68%Reading package lists... 68%Reading package lists... 69%Reading package lists... 76%Reading package lists... 76%Reading package lists... 82%Reading package lists... 82%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 87%Reading package lists... 87%Reading package lists... 93%Reading package lists... 93%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+[?2004l.
+./records_1.jsonl
+./records_2.jsonl
+./records_3.jsonl
+./records_4.jsonl
+./records_5.jsonl
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# find /app -maxdepth 1 -type f -name '*.jsonl' -printf '%f\n' | sort && printf '\n--- line counts ---\n' && wc -l /app/*.jsonl 2>/dev/null && printf '\n--- samples ---\n' && for f in $(find /app -maxdepth 1 -type f -name '*.jsonl' | sort); do printf '\n%s\n' "$f"; sed -n '1,3p' "$f"; done
+[?2004lrecords_1.jsonl
+records_2.jsonl
+records_3.jsonl
+records_4.jsonl
+records_5.jsonl
+
+--- line counts ---
+  200000 /app/records_1.jsonl
+  200000 /app/records_2.jsonl
+  200000 /app/records_3.jsonl
+  200000 /app/records_4.jsonl
+  200000 /app/records_5.jsonl
+ 1000000 total
+
+--- samples ---
+
+/app/records_1.jsonl
+{"user": "user143", "amount": 25.57, "items": 9, "tags": []}
+{"user": "user402_dev", "amount": 1.91, "items": 1, "tags": []}
+{"user": "user302", "amount": 47.67, "items": 10, "tags": ["free", "category1", "normal", "orange", "enhancement"]}
+
+/app/records_2.jsonl
+{"user": "user360", "amount": 423.59, "items": 4, "tags": ["important", "enhancement", "security"]}
+{"user": "quinn_2024", "amount": 259.43, "items": 7, "tags": ["qa", "staging", "type_a", "documentation", "alpha", "ui"]}
+{"user": "quentin_user", "amount": 49.4, "items": 7, "tags": ["v4"]}
+
+/app/records_3.jsonl
+{"user": "user364", "amount": 9.02, "items": 2, "tags": ["cyan", "category1", "purple", "cloud"]}
+{"user": "owen_user", "amount": 6230.48, "items": 3, "tags": []}
+{"user": "penny", "amount": 32.11, "items": 98, "tags": ["pink", "type_b", "blue", "guest", "red"]}
+
+/app/records_4.jsonl
+{"user": "user464", "amount": 314.83, "items": 4, "tags": ["critical", "v3", "brown", "normal", "analytics", "free"]}
+{"user": "kyle", "amount": 12.48, "items": 9, "tags": ["user", "archived", "completed"]}
+{"user": "user441", "amount": 344.5, "items": 86, "tags": ["orange", "documentation", "ui"]}
+
+/app/records_5.jsonl
+{"user": "user334", "amount": 157.64, "items": 8, "tags": ["performance", "alpha", "premium"]}
+{"user": "user467", "amount": 34.94, "items": 2, "tags": ["security", "black", "v4", "enhancement"]}
+{"user": "user175_42", "amount": 15.65, "items": 3, "tags": ["review", "orange", "user"]}
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# if [ -f /app/aggregates.json ]; then cat -- /app/aggregates.json; else echo '错误: 找不到文件 /app/aggregates.json'; fi
+[?2004l错误: 找不到文件 /app/aggregates.json
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 - /app/aggregate_records.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = '#!/usr/bin/env python3\n"""Aggregate record JSONL files into a compact JSON summary."""\n\nfrom __future__ import annotations\n\nimport argparse\nimport json\nfrom collections import Counter, defaultdict\nfrom decimal import Decimal, ROUND_HALF_UP\nfrom pathlib import Path\nfrom typing import Iterable\n\n\nCENT = Decimal("0.01")\n\n\ndef aggregate_files(input_files: Iterable[Path]) -> dict:\n    """Return the requested top-five user and tag aggregates."""\n    user_amounts: defaultdict[str, Decimal] = defaultdict(lambda: Decimal("0"))\n    user_items: defaultdict[str, int] = defaultdict(int)\n    tag_counts: Counter[str] = Counter()\n\n    for input_file in input_files:\n        with input_file.open("r", encoding="utf-8") as stream:\n            for line_number, line in enumerate(stream, 1):\n                if not line.strip():\n                    continue\n                try:\n                    record = json.loads(line)\n                except json.JSONDecodeError as exc:\n                    raise ValueError(f"Invalid JSON in {input_file}:{line_number}") from exc\n\n                user = record["user"]\n                user_amounts[user] += Decimal(str(record["amount"]))\n                user_items[user] += int(record["items"])\n                tag_counts.update(record.get("tags", []))\n\n    top_users = sorted(\n        user_amounts,\n        key=lambda user: (-user_amounts[user], user),\n    )[:5]\n    top_tags = sorted(\n        tag_counts,\n        key=lambda tag: (-tag_counts[tag], tag),\n    )[:5]\n\n    return {\n        "top_5_users_by_amount": {\n            user: {\n                "total_amount": float(user_amounts[user].quantize(CENT, rounding=ROUND_HALF_UP)),\n                "total_items": int(user_items[user]),\n            }\n            for user in top_users\n        },\n        "top_5_tags_by_count": {\n            tag: {"count": int(tag_counts[tag])}\n            for tag in top_tags\n        },\n    }\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description=__doc__)\n    parser.add_argument(\n        "--input-dir",\n        type=Path,\n        default=Path("/app"),\n        help="Directory containing records_*.jsonl files (default: /app)",\n    )\n    parser.add_argument(\n        "--output",\n        type=Path,\n        default=Path("/app/aggregates.json"),\n        help="Output JSON path (default: /app/aggregates.json)",\n    )\n    args = parser.parse_args()\n\n    input_files = sorted(args.input_dir.glob("records_*.jsonl"))\n    if not input_files:\n        raise SystemExit(f"No records_*.jsonl files found in {args.input_dir}")\n\n    result = aggregate_files(input_files)\n    args.output.write_text(\n        json.dumps(result, indent=2, ensure_ascii=True) + "\\n",\n        encoding="utf-8",\n    )\n\n\nif __name__ == "__main__":\n    main()\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/aggregate_records.py
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# if [ -f /app/aggregate_records.py ]; then cat -- /app/aggregate_records.py; else echo '错误: 找不到文件 /app/aggregate_records.py'; fi
+[?2004l#!/usr/bin/env python3
+"""Aggregate record JSONL files into a compact JSON summary."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from collections import Counter, defaultdict
+from decimal import Decimal, ROUND_HALF_UP
+from pathlib import Path
+from typing import Iterable
+
+
+CENT = Decimal("0.01")
+
+
+def aggregate_files(input_files: Iterable[Path]) -> dict:
+    """Return the requested top-five user and tag aggregates."""
+    user_amounts: defaultdict[str, Decimal] = defaultdict(lambda: Decimal("0"))
+    user_items: defaultdict[str, int] = defaultdict(int)
+    tag_counts: Counter[str] = Counter()
+
+    for input_file in input_files:
+        with input_file.open("r", encoding="utf-8") as stream:
+            for line_number, line in enumerate(stream, 1):
+                if not line.strip():
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(f"Invalid JSON in {input_file}:{line_number}") from exc
+
+                user = record["user"]
+                user_amounts[user] += Decimal(str(record["amount"]))
+                user_items[user] += int(record["items"])
+                tag_counts.update(record.get("tags", []))
+
+    top_users = sorted(
+        user_amounts,
+        key=lambda user: (-user_amounts[user], user),
+    )[:5]
+    top_tags = sorted(
+        tag_counts,
+        key=lambda tag: (-tag_counts[tag], tag),
+    )[:5]
+
+    return {
+        "top_5_users_by_amount": {
+            user: {
+                "total_amount": float(user_amounts[user].quantize(CENT, rounding=ROUND_HALF_UP)),
+                "total_items": int(user_items[user]),
+            }
+            for user in top_users
+        },
+        "top_5_tags_by_count": {
+            tag: {"count": int(tag_counts[tag])}
+            for tag in top_tags
+        },
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--input-dir",
+        type=Path,
+        default=Path("/app"),
+        help="Directory containing records_*.jsonl files (default: /app)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("/app/aggregates.json"),
+        help="Output JSON path (default: /app/aggregates.json)",
+    )
+    args = parser.parse_args()
+
+    input_files = sorted(args.input_dir.glob("records_*.jsonl"))
+    if not input_files:
+        raise SystemExit(f"No records_*.jsonl files found in {args.input_dir}")
+
+    result = aggregate_files(input_files)
+    args.output.write_text(
+        json.dumps(result, indent=2, ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+if __name__ == "__main__":
+    main()
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 -m py_compile /app/aggregate_records.py && echo 'syntax ok'
+[?2004lsyntax ok
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# git rev-parse --is-inside-work-tree
+[?2004lbash: git: command not found
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# git status --porcelain
+[?2004lbash: git: command not found
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# git branch --show-current
+[?2004lbash: git: command not found
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# git log -1 --oneline
+[?2004lbash: git: command not found
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 - /app/test_aggregate_records.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'import json\nfrom pathlib import Path\n\nfrom aggregate_records import aggregate_files\n\n\ndef write_records(path: Path, records: list[dict]) -> None:\n    path.write_text("".join(json.dumps(record) + "\\n" for record in records), encoding="utf-8")\n\n\ndef test_aggregates_users_tags_and_rounds_amounts(tmp_path: Path) -> None:\n    first = tmp_path / "records_1.jsonl"\n    second = tmp_path / "records_2.jsonl"\n    write_records(\n        first,\n        [\n            {"user": "bob", "amount": 1.005, "items": 2, "tags": ["z", "a"]},\n            {"user": "alice", "amount": 10.10, "items": 3, "tags": ["a", "a"]},\n        ],\n    )\n    write_records(\n        second,\n        [\n            {"user": "bob", "amount": 2.005, "items": 4, "tags": ["a"]},\n            {"user": "alice", "amount": 1, "items": 1, "tags": ["z"]},\n        ],\n    )\n\n    result = aggregate_files([first, second])\n\n    assert result == {\n        "top_5_users_by_amount": {\n            "alice": {"total_amount": 11.10, "total_items": 4},\n            "bob": {"total_amount": 3.01, "total_items": 6},\n        },\n        "top_5_tags_by_count": {\n            "a": {"count": 3},\n            "z": {"count": 2},\n        },\n    }\n\n\ndef test_limits_results_and_breaks_ties_by_name(tmp_path: Path) -> None:\n    path = tmp_path / "records_1.jsonl"\n    records = [\n        {"user": name, "amount": 1, "items": 1, "tags": [tag]}\n        for name, tag in [("e", "e"), ("d", "d"), ("c", "c"), ("b", "b"), ("a", "a"), ("f", "f")]\n    ]\n    write_records(path, records)\n\n    result = aggregate_files([path])\n\n    assert list(result["top_5_users_by_amount"]) == ["a", "b", "c", "d", "e"]\n    assert list(result["top_5_tags_by_count"]) == ["a", "b", "c", "d", "e"]\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/test_aggregate_records.py
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 -m pytest -v -- /app/test_aggregate_records.py
+[?2004l/usr/bin/python3: No module named pytest
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 /app/aggregate_records.py --input-dir /app --output /app/aggregates.json && python3 - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> p = Path('/app/aggregates.json')
+[?2004l[?2004h> obj = json.loads(p.read_text())
+[?2004l[?2004h> print('keys', list(obj.keys()))
+[?2004l[?2004h> print('users', list(obj['top_5_users_by_amount'].keys())[:5])
+[?2004l[?2004h> print('tags', list(obj['top_5_tags_by_count'].keys())[:5])
+[?2004l[?2004h> PY
+[?2004lkeys ['top_5_users_by_amount', 'top_5_tags_by_count']
+users ['user211', 'user220_dev', 'chloe_test', 'user260_123', 'user271']
+tags ['lime', 'type_a', 'reporting', 'frontend', 'approved']
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> import tempfile
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> from aggregate_records import aggregate_files
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def write_records(path: Path, records):
+[?2004l[?2004h>     path.write_text(''.join(json.dumps(record) + '\n' for record in records), encoding='utf-8')
+[?2004l[?2004h> 
+[?2004l[?2004h> with tempfile.TemporaryDirectory() as tmp:
+[?2004l[?2004h>     tmp_path = Path(tmp)
+[?2004l[?2004h>     first = tmp_path / 'records_1.jsonl'
+[?2004l[?2004h>     second = tmp_path / 'records_2.jsonl'
+[?2004l[?2004h>     write_records(first, [
+[?2004l[?2004h>         {'user': 'bob', 'amount': 1.005, 'items': 2, 'tags': ['z', 'a']},
+[?2004l[?2004h>         {'user': 'alice', 'amount': 10.10, 'items': 3, 'tags': ['a', 'a']},
+[?2004l[?2004h>     ])
+[?2004l[?2004h>     write_records(second, [
+[?2004l[?2004h>         {'user': 'bob', 'amount': 2.005, 'items': 4, 'tags': ['a']},
+[?2004l[?2004h>         {'user': 'alice', 'amount': 1, 'items': 1, 'tags': ['z']},
+[?2004l[?2004h>     ])
+[?2004l[?2004h>     result = aggregate_files([first, second])
+[?2004l[?2004h>     assert result == {
+[?2004l[?2004h>         'top_5_users_by_amount': {
+[?2004l[?2004h>             'alice': {'total_amount': 11.1, 'total_items': 4},
+[?2004l[?2004h>             'bob': {'total_amount': 3.01, 'total_items': 6},
+[?2004l[?2004h>         },
+[?2004l[?2004h>         'top_5_tags_by_count': {
+[?2004l[?2004h>             'a': {'count': 3},
+[?2004l[?2004h>             'z': {'count': 2},
+[?2004l[?2004h>         },
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     path = tmp_path / 'records_3.jsonl'
+[?2004l[?2004h>     write_records(path, [
+[?2004l[?2004h>         {'user': name, 'amount': 1, 'items': 1, 'tags': [tag]}
+[?2004l[?2004h>         for name, tag in [('e', 'e'), ('d', 'd'), ('c', 'c'), ('b', 'b'), ('a', 'a'), ('f', 'f')]
+[?2004l[?2004h>     ])
+[?2004l[?2004h>     result2 = aggregate_files([path])
+[?2004l[?2004h>     assert list(result2['top_5_users_by_amount']) == ['a', 'b', 'c', 'd', 'e']
+[?2004l[?2004h>     assert list(result2['top_5_tags_by_count']) == ['a', 'b', 'c', 'd', 'e']
+[?2004l[?2004h> 
+[?2004l[?2004h> print('custom tests ok')
+[?2004l[?2004h> PY
+[?2004lTraceback (most recent call last):
+  File "<stdin>", line 23, in <module>
+AssertionError
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> p = Path('/app/aggregates.json')
+[?2004l[?2004h> obj = json.loads(p.read_text(encoding='utf-8'))
+[?2004l[?2004h> assert set(obj) == {'top_5_users_by_amount', 'top_5_tags_by_count'}
+[?2004l[?2004h> assert isinstance(obj['top_5_users_by_amount'], dict)
+[?2004l[?2004h> assert isinstance(obj['top_5_tags_by_count'], dict)
+[?2004l[?2004h> users = obj['top_5_users_by_amount']
+[?2004l[?2004h> prev_amount = None
+[?2004l[?2004h> prev_name = None
+[?2004l[?2004h> for name, payload in users.items():
+[?2004l[?2004h>     assert isinstance(payload['total_amount'], float)
+[?2004l[?2004h>     assert isinstance(payload['total_items'], int)
+[?2004l[?2004h>     if prev_amount is not None:
+[?2004l[?2004h>         assert payload['total_amount'] <= prev_amount + 1e-9 or (payload['total_amount'] == prev_amount and name >= prev_name)
+[?2004l[?2004h>     prev_amount = payload['total_amount']
+[?2004l[?2004h>     prev_name = name
+[?2004l[?2004h> 
+[?2004l[?2004h> tags = obj['top_5_tags_by_count']
+[?2004l[?2004h> prev_count = None
+[?2004l[?2004h> prev_tag = None
+[?2004l[?2004h> for tag, payload in tags.items():
+[?2004l[?2004h>     assert isinstance(payload['count'], int)
+[?2004l[?2004h>     if prev_count is not None:
+[?2004l[?2004h>         assert payload['count'] <= prev_count or (payload['count'] == prev_count and tag >= prev_tag)
+[?2004l[?2004h>     prev_count = payload['count']
+[?2004l[?2004h>     prev_tag = tag
+[?2004l[?2004h> 
+[?2004l[?2004h> print('output validation ok')
+[?2004l[?2004h> PY
+[?2004loutput validation ok
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 - /app/test_aggregate_records.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'import json\nfrom pathlib import Path\n\nfrom aggregate_records import aggregate_files\n\n\ndef write_records(path: Path, records: list[dict]) -> None:\n    path.write_text("".join(json.dumps(record) + "\\n" for record in records), encoding="utf-8")\n\n\ndef test_aggregates_users_tags_and_rounds_amounts(tmp_path: Path) -> None:\n    first = tmp_path / "records_1.jsonl"\n    second = tmp_path / "records_2.jsonl"\n    write_records(\n        first,\n        [\n            {"user": "bob", "amount": 1.005, "items": 2, "tags": ["z", "a"]},\n            {"user": "alice", "amount": 10.10, "items": 3, "tags": ["a", "a"]},\n        ],\n    )\n    write_records(\n        second,\n        [\n            {"user": "bob", "amount": 2.005, "items": 4, "tags": ["a"]},\n            {"user": "alice", "amount": 1, "items": 1, "tags": ["z"]},\n        ],\n    )\n\n    result = aggregate_files([first, second])\n\n    assert result == {\n        "top_5_users_by_amount": {\n            "alice": {"total_amount": 11.10, "total_items": 4},\n            "bob": {"total_amount": 3.01, "total_items": 6},\n        },\n        "top_5_tags_by_count": {\n            "a": {"count": 4},\n            "z": {"count": 2},\n        },\n    }\n\n\ndef test_limits_results_and_breaks_ties_by_name(tmp_path: Path) -> None:\n    path = tmp_path / "records_1.jsonl"\n    records = [\n        {"user": name, "amount": 1, "items": 1, "tags": [tag]}\n        for name, tag in [("e", "e"), ("d", "d"), ("c", "c"), ("b", "b"), ("a", "a"), ("f", "f")]\n    ]\n    write_records(path, records)\n\n    result = aggregate_files([path])\n\n    assert list(result["top_5_users_by_amount"]) == ["a", "b", "c", "d", "e"]\n    assert list(result["top_5_tags_by_count"]) == ["a", "b", "c", "d", "e"]\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/test_aggregate_records.py
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# PYTHONPATH=/app python3 - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> import tempfile
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> from aggregate_records import aggregate_files
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def write_records(path, records):
+[?2004l[?2004h>     path.write_text(''.join(json.dumps(record) + '\n' for record in records), encoding='utf-8')
+[?2004l[?2004h> 
+[?2004l[?2004h> with tempfile.TemporaryDirectory() as directory:
+[?2004l[?2004h>     root = Path(directory)
+[?2004l[?2004h>     first, second = root / 'records_1.jsonl', root / 'records_2.jsonl'
+[?2004l[?2004h>     write_records(first, [
+[?2004l[?2004h>         {'user': 'bob', 'amount': 1.005, 'items': 2, 'tags': ['z', 'a']},
+[?2004l[?2004h>         {'user': 'alice', 'amount': 10.10, 'items': 3, 'tags': ['a', 'a']},
+[?2004l[?2004h>     ])
+[?2004l[?2004h>     write_records(second, [
+[?2004l[?2004h>         {'user': 'bob', 'amount': 2.005, 'items': 4, 'tags': ['a']},
+[?2004l[?2004h>         {'user': 'alice', 'amount': 1, 'items': 1, 'tags': ['z']},
+[?2004l[?2004h>     ])
+[?2004l[?2004h>     assert aggregate_files([first, second]) == {
+[?2004l[?2004h>         'top_5_users_by_amount': {
+[?2004l[?2004h>             'alice': {'total_amount': 11.1, 'total_items': 4},
+[?2004l[?2004h>             'bob': {'total_amount': 3.01, 'total_items': 6},
+[?2004l[?2004h>         },
+[?2004l[?2004h>         'top_5_tags_by_count': {'a': {'count': 4}, 'z': {'count': 2}},
+[?2004l[?2004h>     }
+[?2004l[?2004h>     tie_file = root / 'records_3.jsonl'
+[?2004l[?2004h>     write_records(tie_file, [
+[?2004l[?2004h>         {'user': name, 'amount': 1, 'items': 1, 'tags': [tag]}
+[?2004l[?2004h>         for name, tag in [('e','e'), ('d','d'), ('c','c'), ('b','b'), ('a','a'), ('f','f')]
+[?2004l[?2004h>     ])
+[?2004l[?2004h>     tie_result = aggregate_files([tie_file])
+[?2004l[?2004h>     assert list(tie_result['top_5_users_by_amount']) == ['a', 'b', 'c', 'd', 'e']
+[?2004l[?2004h>     assert list(tie_result['top_5_tags_by_count']) == ['a', 'b', 'c', 'd', 'e']
+[?2004l[?2004h> print('custom aggregation tests passed')
+[?2004l[?2004h> PY
+[?2004lcustom aggregation tests passed
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 -m py_compile /app/aggregate_records.py /app/test_aggregate_records.py && echo 'compile passed'
+[?2004lcompile passed
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 /app/aggregate_records.py --input-dir /app --output /app/aggregates.json && wc -c /app/aggregates.json
+[?2004l733 /app/aggregates.json
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@4c37174160ca:/app# python3 - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> import re
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004l[?2004h> output = Path('/app/aggregates.json')
+[?2004l[?2004h> data = json.loads(output.read_text(encoding='utf-8'))
+[?2004l[?2004h> assert list(data) == ['top_5_users_by_amount', 'top_5_tags_by_count']
+[?2004l[?2004h> users = data['top_5_users_by_amount']
+[?2004l[?2004h> tags = data['top_5_tags_by_count']
+[?2004l[?2004h> assert len(users) == 5
+[?2004l[?2004h> assert len(tags) == 5
+[?2004l[?2004h> raw = output.read_text(encoding='utf-8')
+[?2004l[?2004h> for name, value in users.items():
+[?2004l[?2004h>     assert isinstance(value['total_amount'], float)
+[?2004l[?2004h>     assert isinstance(value['total_items'], int) and not isinstance(value['total_items'], bool)
+[?2004l[?2004h>     assert re.search(r'"total_amount": -?\d+\.\d{2}', raw)
+[?2004l[?2004h> user_rows = [(name, value['total_amount']) for name, value in users.items()]
+[?2004l[?2004h> assert user_rows == sorted(user_rows, key=lambda row: (-row[1], row[0]))
+[?2004l[?2004h> for name, value in tags.items():
+[?2004l[?2004h>     assert isinstance(value['count'], int) and not isinstance(value['count'], bool)
+[?2004l[?2004h> tag_rows = [(name, value['count']) for name, value in tags.items()]
+[?2004l[?2004h> assert tag_rows == sorted(tag_rows, key=lambda row: (-row[1], row[0]))
+[?2004l[?2004h> print('validated: 5 users, 5 tags, ordered values, two-decimal amounts, integer counts')
+[?2004l[?2004h> PY
+[?2004lvalidated: 5 users, 5 tags, ordered values, two-decimal amounts, integer counts
+[?2004hroot@4c37174160ca:/app# true; tmux wait -S done
+[?2004l[?2004hroot@4c37174160ca:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@4c37174160ca:/app# 

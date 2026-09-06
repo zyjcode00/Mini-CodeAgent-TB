@@ -1,0 +1,86 @@
+root@de91046c5ab1:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@de91046c5ab1:/app# set +e
+root@de91046c5ab1:/app#
+root@de91046c5ab1:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@de91046c5ab1:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@de91046c5ab1:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@de91046c5ab1:/app#
+root@de91046c5ab1:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@de91046c5ab1:/app#
+root@de91046c5ab1:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@de91046c5ab1:/app#
+root@de91046c5ab1:/app# mkdir -p /root/.config/uv
+root@de91046c5ab1:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@de91046c5ab1:/app#
+root@de91046c5ab1:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+Fetched 9374 kB in 2s (3924 kB/s)
+Reading package lists... Done
+root@de91046c5ab1:/app# true; tmux wait -S done
+root@de91046c5ab1:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@de91046c5ab1:/app# if [ -f /app/daily_temp_sf_high.csv ]; then cat -- /app/daily_temp_sf_high.csv; else echo '错误: 找不到文件 /app/daily_temp_sf_high.csv'
+; fi
+date,temperature
+2025-04-19,64
+2025-04-20,63
+2025-04-21,70
+2025-04-22,66
+2025-04-23,57
+2025-04-24,55
+2025-04-25,57root@de91046c5ab1:/app# true; tmux wait -S done
+root@de91046c5ab1:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@de91046c5ab1:/app# if [ -f /app/daily_temp_sf_low.csv ]; then cat -- /app/daily_temp_sf_low.csv; else echo '错误: 找不到文件 /app/daily_temp_sf_low.csv'; f
+i
+date,temperature
+04/19/2025 06:00:00,48
+04/20/2025 06:00:00,52
+04-23-2025 06:00:00,52
+04-22-2025 06:00:00,48
+04-24-2025 06:00:00,52
+04-21-2025 06:00:00,48
+04-25-2025 06:00:00,52root@de91046c5ab1:/app# true; tmux wait -S done
+root@de91046c5ab1:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@de91046c5ab1:/app# python3 - /app/avg_temp.txt <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '11.428571428571429'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/avg_temp.txt
+root@de91046c5ab1:/app# true; tmux wait -S done
+root@de91046c5ab1:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@de91046c5ab1:/app# if [ -f /app/avg_temp.txt ]; then cat -- /app/avg_temp.txt; else echo '错误: 找不到文件 /app/avg_temp.txt'; fi
+11.428571428571429root@de91046c5ab1:/app# true; tmux wait -S done
+root@de91046c5ab1:/app#

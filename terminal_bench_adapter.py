@@ -32,7 +32,7 @@ uv run tb run \
   --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
   --dataset-path /home/zyjcode/LLM/terminal-bench/original-tasks \
   --agent-kwarg max_turns=10 \
-  --task-id accelerate-maximal-square\
+  --task-id attention-mil\
   --output-path ./eval_runs_test
 
 uv run tb run \
@@ -92,7 +92,7 @@ APT_MIRROR_SETUP_COMMAND = r"""set +e
 
 APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
 APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
-UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+UV_INDEX_URL="https://pypi.org/simple"
 
 if [ -f /etc/apt/sources.list ]; then
     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
@@ -148,7 +148,15 @@ def task_session_id(
     if session is not None:
         candidates.extend(getattr(session, key, None) for key in ("task_id", "task_name", "name", "id"))
     if logging_dir:
-        candidates.append(Path(str(logging_dir)).name)
+        # Terminal-Bench 的 logging_dir 形如
+        # <run>/<task_id>/<task_id>.1-of-1.<run>/agent-logs
+        # 取父目录并提取任务名（.1-of-1. 之前的部分），避免落到通用目录名 agent-logs
+        parent = Path(str(logging_dir)).parent.name
+        derived = (re.split(r".1-of-1.", parent)[0] if ".1-of-1." in parent else parent)
+        if derived and derived not in ("agent-logs", "sessions", "panes"):
+            candidates.append(derived)
+        else:
+            candidates.append(Path(str(logging_dir)).name)
     for candidate in candidates:
         if candidate:
             return safe_session_id(candidate)
@@ -274,16 +282,24 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
         )
         config = get_agent_config()
 
+        # 🔥 评测公平性：每次 run 使用干净 session，删除旧 session 文件，
+        # 避免 load_session 恢复上一轮的对话历史/三层记忆污染本次评测。
+        session_id = task_session_id(
+            self.session_id,
+            task_name=self._current_task_name,
+            session=self._current_session,
+            logging_dir=self._current_logging_dir,
+        )
+        _session_path = os.path.join("sessions", f"{session_id}.json")
+        if os.path.exists(_session_path):
+            print(f"[🧹] 评测 run 开始，清理旧 session: {_session_path}")
+            os.remove(_session_path)
+
         return AgentEngine(
             tools=tools_list,
             model=self.model,
             plan_manager=plan_manager,
-            session_id=task_session_id(
-                self.session_id,
-                task_name=self._current_task_name,
-                session=self._current_session,
-                logging_dir=self._current_logging_dir,
-            ),
+            session_id=session_id,
             base_url=config["base_url"],
             api_key=config["api_key"],
             max_history=150,

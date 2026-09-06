@@ -1,0 +1,516 @@
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# set +e
+root@c2d876833c53:/app#
+root@c2d876833c53:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@c2d876833c53:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@c2d876833c53:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@c2d876833c53:/app#
+root@c2d876833c53:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@c2d876833c53:/app#
+root@c2d876833c53:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@c2d876833c53:/app#
+root@c2d876833c53:/app# mkdir -p /root/.config/uv
+root@c2d876833c53:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@c2d876833c53:/app#
+root@c2d876833c53:/app# apt-get update || true
+Hit:1 http://mirrors.ustc.edu.cn/ubuntu noble InRelease
+Hit:2 http://mirrors.ustc.edu.cn/ubuntu noble-updates InRelease
+Hit:3 http://mirrors.ustc.edu.cn/ubuntu noble-backports InRelease
+Hit:4 http://mirrors.ustc.edu.cn/ubuntu noble-security InRelease
+Reading package lists... Done
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# set -e
+root@c2d876833c53:/app# pwd
+/app
+root@c2d876833c53:/app# ls -la /app
+total 20
+drwxr-xr-x 1 root root 4096 Sep  3 17:04 .
+drwxr-xr-x 1 root root 4096 Sep  3 17:04 ..
+-rw-r--r-- 1 root root   65 Sep  3 17:04 .auto_gen_key.dat
+-rw-r--r-- 1 root root 7923 Sep  3 17:04 tree_map.txt
+root@c2d876833c53:/app# printf '\n--- tree_map metadata ---\n'
+
+--- tree_map metadata ---
+root@c2d876833c53:/app# stat /app/tree_map.txt
+  File: /app/tree_map.txt
+  Size: 7923            Blocks: 16         IO Block: 4096   regular file
+Device: 0,88    Inode: 1091515     Links: 1
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2026-09-03 17:04:09.000000000 +0000
+Modify: 2026-09-03 17:04:09.000000000 +0000
+Change: 2026-09-03 17:04:18.138960805 +0000
+ Birth: 2026-09-03 17:04:18.138789222 +0000
+root@c2d876833c53:/app# printf '\n--- tree_map first lines ---\n'
+
+--- tree_map first lines ---
+root@c2d876833c53:/app# sed -n '1,80p' /app/tree_map.txt
+/app/files_dir/
+├── :archive/
+│   └── file29.
+├── config_/
+│   ├── file104
+│   ├── file51
+│   └── 'file79
+├── data/
+│   └── fi!le1
+├── !documents/
+│   ├── file110
+│   ├── file113
+│   └── file43~
+├── file102(
+├── file114
+├── fil^e84
+├── level1_1/
+│   ├── file11,
+│   ├── file134
+│   ├── ?file31
+│   ├── sub_1/
+│   │   ├── deep_1/
+│   │   │   ├── file95
+│   │   │   └── level4/
+│   │   │       ├── file128=
+│   │   │       ├── file137
+│   │   │       ├── file26}
+│   │   │       └── level5/
+│   │   │           ├── file101
+│   │   │           ├── ]file148
+│   │   │           ├── file22^
+│   │   │           └── level6/
+│   │   │               ├── _file132*
+│   │   │               ├── &file85
+│   │   │               └── 'level7_final/
+│   │   │                   ├── file136*
+│   │   │                   └── file55*
+│   │   ├── deep_2/
+│   │   │   ├── file125
+│   │   │   ├── file99`*
+│   │   │   └── |level4/
+│   │   │       ├── {file67`
+│   │   │       ├── file76*
+│   │   │       └── level5:/
+│   │   │           ├── file118
+│   │   │           ├── &file124
+│   │   │           ├── {fil>e58(
+│   │   │           ├── file63<
+│   │   │           └── level6/
+│   │   │               ├── file48
+│   │   │               ├── file89*
+│   │   │               └── level7$_final/
+│   │   │                   ├── file100*
+│   │   │                   └── file34*
+│   │   ├── +file107
+│   │   ├── file139*
+│   │   └── fi<le2
+│   ├── |su%b_2/
+│   │   ├── deep_1/
+│   │   │   ├── file59
+│   │   │   └── ~level4/
+│   │   │       ├── _file14
+│   │   │       ├── fil|e62
+│   │   │       └── level5`/
+│   │   │           ├── file105
+│   │   │           ├── file64
+│   │   │           ├── +file83
+│   │   │           └── level6}/
+│   │   │               ├── 'file32
+│   │   │               ├── file37
+│   │   │               ├── file5
+│   │   │               ├── file52_*
+│   │   │               ├── %file57
+│   │   │               ├── file71
+│   │   │               └── level7_final|/
+│   │   │                   └── {file25
+│   │   ├── deep_2/
+│   │   │   ├── file23*
+│   │   │   ├── file70^*
+│   │   │   ├── file72*
+root@c2d876833c53:/app# printf '\n--- tree_map line count ---\n'
+
+--- tree_map line count ---
+root@c2d876833c53:/app# wc -l /app/tree_map.txt
+221 /app/tree_map.txt
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# if [ -e /app/files_dir ]; then echo '/app/files_dir exists'; find /app/files_dir -maxdepth 2 -printf '%M %p\n' | sed -n '1,40p'; else ec
+ho '/app/files_dir does not exist'; fi
+/app/files_dir does not exist
+root@c2d876833c53:/app# if [ -e /app/cmd.sh ]; then echo '/app/cmd.sh exists'; ls -l /app/cmd.sh; else echo '/app/cmd.sh does not exist'; fi
+/app/cmd.sh does not exist
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# python3 - /app/cmd.sh <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "#!/usr/bin/env bash\nset -euo pipefail\n\npython3 <<'PY'\nfrom pathlib import Path\nimport os\nimport shutil\nimport stat\n\nTREE_MAP = Path('/app/
+tree_map.txt')\nROOT = Path('/app/files_dir')\n\nlines = TREE_MAP.read_text(encoding='utf-8').splitlines()\nif not lines:\n    raise SystemExit('tree map is emp
+ty')\n\nroot_line = lines[0]\nif root_line.endswith('/'):\n    root_path_text = root_line[:-1]\nelse:\n    root_path_text = root_line\nif root_path_text != str(
+ROOT):\n    raise SystemExit(f'unexpected root in tree map: {root_line!r}')\n\n# Idempotency: remove previous reconstruction and rebuild from the immutable map.
+\nif ROOT.exists() or ROOT.is_symlink():\n    if ROOT.is_dir() and not ROOT.is_symlink():\n        # Ensure restrictive trees are removable by the current user.
+\n        for dirpath, dirnames, filenames in os.walk(ROOT):\n            os.chmod(dirpath, 0o700)\n        shutil.rmtree(ROOT)\n    else:\n        ROOT.unlink(
+)\n\nROOT.mkdir(mode=0o700, parents=True, exist_ok=True)\nos.chmod(ROOT, 0o700)\n\nstack = [ROOT]\nfor line in lines[1:]:\n    if line == '':\n        break\n
+  marker = None\n    idx = line.find('├── ')\n    if idx != -1:\n        marker = '├── '\n    else:\n        idx = line.find('└── ')\n        if idx != -1:\n
+         marker = '└── '\n    if marker is None:\n        # Ignore only non-entry lines such as summary if no blank separator exists.\n        continue\n\n    l
+evel = idx // 4\n    name = line[idx + len(marker):]\n    is_dir = name.endswith('/')\n    is_exec = False\n    if is_dir:\n        name = name[:-1]\n    elif n
+ame.endswith('*'):\n        # tree -F marks executable regular files with a trailing '*'.\n        is_exec = True\n        name = name[:-1]\n\n    if name in ('
+', '.', '..') or '/' in name or '\\x00' in name:\n        raise SystemExit(f'unsafe or unsupported path component parsed from line: {line!r}')\n\n    if level +
+ 1 > len(stack):\n        raise SystemExit(f'invalid tree indentation near line: {line!r}')\n    stack = stack[:level + 1]\n    parent = stack[-1]\n    path = p
+arent / name\n\n    if is_dir:\n        path.mkdir(mode=0o700)\n        os.chmod(path, 0o700)\n        stack.append(path)\n    else:\n        path.parent.mkdir(
+mode=0o700, parents=True, exist_ok=True)\n        path.touch(exist_ok=False)\n        os.chmod(path, 0o700 if is_exec else 0o600)\n\n# Ensure every directory in
+ the rebuilt tree has exactly mode 700.\nfor dirpath, dirnames, filenames in os.walk(ROOT):\n    os.chmod(dirpath, 0o700)\nPY\n"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/cmd.sh
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# set -e
+root@c2d876833c53:/app# chmod +x /app/cmd.sh
+root@c2d876833c53:/app# ls -l /app/cmd.sh
+-rwxr-xr-x 1 root root 2451 Sep  3 17:05 /app/cmd.sh
+root@c2d876833c53:/app# bash -n /app/cmd.sh
+root@c2d876833c53:/app# sed -n '1,40p' /app/cmd.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 <<'PY'
+from pathlib import Path
+import os
+import shutil
+import stat
+
+TREE_MAP = Path('/app/tree_map.txt')
+ROOT = Path('/app/files_dir')
+
+lines = TREE_MAP.read_text(encoding='utf-8').splitlines()
+if not lines:
+    raise SystemExit('tree map is empty')
+
+root_line = lines[0]
+if root_line.endswith('/'):
+    root_path_text = root_line[:-1]
+else:
+    root_path_text = root_line
+if root_path_text != str(ROOT):
+    raise SystemExit(f'unexpected root in tree map: {root_line!r}')
+
+# Idempotency: remove previous reconstruction and rebuild from the immutable map.
+if ROOT.exists() or ROOT.is_symlink():
+    if ROOT.is_dir() and not ROOT.is_symlink():
+        # Ensure restrictive trees are removable by the current user.
+        for dirpath, dirnames, filenames in os.walk(ROOT):
+            os.chmod(dirpath, 0o700)
+        shutil.rmtree(ROOT)
+    else:
+        ROOT.unlink()
+
+ROOT.mkdir(mode=0o700, parents=True, exist_ok=True)
+os.chmod(ROOT, 0o700)
+
+stack = [ROOT]
+for line in lines[1:]:
+    if line == '':
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# set -e
+root@c2d876833c53:/app# /app/cmd.sh
+root@c2d876833c53:/app# printf 'reconstructed\n'
+reconstructed
+root@c2d876833c53:/app# find /app/files_dir -maxdepth 2 -printf '%M %p\n' | sed -n '1,60p'
+drwx------ /app/files_dir
+drwx------ /app/files_dir/!documents
+-rw------- /app/files_dir/!documents/file110
+-rw------- /app/files_dir/!documents/file113
+-rw------- /app/files_dir/!documents/file43~
+-rw------- /app/files_dir/file102(
+drwx------ /app/files_dir/-logs
+-rwx------ /app/files_dir/-logs/file108
+-rw------- /app/files_dir/-logs/file44|
+-rw------- /app/files_dir/-logs/file131
+drwx------ /app/files_dir/level1_1
+-rw------- /app/files_dir/level1_1/file11,
+drwx------ /app/files_dir/level1_1/sub_3
+drwx------ /app/files_dir/level1_1/sub_1
+-rw------- /app/files_dir/level1_1/?file31
+-rw------- /app/files_dir/level1_1/file134
+drwx------ /app/files_dir/level1_1/|su%b_2
+drwx------ /app/files_dir/leve#l1_2
+drwx------ /app/files_dir/leve#l1_2/sub_3
+drwx------ /app/files_dir/leve#l1_2/sub_1
+-rw------- /app/files_dir/leve#l1_2/{file47?
+drwx------ /app/files_dir/leve#l1_2/sub_2
+-rw------- /app/files_dir/file114
+drwx------ /app/files_dir/:archive
+-rw------- /app/files_dir/:archive/file29.
+drwx------ /app/files_dir/level1_4.
+drwx------ /app/files_dir/level1_4./sub_3
+drwx------ /app/files_dir/level1_4./sub_1
+-rw------- /app/files_dir/level1_4./file98
+drwx------ /app/files_dir/level1_4./sub_2
+drwx------ /app/files_dir/temp
+-rw------- /app/files_dir/temp/file141
+-rw------- /app/files_dir/temp/>file80
+drwx------ /app/files_dir/[level1_5
+drwx------ /app/files_dir/[level1_5/sub_1
+-rw------- /app/files_dir/[level1_5/fil-e16.
+drwx------ /app/files_dir/[level1_5/su<b_2
+drwx------ /app/files_dir/[level1_5/:sub_3|
+-rw------- /app/files_dir/[level1_5/{file75{
+drwx------ /app/files_dir/level1_3;
+drwx------ /app/files_dir/level1_3;/|sub_2
+-rwx------ /app/files_dir/level1_3;/file66
+-rw------- /app/files_dir/level1_3;/&file88
+drwx------ /app/files_dir/level1_3;/sub_3
+drwx------ /app/files_dir/level1_3;/sub_1
+-rw------- /app/files_dir/level1_3;/file46
+-rwx------ /app/files_dir/level1_3;/file24
+drwx------ /app/files_dir/config_
+-rw------- /app/files_dir/config_/file104
+-rw------- /app/files_dir/config_/file51
+-rw------- /app/files_dir/config_/'file79
+drwx------ /app/files_dir/data
+-rw------- /app/files_dir/data/fi!le1
+drwx------ /app/files_dir/scripts-
+-rw------- /app/files_dir/scripts-/file15
+-rw------- /app/files_dir/scripts-/,file78
+-rw------- /app/files_dir/fil^e84
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# set -e
+root@c2d876833c53:/app# rm -f /app/rebuild_tree_map.txt /app/rebuild_tree_map_2.txt
+root@c2d876833c53:/app# tree -F /app/files_dir > /app/rebuild_tree_map.txt
+root@c2d876833c53:/app# printf -- '--- diff after first rebuild ---\n'
+--- diff after first rebuild ---
+root@c2d876833c53:/app# diff -u /app/tree_map.txt /app/rebuild_tree_map.txt
+root@c2d876833c53:/app# printf -- 'diff ok\n'
+diff ok
+root@c2d876833c53:/app# printf -- '--- directory permission check ---\n'
+--- directory permission check ---
+root@c2d876833c53:/app# bad_dirs=$(find /app/files_dir -type d ! -perm 700 -printf '%m %p\n')
+root@c2d876833c53:/app# if [ -n "$bad_dirs" ]; then
+>   printf '%s\n' "$bad_dirs"
+>   exit 1
+> fi
+root@c2d876833c53:/app# printf 'all directories are mode 700\n'
+all directories are mode 700
+root@c2d876833c53:/app# printf -- '--- zero-byte file check ---\n'
+--- zero-byte file check ---
+root@c2d876833c53:/app# bad_files=$(find /app/files_dir -type f ! -size 0 -printf '%s %p\n')
+root@c2d876833c53:/app# if [ -n "$bad_files" ]; then
+>   printf '%s\n' "$bad_files"
+>   exit 1
+> fi
+root@c2d876833c53:/app# printf 'all files are zero-byte\n'
+all files are zero-byte
+root@c2d876833c53:/app# printf -- '--- idempotency check ---\n'
+--- idempotency check ---
+root@c2d876833c53:/app# /app/cmd.sh
+root@c2d876833c53:/app# tree -F /app/files_dir > /app/rebuild_tree_map_2.txt
+root@c2d876833c53:/app# diff -u /app/tree_map.txt /app/rebuild_tree_map_2.txt
+root@c2d876833c53:/app# printf 'idempotency diff ok\n'
+idempotency diff ok
+root@c2d876833c53:/app# ls -l /app/cmd.sh
+-rwxr-xr-x 1 root root 2451 Sep  3 17:05 /app/cmd.sh
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@c2d876833c53:/app# set -e
+root@c2d876833c53:/app# rm -f /app/rebuild_tree_map_2.txt
+root@c2d876833c53:/app# ls -la /app | sed -n '1,80p'
+total 36
+drwxr-xr-x  1 root root 4096 Sep  3 17:06 .
+drwxr-xr-x  1 root root 4096 Sep  3 17:04 ..
+-rw-r--r--  1 root root   65 Sep  3 17:04 .auto_gen_key.dat
+-rwxr-xr-x  1 root root 2451 Sep  3 17:05 cmd.sh
+drwx------ 14 root root 4096 Sep  3 17:06 files_dir
+-rw-r--r--  1 root root 7923 Sep  3 17:05 rebuild_tree_map.txt
+-rw-r--r--  1 root root 7923 Sep  3 17:04 tree_map.txt
+root@c2d876833c53:/app# true; tmux wait -S done
+root@c2d876833c53:/app# bash /tests/run-tests.sh; tmux wait -S done
+Hit:1 http://mirrors.ustc.edu.cn/ubuntu noble InRelease
+Hit:2 http://mirrors.ustc.edu.cn/ubuntu noble-updates InRelease
+Hit:3 http://mirrors.ustc.edu.cn/ubuntu noble-backports InRelease
+Hit:4 http://mirrors.ustc.edu.cn/ubuntu noble-security InRelease
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following packages will be DOWNGRADED:
+  tree
+0 upgraded, 0 newly installed, 1 downgraded, 0 to remove and 57 not upgraded.
+E: Packages were downgraded and -y was used without --allow-downgrades.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  krb5-locales libbrotli1 libcurl4t64 libgssapi-krb5-2 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap-common libldap2 libnghttp2-14 libpsl5t64
+  librtmp1 libsasl2-2 libsasl2-modules libsasl2-modules-db libssh-4 publicsuffix
+Suggested packages:
+  krb5-doc krb5-user libsasl2-modules-gssapi-mit | libsasl2-modules-gssapi-heimdal libsasl2-modules-ldap libsasl2-modules-otp libsasl2-modules-sql
+The following NEW packages will be installed:
+  curl krb5-locales libbrotli1 libcurl4t64 libgssapi-krb5-2 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap-common libldap2 libnghttp2-14
+  libpsl5t64 librtmp1 libsasl2-2 libsasl2-modules libsasl2-modules-db libssh-4 publicsuffix
+0 upgraded, 19 newly installed, 0 to remove and 57 not upgraded.
+Need to get 2,414 kB of archives.
+After this operation, 6,898 kB of additional disk space will be used.
+Get:1 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 krb5-locales all 1.20.1-6ubuntu2.8 [15.1 kB]
+Get:2 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libkrb5support0 amd64 1.20.1-6ubuntu2.8 [34.7 kB]
+Get:3 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libk5crypto3 amd64 1.20.1-6ubuntu2.8 [81.9 kB]
+Get:4 http://mirrors.ustc.edu.cn/ubuntu noble/main amd64 libkeyutils1 amd64 1.6.3-3build1 [9,490 B]
+Get:5 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libkrb5-3 amd64 1.20.1-6ubuntu2.8 [348 kB]
+Get:6 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libgssapi-krb5-2 amd64 1.20.1-6ubuntu2.8 [143 kB]
+Get:7 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libnghttp2-14 amd64 1.59.0-1ubuntu0.4 [74.6 kB]
+Get:8 http://mirrors.ustc.edu.cn/ubuntu noble/main amd64 libpsl5t64 amd64 0.21.2-1.1build1 [57.1 kB]
+Get:9 http://mirrors.ustc.edu.cn/ubuntu noble/main amd64 publicsuffix all 20231001.0357-0.1 [129 kB]
+Get:10 http://mirrors.ustc.edu.cn/ubuntu noble/main amd64 libbrotli1 amd64 1.1.0-2build2 [331 kB]
+Get:11 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg1-5ubuntu3.1 [20.4 kB]
+Get:12 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libsasl2-2 amd64 2.1.28+dfsg1-5ubuntu3.1 [53.2 kB]
+Get:13 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libldap2 amd64 2.6.10+dfsg-0ubuntu0.24.04.1 [198 kB]
+Get:14 http://mirrors.ustc.edu.cn/ubuntu noble/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2build7 [56.3 kB]
+Get:15 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libssh-4 amd64 0.10.6-2ubuntu0.5 [191 kB]
+Get:16 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libcurl4t64 amd64 8.5.0-2ubuntu10.13 [343 kB]
+Get:17 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 curl amd64 8.5.0-2ubuntu10.13 [226 kB]
+Get:18 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libldap-common all 2.6.10+dfsg-0ubuntu0.24.04.1 [32.9 kB]
+Get:19 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 libsasl2-modules amd64 2.1.28+dfsg1-5ubuntu3.1 [69.9 kB]
+Fetched 2,414 kB in 3s (961 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package krb5-locales.
+(Reading database ... 6973 files and directories currently installed.)
+Preparing to unpack .../00-krb5-locales_1.20.1-6ubuntu2.8_all.deb ...
+Unpacking krb5-locales (1.20.1-6ubuntu2.8) ...
+Selecting previously unselected package libkrb5support0:amd64.
+Preparing to unpack .../01-libkrb5support0_1.20.1-6ubuntu2.8_amd64.deb ...
+Unpacking libkrb5support0:amd64 (1.20.1-6ubuntu2.8) ...
+Selecting previously unselected package libk5crypto3:amd64.
+Preparing to unpack .../02-libk5crypto3_1.20.1-6ubuntu2.8_amd64.deb ...
+Unpacking libk5crypto3:amd64 (1.20.1-6ubuntu2.8) ...
+Selecting previously unselected package libkeyutils1:amd64.
+Preparing to unpack .../03-libkeyutils1_1.6.3-3build1_amd64.deb ...
+Unpacking libkeyutils1:amd64 (1.6.3-3build1) ...
+Selecting previously unselected package libkrb5-3:amd64.
+Preparing to unpack .../04-libkrb5-3_1.20.1-6ubuntu2.8_amd64.deb ...
+Unpacking libkrb5-3:amd64 (1.20.1-6ubuntu2.8) ...
+Selecting previously unselected package libgssapi-krb5-2:amd64.
+Preparing to unpack .../05-libgssapi-krb5-2_1.20.1-6ubuntu2.8_amd64.deb ...
+Unpacking libgssapi-krb5-2:amd64 (1.20.1-6ubuntu2.8) ...
+Selecting previously unselected package libnghttp2-14:amd64.
+Preparing to unpack .../06-libnghttp2-14_1.59.0-1ubuntu0.4_amd64.deb ...
+Unpacking libnghttp2-14:amd64 (1.59.0-1ubuntu0.4) ...
+Selecting previously unselected package libpsl5t64:amd64.
+Preparing to unpack .../07-libpsl5t64_0.21.2-1.1build1_amd64.deb ...
+Unpacking libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Selecting previously unselected package publicsuffix.
+Preparing to unpack .../08-publicsuffix_20231001.0357-0.1_all.deb ...
+Unpacking publicsuffix (20231001.0357-0.1) ...
+Selecting previously unselected package libbrotli1:amd64.
+Preparing to unpack .../09-libbrotli1_1.1.0-2build2_amd64.deb ...
+Unpacking libbrotli1:amd64 (1.1.0-2build2) ...
+Selecting previously unselected package libsasl2-modules-db:amd64.
+Preparing to unpack .../10-libsasl2-modules-db_2.1.28+dfsg1-5ubuntu3.1_amd64.deb ...
+Unpacking libsasl2-modules-db:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Selecting previously unselected package libsasl2-2:amd64.
+Preparing to unpack .../11-libsasl2-2_2.1.28+dfsg1-5ubuntu3.1_amd64.deb ...
+Unpacking libsasl2-2:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Selecting previously unselected package libldap2:amd64.
+Preparing to unpack .../12-libldap2_2.6.10+dfsg-0ubuntu0.24.04.1_amd64.deb ...
+Unpacking libldap2:amd64 (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+Selecting previously unselected package librtmp1:amd64.
+Preparing to unpack .../13-librtmp1_2.4+20151223.gitfa8646d.1-2build7_amd64.deb ...
+Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build7) ...
+Selecting previously unselected package libssh-4:amd64.
+Preparing to unpack .../14-libssh-4_0.10.6-2ubuntu0.5_amd64.deb ...
+Unpacking libssh-4:amd64 (0.10.6-2ubuntu0.5) ...
+Selecting previously unselected package libcurl4t64:amd64.
+Preparing to unpack .../15-libcurl4t64_8.5.0-2ubuntu10.13_amd64.deb ...
+Unpacking libcurl4t64:amd64 (8.5.0-2ubuntu10.13) ...
+Selecting previously unselected package curl.
+Preparing to unpack .../16-curl_8.5.0-2ubuntu10.13_amd64.deb ...
+Unpacking curl (8.5.0-2ubuntu10.13) ...
+Selecting previously unselected package libldap-common.
+Preparing to unpack .../17-libldap-common_2.6.10+dfsg-0ubuntu0.24.04.1_all.deb ...
+Unpacking libldap-common (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+Selecting previously unselected package libsasl2-modules:amd64.
+Preparing to unpack .../18-libsasl2-modules_2.1.28+dfsg1-5ubuntu3.1_amd64.deb ...
+Unpacking libsasl2-modules:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Setting up libkeyutils1:amd64 (1.6.3-3build1) ...
+Setting up libbrotli1:amd64 (1.1.0-2build2) ...
+Setting up libsasl2-modules:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Setting up libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Setting up libnghttp2-14:amd64 (1.59.0-1ubuntu0.4) ...
+Setting up krb5-locales (1.20.1-6ubuntu2.8) ...
+Setting up libldap-common (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+Setting up libkrb5support0:amd64 (1.20.1-6ubuntu2.8) ...
+Setting up libsasl2-modules-db:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build7) ...
+Setting up libk5crypto3:amd64 (1.20.1-6ubuntu2.8) ...
+Setting up libsasl2-2:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Setting up libkrb5-3:amd64 (1.20.1-6ubuntu2.8) ...
+Setting up publicsuffix (20231001.0357-0.1) ...
+Setting up libldap2:amd64 (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+Setting up libgssapi-krb5-2:amd64 (1.20.1-6ubuntu2.8) ...
+Setting up libssh-4:amd64 (0.10.6-2ubuntu0.5) ...
+Setting up libcurl4t64:amd64 (8.5.0-2ubuntu10.13) ...
+Setting up curl (8.5.0-2ubuntu10.13) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.8) ...
+  [uv] 通过 ghfast.top 代理下载 uv 0.7.13 ...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 16.9M  100 16.9M    0     0  3093k      0  0:00:05  0:00:05 --:--:-- 4212k
+Using CPython 3.12.3 interpreter at: /usr/bin/python3
+Creating virtual environment at: .tbench-testing
+Activate with: source .tbench-testing/bin/activate
+Using Python 3.12.3 environment at: .tbench-testing
+Resolved 5 packages in 543ms
+Prepared 5 packages in 452ms
+Installed 5 packages in 19ms
+ + iniconfig==2.3.0
+ + packaging==26.3
+ + pluggy==1.6.0
+ + pygments==2.21.0
+ + pytest==8.4.1
+Using Python 3.12.3 environment at: .tbench-testing
+Audited 1 package in 1ms
+===================================================================== test session starts ======================================================================
+platform linux -- Python 3.12.3, pytest-8.4.1, pluggy-1.6.0
+rootdir: /tests
+collected 8 items
+
+../tests/test_outputs.py ........                                                                                                                        [100%]
+
+============================================================================ PASSES ============================================================================
+=================================================================== short test summary info ====================================================================
+PASSED ../tests/test_outputs.py::test_output_files_exist
+PASSED ../tests/test_outputs.py::test_tree_map_hash_unchanged
+PASSED ../tests/test_outputs.py::test_directory_reconstruction_and_comparison
+PASSED ../tests/test_outputs.py::test_files_and_directories_created
+PASSED ../tests/test_outputs.py::test_files_are_zero_byte
+PASSED ../tests/test_outputs.py::test_directory_permissions
+PASSED ../tests/test_outputs.py::test_script_is_reproducible
+PASSED ../tests/test_outputs.py::test_tree_command_availability
+====================================================================== 8 passed in 0.68s =======================================================================
+root@c2d876833c53:/app#

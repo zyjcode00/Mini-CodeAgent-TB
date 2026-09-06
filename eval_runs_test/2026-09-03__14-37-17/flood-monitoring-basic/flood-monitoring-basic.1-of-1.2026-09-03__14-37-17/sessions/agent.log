@@ -1,0 +1,183 @@
+[?2004hroot@a185e70be15e:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@a185e70be15e:/app# clear
+[?2004l[H[J[3J[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# set +e
+[?2004l[?2004hroot@a185e70be15e:/app# 
+[?2004l[?2004hroot@a185e70be15e:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@a185e70be15e:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@a185e70be15e:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@a185e70be15e:/app# 
+[?2004l[?2004hroot@a185e70be15e:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@a185e70be15e:/app# 
+[?2004l[?2004hroot@a185e70be15e:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@a185e70be15e:/app# 
+[?2004l[?2004hroot@a185e70be15e:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@a185e70be15e:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@a185e70be15e:/app# 
+[?2004l[?2004hroot@a185e70be15e:/app# apt-get update || true
+[?2004l0% [Working]            Get:1 http://mirrors.ustc.edu.cn/debian trixie InRelease [140 kB]
+0% [1 InRelease 13.0 kB/140 kB 9%]                                  0% [Waiting for headers]0% [Waiting for headers]                        Get:2 http://mirrors.ustc.edu.cn/debian trixie-updates InRelease [47.3 kB]
+0% [2 InRelease 4344 B/47.3 kB 9%]                                  0% [Waiting for headers]0% [Waiting for headers]                        Get:3 http://mirrors.ustc.edu.cn/debian-security trixie-security InRelease [43.4 kB]
+0% [3 InRelease 5792 B/43.4 kB 13%]                                   0% [Working]15% [Waiting for headers]                         Get:4 http://mirrors.ustc.edu.cn/debian trixie/main amd64 Packages [9673 kB]
+15% [4 Packages 0 B/9673 kB 0%]32% [4 Packages 2114 kB/9673 kB 22%]69% [4 Packages 6800 kB/9673 kB 70%]                                    91% [Waiting for headers]                         Get:5 http://mirrors.ustc.edu.cn/debian trixie-updates/main amd64 Packages [4412 B]
+                         91% [Working]91% [4 Packages store 0 B] [Waiting for headers]                                                Get:6 http://mirrors.ustc.edu.cn/debian-security trixie-security/main amd64 Packages [251 kB]
+91% [4 Packages store 0 B] [6 Packages 8688 B/251 kB 3%]                                                        93% [4 Packages store 0 B]                          96% [Working]96% [5 Packages store 0 B]                          98% [Working]98% [6 Packages store 0 B]                          100% [Working]              Fetched 10.2 MB in 3s (4027 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 96%Reading package lists... 96%Reading package lists... 96%Reading package lists... 96%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# pwd && printf '%s\n' '--- files ---' && find /data -maxdepth 1 -type f -name '*.csv' -print | sort && printf '%s\n' '--- app output ---' && ls -l /app/flood_summary.json 2>/dev/null || true
+[?2004l/app
+--- files ---
+/data/station_A.csv
+/data/station_B.csv
+/data/station_C.csv
+--- app output ---
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# for f in /data/station_A.csv /data/station_B.csv /data/station_C.csv; do printf '%s\n' "--- $f ---"; sed -n '1,8p' "$f"; done
+[?2004l--- /data/station_A.csv ---
+timestamp,water_level_m
+2024-01-01 00:00,
+2024-01-01 01:00,2.3
+2024-01-01 02:00,2.5
+2024-01-01 03:00,2.8
+2024-01-01 04:00,3.2
+2024-01-01 05:00,
+2024-01-01 06:00,3.7
+--- /data/station_B.csv ---
+timestamp,water_level_m
+2024-01-01 00:00,1.8
+2024-01-01 01:00,2.0
+2024-01-01 02:00,2.2
+2024-01-01 03:00,2.4
+2024-01-01 04:00,2.6
+2024-01-01 05:00,2.8
+2024-01-01 06:00,3.0
+--- /data/station_C.csv ---
+timestamp,water_level_m
+2024-01-01 00:00,1.5
+2024-01-01 01:00,1.6
+2024-01-01 02:00,1.7
+2024-01-01 03:00,1.8
+2024-01-01 04:00,1.9
+2024-01-01 05:00,2.0
+2024-01-01 06:00,2.1
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# find /app -maxdepth 2 -type f -not -path '*/.git/*' -print | sort | head -100 && printf '%s\n' '--- row/missing counts ---' && awk -F, 'FNR==1 {next} {n[FILENAME]++; if ($2=="") m[FILENAME]++} END {for (f in n) print f, "rows=" n[f], "missing=" (m[f]+0)}' /data/station_*.csv
+[?2004l--- row/missing counts ---
+/data/station_B.csv rows=48 missing=2
+/data/station_C.csv rows=48 missing=0
+/data/station_A.csv rows=48 missing=5
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# python3 - /app/complete_water_levels.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = '#!/usr/bin/env python3\n"""Fill station water-level CSVs and summarize flood events."""\n\nimport csv\nimport json\nfrom pathlib import Path\nfrom typing import List, Optional, Tuple\n\nDATA_DIR = Path("/data")\nOUTPUT_PATH = Path("/app/flood_summary.json")\nTHRESHOLD = 3.5\nMIN_EVENT_HOURS = 3\n\n\ndef interpolate(values: List[Optional[float]]) -> List[float]:\n    """Fill missing values using endpoint carry-forward/backward and linear interpolation."""\n    available = [i for i, value in enumerate(values) if value is not None]\n    if not available:\n        raise ValueError("cannot interpolate a series with no available values")\n\n    result = [0.0] * len(values)\n    first, last = available[0], available[-1]\n    for i in range(0, first):\n        result[i] = values[first]  # type: ignore[assignment]\n    for i in range(last + 1, len(values)):\n        result[i] = values[last]  # type: ignore[assignment]\n\n    for left, right in zip(available, available[1:]):\n        left_value = values[left]\n        right_value = values[right]\n        result[left] = left_value  # type: ignore[assignment]\n        step = (right_value - left_value) / (right - left)  # type: ignore[operator]\n        for i in range(left + 1, right):\n            result[i] = left_value + step * (i - left)  # type: ignore[operator]\n    result[last] = values[last]  # type: ignore[assignment]\n    return result\n\n\ndef flood_event_count(levels: List[float]) -> int:\n    """Count separate runs of at least three consecutive levels at or above 3.5m."""\n    events = 0\n    run_length = 0\n    for level in levels + [0.0]:\n        if level >= THRESHOLD:\n            run_length += 1\n        else:\n            if run_length >= MIN_EVENT_HOURS:\n                events += 1\n            run_length = 0\n    return events\n\n\ndef process_station(path: Path) -> int:\n    with path.open(newline="") as handle:\n        rows = list(csv.DictReader(handle))\n    if not rows or any("timestamp" not in row or "water_level_m" not in row for row in rows):\n        raise ValueError(f"invalid CSV schema: {path}")\n\n    values = [float(row["water_level_m"]) if row["water_level_m"].strip() else None for row in rows]\n    completed = interpolate(values)\n    for row, value in zip(rows, completed):\n        row["water_level_m"] = format(value, ".10g")\n\n    with path.open("w", newline="") as handle:\n        writer = csv.DictWriter(handle, fieldnames=["timestamp", "water_level_m"])\n        writer.writeheader()\n        writer.writerows(rows)\n    return flood_event_count(completed)\n\n\ndef main() -> None:\n    summary = {}\n    for path in sorted(DATA_DIR.glob("station_*.csv")):\n        summary[path.stem] = process_station(path)\n    OUTPUT_PATH.write_text(json.dumps(summary, indent=2) + "\\n")\n\n\nif __name__ == "__main__":\n    main()\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/complete_water_levels.py
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# python3 - /app/test_complete_water_levels.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = '#!/usr/bin/env python3\n"""Focused tests for water-level interpolation and flood event counting."""\n\nfrom complete_water_levels import flood_event_count, interpolate\n\n\ndef assert_almost_equal_list(actual, expected):\n    assert len(actual) == len(expected)\n    for i, (left, right) in enumerate(zip(actual, expected)):\n        assert abs(left - right) < 1e-9, f"index {i}: {left} != {right}"\n\n\ndef test_interpolate_edges_and_middle():\n    values = [None, None, 2.0, None, None, 5.0, None]\n    assert_almost_equal_list(interpolate(values), [2.0, 2.0, 2.0, 3.0, 4.0, 5.0, 5.0])\n\n\ndef test_flood_event_count_requires_three_consecutive_hours():\n    levels = [3.5, 3.6, 3.4, 3.5, 3.7, 3.9, 3.4, 3.5, 3.5, 3.5, 3.6]\n    assert flood_event_count(levels) == 2\n\n\ndef test_short_threshold_run_is_not_event():\n    assert flood_event_count([3.5, 3.6, 3.4, 3.7, 3.8]) == 0\n\n\nif __name__ == "__main__":\n    test_interpolate_edges_and_middle()\n    test_flood_event_count_requires_three_consecutive_hours()\n    test_short_threshold_run_is_not_event()\n    print("tests passed")\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/test_complete_water_levels.py
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# python3 /app/test_complete_water_levels.py && python3 /app/complete_water_levels.py && printf '%s\n' '--- summary ---' && cat /app/flood_summary.json && printf '%s\n' '--- post counts ---' && awk -F, 'FNR==1 {next} {n[FILENAME]++; if ($2=="") m[FILENAME]++} END {for (f in n) print f, "rows=" n[f], "missing=" (m[f]+0)}' /data/station_*.csv
+[?2004ltests passed
+--- summary ---
+{
+  "station_A": 2,
+  "station_B": 1,
+  "station_C": 0
+}
+--- post counts ---
+/data/station_B.csv rows=48 missing=0
+/data/station_C.csv rows=48 missing=0
+/data/station_A.csv rows=48 missing=0
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@a185e70be15e:/app# python3 - <<'PY'
+[?2004l[?2004h> import csv
+[?2004l[?2004h> import json
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004l[?2004h> summary_path = Path('/app/flood_summary.json')
+[?2004l[?2004h> summary = json.loads(summary_path.read_text())
+[?2004l[?2004h> expected_stations = {'station_A', 'station_B', 'station_C'}
+[?2004l[?2004h> assert set(summary) == expected_stations
+[?2004l[?2004h> assert all(isinstance(value, int) and value >= 0 for value in summary.values())
+[?2004l[?2004h> for path in sorted(Path('/data').glob('station_*.csv')):
+[?2004l[?2004h>     with path.open(newline='') as handle:
+[?2004l[?2004h>         rows = list(csv.DictReader(handle))
+[?2004l[?2004h>     assert len(rows) == 48, (path, len(rows))
+[?2004l[?2004h>     assert all(row['water_level_m'].strip() for row in rows), path
+[?2004l[?2004h>     levels = [float(row['water_level_m']) for row in rows]
+[?2004l[?2004h>     events = 0
+[?2004l[?2004h>     run = 0
+[?2004l[?2004h>     for level in levels + [0.0]:
+[?2004l[?2004h>         if level >= 3.5:
+[?2004l[?2004h>             run += 1
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             events += run >= 3
+[?2004l[?2004h>             run = 0
+[?2004l[?2004h>     assert summary[path.stem] == events, (path, summary[path.stem], events)
+[?2004l[?2004h> print('validation passed')
+[?2004l[?2004h> print(json.dumps(summary, indent=2))
+[?2004l[?2004h> PY
+[?2004lvalidation passed
+{
+  "station_A": 2,
+  "station_B": 1,
+  "station_C": 0
+}
+[?2004hroot@a185e70be15e:/app# true; tmux wait -S done
+[?2004l[?2004hroot@a185e70be15e:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@a185e70be15e:/app# 

@@ -1,33 +1,34 @@
 <div align="center">
 
-# 🤖 Mini Claude Code CLI
+# 🤖 Mini CodeAgent TB
 
-**一个具备异步并发推理、显式规划与确定性自愈能力的 AI 工程代理**
+**一个具备异步并发推理、显式规划、确定性自愈与长期记忆的轻量级本地 Coding Agent**
 
-基于工程化 Agent 架构 · 闭环测试驱动 · 三层记忆系统 · 影子分支保护
+基于工程化 Agent 架构 · 三层记忆与混合召回 · 上下文压缩与预算装配 · Terminal-Bench 端到端评测
 
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)]()
 [![Architecture](https://img.shields.io/badge/架构-Agentic--Loop-orange.svg)]()
-[![VCS](https://img.shields.io/badge/VCS-Shadow--Branching-blueviolet.svg)]()
-[![Symbol](https://img.shields.io/badge/智能-AST--Symbol--Map-red.svg)]()
+[![Memory](https://img.shields.io/badge/记忆-三层+Hybrid--Recall-blueviolet.svg)]()
+[![Benchmark](https://img.shields.io/badge/评测-Terminal--Bench-success.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 
 </div>
 
 ---
 
-## ✨ 为什么选择 Mini Claude Code CLI？
+## ✨ 为什么选择 Mini CodeAgent TB？
 
-Mini Claude Code CLI 不仅仅是一个代码生成器——它是一个**闭环的代码进化系统**。
+Mini CodeAgent TB 不仅仅是一个代码生成器——它是一个**闭环的代码进化系统**。
 
-| 传统代码助手 | Mini Claude Code CLI |
+| 传统代码助手 | Mini CodeAgent TB |
 |:---|:---|
-| 串行调用工具，效率低下 | ⚡ 异步并发推理，3-5x 速度提升 |
+| 串行调用工具，效率低下 | ⚡ 异步并发推理，多工具并行调用 |
 | 长对话后遗忘上下文 | 🧠 三层记忆架构，跨会话知识沉淀 |
 | 改错了就束手无策 | 🛡️ 影子分支 + Git 物理回滚，零风险重构 |
-| 盲目 grep 搜索代码 | 🗺️ AST 符号地图，精准定位跨文件定义 |
+| 长任务上下文丢失 | 🧠 上下文压缩引擎，关键帧/摘要/预算装配 |
 | 写完代码就算完成 | 🧪 TDD 闭环：测试失败 → 自动分析 → 修复 → 验证 |
 | 随意开工没有计划 | ⏳ 显式规划管理，实时看板追踪任务进度 |
+| 多任务日志混在一起 | 📂 会话级隔离，每个评测任务独立 session 可回溯 |
 
 ---
 
@@ -35,22 +36,27 @@ Mini Claude Code CLI 不仅仅是一个代码生成器——它是一个**闭环
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                        用户输入 (REPL)                        │
+│    用户输入 (REPL)  /  Terminal-Bench Harness (评测入口)      │
 └──────────────────────────┬───────────────────────────────────┘
                            │
+                           ▼
+┌──────────────────────────────────────────────────────────────┐
+│              Terminal-Bench 适配器 (terminal_bench_adapter)   │
+│        将 Agent 封装为 TB 协议，接入 Docker 沙箱评测          │
+└──────────────────────────┬───────────────────────────────────┘
                            ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                  Agent Engine (异步决策中枢)                   │
 │  ┌────────────────┐  ┌──────────────┐  ┌──────────────────┐ │
 │  │  PlanManager   │  │   Context    │  │  SessionManager  │ │
-│  │  任务规划看板   │  │  上下文管家   │  │   会话持久化     │ │
+│  │  任务规划看板   │  │  上下文管家   │  │  会话持久化/隔离  │ │
 │  └────────────────┘  └──────────────┘  └──────────────────┘ │
 └──────────────────────────┬───────────────────────────────────┘
                            │ asyncio.gather 并发分发
                            ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                       工具层 (Tools)                          │
-│  Bash │ File │ Git │ Search │ Symbol │ Pytest │ Plan │ ...  │
+│  Bash │ File │ Git │ Search │ Pytest │ Plan │ Memory │ ...  │
 └──────────────────────────┬───────────────────────────────────┘
                            │ 物理执行反馈
                            ▼
@@ -68,8 +74,9 @@ Mini Claude Code CLI 不仅仅是一个代码生成器——它是一个**闭环
 ## 📂 项目结构
 
 ```
-mini-claude-code-cli/
+Mini-CodeAgent-TB/
 ├── main.py                    # 系统入口：异步 REPL 与配置加载
+├── terminal_bench_adapter.py  # Terminal-Bench 评测适配器（TB Agent 协议封装）
 ├── CLAUDE.md                  # Agent 行为准则与工程规范
 ├── .env.example               # 环境变量示例
 ├── requirements.txt           # Python 依赖清单
@@ -80,8 +87,8 @@ mini-claude-code-cli/
 │   ├── context.py             # 上下文管家：压缩与持久化
 │   ├── plan.py                # PlanManager：显式任务规划
 │   ├── prompts.py             # 提示词工厂：动态注入环境/记忆/计划
-│   ├── session_manager.py     # 会话管理器：跨会话状态持久化
-│   ├── compression_engine.py  # 智能压缩引擎：4 种自适应策略
+│   ├── session_manager.py     # 会话管理器：跨会话状态持久化与隔离
+│   ├── compression_engine.py  # 智能压缩引擎：3 种策略自适应选择
 │   ├── memory_layers.py       # 三层记忆架构管理
 │   ├── memory_models.py       # 会话摘要、文件变更、错误记录等记忆数据模型
 │   ├── memory_items.py        # 长期记忆实体：MemoryItem / RawObservation
@@ -89,13 +96,22 @@ mini-claude-code-cli/
 │   ├── memory_context_builder.py # 记忆 Prompt 注入与 Token Budget 控制
 │   ├── memory_retrieval.py    # 统一检索层：Hybrid Recall / 文件历史 / 错误历史
 │   ├── keyword_indexer.py     # 关键词提取：jieba + TF-IDF
-│   └── bm25_retriever.py      # BM25 全文检索引擎
+│   ├── bm25_retriever.py      # BM25 全文检索引擎
+│   ├── memory_embedding.py    # 向量化嵌入（Hybrid Recall 向量通道）
+│   ├── memory_index.py        # 记忆索引管理
+│   ├── memory_maintenance.py  # 长期记忆维护（合并/去重/过期）
+│   ├── context_assembler.py   # 上下文统一装配器（预算分区控制）
+│   ├── turn_builder.py        # Turn 结构化构建
+│   ├── read_guard.py          # 文件读取保护
+│   └── safe_json.py           # 容错 JSON 解析
 │
 ├── tools/                     # 🛠️ 工具层
 │   ├── base.py                # 工具基类与 Schema 规范
-│   ├── bash_tool.py           # Shell 执行 (Windows 编码自愈)
+│   ├── bash_tool.py           # Shell 执行 (Windows 编码自愈、超时保护)
 │   ├── file_tool.py           # 文件读写 (CRLF/LF 归一化)
 │   ├── git_tool.py            # Git 操作 (影子分支/快照/回滚)
+│   ├── execution_backend.py   # 执行后端
+│   ├── remote_workspace.py    # 远端工作区支持
 │   ├── search_tool.py         # 正则代码搜索
 │   ├── symbol_tool.py         # AST 符号导航
 │   ├── pytest_tool.py         # 测试执行与 Traceback 捕获
@@ -104,7 +120,18 @@ mini-claude-code-cli/
 │   ├── retrieval_tool.py      # 记忆检索工具
 │   └── memory_tool.py         # 长期记忆工具：save/recall/file_history/error_history/stats
 │
-├── tests/                     # 🧪 测试套件 (40+ 测试文件)
+├── tests/                     # 🧪 测试套件 (38 个测试文件)
+├── benchmark/                 # 📊 基准评测
+│   ├── memory_recall_benchmark.py  # 长期记忆检索评测（18 用例 hit@1/MRR=1.0）
+│   ├── memory_recall_compare.json  # 检索评测结果
+│   └── memory_recall_compare.md
+├── scripts/                   # 🔧 评测脚本
+│   ├── run_terminal_bench_agent.py  # Terminal-Bench 运行入口
+│   └── run_evaluation.py
+├── sessions/                  # 🗂️ 会话持久化（每任务独立 session）
+├── eval_runs_test/            # 📈 TB 评测运行产物（results.json 等）
+├── TB_log/                    # 📋 评测日志
+├── TB评测记录.md              # ✅ TB 通过任务记录
 ├── docs/                      # 📚 设计文档与架构记录
 │   ├── architecture_summary.md
 │   ├── shadow_branch_system.md
@@ -119,7 +146,7 @@ mini-claude-code-cli/
 
 ### 1. ⚡ 异步并发推理 (Parallel Tool Use)
 
-基于 AsyncIO 链路的并行架构，当 LLM 一次性提出多个工具请求时，引擎使用 `asyncio.gather` 并行执行，交互轮次减少约 60%。
+基于 AsyncIO 链路的并行架构，当 LLM 一次性提出多个工具请求时，引擎使用 `asyncio.gather` 并行执行，显著减少交互轮次。
 
 ### 2. ⏳ 显式规划与任务看板 (Explicit Planning)
 
@@ -137,9 +164,9 @@ mini-claude-code-cli/
 - **确定性回退**：连续 edit_file 失败时自动触发 Git 回滚
 - **优雅提交**：任务完成后 Squash Merge，保持 main 分支历史纯净
 
-### 5. 🗺️ AST 符号地图与智能搜索
+### 5. 🔍 智能代码搜索
 
-- **符号导航**：基于 Python AST 建立全局类/函数索引，按名称精准定位
+- **符号导航**：基于 Python AST 提供类/函数符号大纲与定义定位，辅助跨文件查找
 - **代码搜索**：正则表达式 + 上下文行展示 + glob 文件过滤
 
 ### 6. 🧬 三层记忆架构与智能压缩
@@ -154,10 +181,9 @@ mini-claude-code-cli/
 
 | 策略 | 适用场景 | 特点 |
 |:---|:---|:---|
-| keyframe | 代码重构/Bug修复 | 保留所有文件变更和错误记录 |
-| semantic | 分析讨论/知识问答 | 提取核心观点和决策 |
-| hybrid | 混合型任务 | 关键帧 + 语义摘要 |
-| timeline | 时序任务 | 保留时序关键节点 |
+| LLM 摘要 | 长对话总结 | 调用 LLM 生成结构化摘要，保留核心结论 |
+| 关键帧 | 代码重构/Bug修复 | 保留工具调用、错误 Traceback 等高价值节点 |
+| 滑动窗口 | 默认、最可靠 | 保留最近 N 条消息，简单可控 |
 
 **本次上下文压缩系统重构后的高级特性**：
 
@@ -202,11 +228,45 @@ Turn 元数据 → 关键帧/摘要选择 → CompressedSessionState 结构化�
 > 详细说明见：[`docs/new_long_term_memory_system.md`](docs/new_long_term_memory_system.md)
 > 重构路线见：[`docs/memory_system_refactor_roadmap.md`](docs/memory_system_refactor_roadmap.md)
 
-### 8. 🪟 工业级环境兼容性
+### 8. 📂 会话级状态持久化与隔离
+
+- **多会话并存**：`--session <id>` 指定会话，每个会话独立持久化，互不干扰
+- **中断恢复**：任务中断后可从持久化状态继续，上下文不丢失
+- **评测隔离**：Terminal-Bench 每个任务独立 session（`sessions/<task>.json`），工具调用历史可逐任务回溯
+
+### 9. 🪟 工业级环境兼容性
 
 - **编码自愈**：自动识别 Windows CMD 乱码，内置 `chcp 65001` 与 `chardet` 解码
 - **换行符归一化**：`edit_file` 自动处理 CRLF/LF 差异
 - **原子化防错**：规避 Shell echo 嵌套引号陷阱
+
+---
+
+## 🏆 Terminal-Bench 端到端评测
+
+项目通过 `terminal_bench_adapter.py` 将 Agent 封装为 Terminal-Bench 协议，接入官方评测集（Docker 沙箱、WSL 环境），验证真实终端任务下的端到端能力。
+
+### 评测方式
+
+```bash
+uv run tb run \
+  --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
+  --dataset-path <terminal-bench/original-tasks> \
+  --agent-kwarg max_turns=10 \
+  --global-agent-timeout-sec 900 \
+  --global-test-timeout-sec 600 \
+  --task-id <task-id> \
+  --output-path ./eval_runs_test
+```
+
+### 评测工程化
+
+- **会话隔离**：每个评测任务创建独立 session（`sessions/<task>.json`），工具调用历史、记忆、上下文互不串扰，失败任务可一键清理
+- **结果管理**：通过任务写入 `TB评测记录.md`（含命令 / run 路径 / results / is_resolved / 前置修复说明），失败任务自动清理 run 与 session
+- **环境适配**：apt 源换 USTC、uv 安装走 gh-proxy 代理、Docker Hub 镜像经 `docker.1ms.run` 拉取并 tag 回原名，解决国内网络下的依赖下载问题
+- **超时保护**：主 LLM 调用与 Bash 工具均带超时保护，容器卡死时自动 kill 清理
+
+> 评测记录见 [`TB评测记录.md`](TB评测记录.md)，运行产物见 `eval_runs_test/`。
 
 ---
 
@@ -242,8 +302,8 @@ Turn 元数据 → 关键帧/摘要选择 → CompressedSessionState 结构化�
 ### 1. 克隆项目并安装依赖
 
 ```bash
-git clone https://github.com/zyjcode00/mini-claude-code-cli.git
-cd mini-claude-code-cli
+git clone https://github.com/zyjcode00/Mini-CodeAgent-TB.git
+cd Mini-CodeAgent-TB
 pip install -r requirements.txt
 ```
 
@@ -281,8 +341,20 @@ python main.py --session my_project --model your-model-name
 
 | 参数 | 说明 | 默认值 |
 |:---|:---|:---|
-| `--session` | 会话 ID（用于持久化与恢复） | `default` |
+| `--session` | 会话 ID（用于持久化与恢复，多会话并存互不干扰） | `default` |
 | `--model` | 使用的模型名称 | 项目默认模型 |
+
+### 运行 Terminal-Bench 评测
+
+```bash
+# 单任务评测（conda activate tb 环境）
+uv run tb run --agent-import-path terminal_bench_adapter:MiniClaudeCodeAgent \
+  --dataset-path /path/to/terminal-bench/original-tasks \
+  --task-id <task-id> --output-path ./eval_runs_test
+
+# 或使用脚本
+python3 scripts/run_terminal_bench_agent.py
+```
 
 ### REPL 交互命令
 
@@ -308,13 +380,15 @@ pytest tests/test_memory_phase4.py -v
 pytest tests/test_memory_phase5.py -v
 ```
 
+**Terminal-Bench 评测**：累计 **85 个真实终端任务通过**（截至 2026-09-06），覆盖数据处理、Git 修复、安全解压、Cython/gRPC 服务实现、SQLite gcov 插桩编译、确定性构建等任务，全部经官方 scorer 判定 `is_resolved=True`。
+
 **测试覆盖范围**：
 
 - ✅ Git 工具功能与影子分支系统
 - ✅ 文件读写与编码兼容性
 - ✅ 代码搜索与 AST 符号导航
 - ✅ 会话恢复与隔离
-- ✅ 压缩引擎 (4 种策略)
+- ✅ 压缩引擎 (LLM 摘要 / 关键帧 / 滑动窗口 3 种策略)
 - ✅ 三层记忆流转与持久化
 - ✅ MemoryManager 统一编排、MemoryItem 长期记忆与主动保存
 - ✅ Hybrid Recall、文件历史召回、错误历史召回与 Prompt 预算控制
@@ -331,23 +405,24 @@ pytest tests/test_memory_phase5.py -v
 - [x] **PlanManager**：显式任务规划与实时看板
 - [x] **AsyncIO 引擎**：并发工具调用重构
 - [x] **Pytest 闭环**：确定性自愈与 TDD 流程
-- [x] **上下文压缩**：滑动窗口 + 递归式摘要
+- [x] **上下文压缩**：LLM 摘要 / 关键帧 / 滑动窗口 3 策略
 - [x] **Git 影子分支**：原子快照与物理回滚
 - [x] **AST 符号地图**：全局类/函数索引与精准导航
-- [x] **智能压缩引擎**：4 策略自适应切换
+- [x] **智能压缩引擎**：LLM 摘要 / 关键帧 / 滑动窗口 3 策略自适应选择
 - [x] **三层记忆架构**：工作记忆 → 情景记忆 → 长期记忆
 - [x] **长期记忆重构 Phase 1-5**：MemoryManager、MemoryItem、主动保存、Hybrid Recall、Prompt 预算注入
 - [x] **记忆工具化接口**：memory_save / memory_recall / memory_file_history / memory_error_history / memory_stats
 - [x] **检索增强**：BM25 + 关键词 + 重要性/新鲜度融合的混合召回
 - [x] **工业级兼容**：Windows 编码自愈与 CRLF/LF 归一化
+- [x] **主 LLM 超时保护**：LLM 调用与 Bash 工具超时兜底，容器卡死自动清理
+- [x] **Terminal-Bench 接入**：`terminal_bench_adapter` 适配 TB 协议，Docker 沙箱端到端评测
 
 ### 🚧 计划中
 
 - [ ] 多文件依赖图分析
-- [ ] SWE-bench 自动评测流水线
+- [ ] SWE-bench 自动评测流水线（Terminal-Bench 已接入，共 85 个任务通过）
 - [ ] 多模型切换与负载均衡
 - [ ] 可视化任务看板与执行轨迹
-- [ ] Docker 环境沙箱隔离
 - [ ] 向量检索深度集成与可选 agentmemory REST/MCP 对接
 
 ---
@@ -380,7 +455,7 @@ pytest tests/test_memory_phase5.py -v
 
 五大架构原则：
 
-1. **推理与执行分离** — LLM 负责战略规划，工具链负责物理执行
+1. **推理与执行分离** — LLM 负责战略规划，工具链负责物理执行（并以 Terminal-Bench 官方 scorer 做端到端验证）
 2. **确定性自愈闭环** — 测试失败 → 错误分析 → 自动修复 → 重新验证
 3. **状态显式化** — 任务进度、记忆摘要、Git 状态全程可追踪
 4. **容错优先** — 影子分支、原子快照、自动回滚三重保险

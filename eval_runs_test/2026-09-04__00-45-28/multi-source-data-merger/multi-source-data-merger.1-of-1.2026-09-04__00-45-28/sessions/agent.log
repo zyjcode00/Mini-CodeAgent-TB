@@ -1,0 +1,617 @@
+[?2004hroot@929fb9fdf275:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@929fb9fdf275:/app# clear
+[?2004l[H[J[3J[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# set +e
+[?2004l[?2004hroot@929fb9fdf275:/app# 
+[?2004l[?2004hroot@929fb9fdf275:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@929fb9fdf275:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@929fb9fdf275:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@929fb9fdf275:/app# 
+[?2004l[?2004hroot@929fb9fdf275:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@929fb9fdf275:/app# 
+[?2004l[?2004hroot@929fb9fdf275:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@929fb9fdf275:/app# 
+[?2004l[?2004hroot@929fb9fdf275:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@929fb9fdf275:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@929fb9fdf275:/app# 
+[?2004l[?2004hroot@929fb9fdf275:/app# apt-get update || true
+[?2004l0% [Working]            Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+0% [1 InRelease 11.6 kB/151 kB 8%]                                  0% [Working]            Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+0% [2 InRelease 2896 B/55.4 kB 5%]                                  0% [Working]            Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+0% [3 InRelease 7240 B/34.8 kB 21%]                                   0% [Working]0% [Working]            Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+0% [4 Packages 2896 B/8790 kB 0%]0% [4 Packages 349 kB/8790 kB 4%]26% [4 Packages 1267 kB/8790 kB 14%]64% [4 Packages 5656 kB/8790 kB 64%]87% [4 Packages 8361 kB/8790 kB 95%]                                    90% [Working]90% [4 Packages store 0 B] [Waiting for headers]                                                Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+90% [4 Packages store 0 B] [5 Packages 4344 B/6924 B 63%]                                                         90% [4 Packages store 0 B] [Waiting for headers]                                                Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [335 kB]
+90% [4 Packages store 0 B] [6 Packages 2896 B/335 kB 1%]                                                        93% [4 Packages store 0 B]93% [4 Packages store 0 B]                          96% [Working]96% [5 Packages store 0 B]                          98% [Working]98% [6 Packages store 0 B]                          100% [Working]              Fetched 9374 kB in 2s (3911 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+[?2004l.
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python - <<'PY'
+[?2004l[?2004h> import os, json
+[?2004l[?2004h> for p in ['/data/source_a/users.json','/data/source_b/users.csv','/data/source_c/users.parquet','/app/merged_users.parquet','/app/conflicts.json']:
+[?2004l[?2004h>     print(p, 'exists=', os.path.exists(p), 'size=', os.path.getsize(p) if os.path.exists(p) else None)
+[?2004l[?2004h> PY
+[?2004l/data/source_a/users.json exists= True size= 291
+/data/source_b/users.csv exists= True size= 129
+/data/source_c/users.parquet exists= True size= 3639
+/app/merged_users.parquet exists= False size= None
+/app/conflicts.json exists= False size= None
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python - <<'PY'
+[?2004l[?2004h> import pandas as pd, json
+[?2004l[?2004h> paths = {
+[?2004l[?2004h>  'source_a':'/data/source_a/users.json',
+[?2004l[?2004h>  'source_b':'/data/source_b/users.csv',
+[?2004l[?2004h>  'source_c':'/data/source_c/users.parquet',
+[?2004l[?2004h> }
+[?2004l[?2004h> print('source_a raw:')
+[?2004l[?2004h> print(open(paths['source_a']).read())
+[?2004l[?2004h> print('\nsource_b raw:')
+[?2004l[?2004h> print(open(paths['source_b']).read())
+[?2004l[?2004h> print('\nsource_c df:')
+[?2004l[?2004h> df = pd.read_parquet(paths['source_c'])
+[?2004l[?2004h> print(df)
+[?2004l[?2004h> print(df.dtypes)
+[?2004l[?2004h> PY
+[?2004lsource_a raw:
+[
+  {
+    "id": 101,
+    "full_name": "John Doe",
+    "email": "john@a.com",
+    "registration_date": "2024-01-15",
+    "status": "active"
+  },
+  {
+    "id": 102,
+    "full_name": "Jane Smith",
+    "email": "jane@a.com",
+    "registration_date": "2024-02-20",
+    "status": "inactive"
+  }
+]
+
+
+source_b raw:
+user_id,name,email_address,created_at,is_active
+101,John Doe,john@b.com,2024-01-10,true
+103,Bob Wilson,bob@b.com,2024-03-01,true
+
+
+source_c df:
+   userId     userName        email      joined  active
+0     101      John D.   john@c.com  2024-01-20    True
+1     104  Alice Brown  alice@c.com  2024-04-01    True
+userId       int64
+userName    object
+email       object
+joined      object
+active        bool
+dtype: object
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004lcreated_at": "created_date",\n        },\n    },\n    {\n        "name": "source_c",\n        "path": Path("/data/source_c/users.parquet"),\n        "format": "parquet",\n        "mapping": {\n            "userId": "user_id",\n            "userName": "name",\n            "email": "email",\n            "joined": "created_date",\n        },\n    },\n]\n\nOUTPUT_COLUMNS = ["user_id", "name", "email", "created_date", "status"]\nMERGED_OUTPUT = Path("/app/merged_users.parquet")\nCONFLICT_OUTPUT = Path("/app/conflicts.json")\n\n\ndef normalize_scalar(value: Any) -> Any:\n    """Convert pandas/numpy missing values to None and scalars to Python values."""\n    if value is None:\n        return None\n    try:\n        if pd.isna(value):\n            return None\n    except (TypeError, ValueError):\n        pass\n    if hasattr(value, "item"):\n        try:\n            return value.item()\n        except Exception:\n            pass\n    return value\n\n\ndef normalize_date(value: Any) -> str | None:\n    """Normalize[?2004hroot@929fb9fdf275:/app# python3 - /app/merge_users.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l                 values[col] = int(value) if col == "user_id" else value\n            records.setde[?2004h> import sys
+[?2004lfault(user_[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = '#!/usr/bin/env python3\n"""Merge user data from JSON, CSV, and Parquet sources.\n\nOutputs:\n- /app/merged_users.parquet\n- /app/conflicts.json\n"""\n\nfrom __future__ import annotations\n\nimport json\nfrom pathlib import Path\nfrom typing import Any\n\nimport pandas as pd\n\nSOURCE_CONFIG = [\n    {\n        "name": "source_a",\n        "path": Path("/data/source_a/users.json"),\n        "format": "json",\n        "mapping": {\n            "id": "user_id",\n            "full_name": "name",\n            "email": "email",\n            "registration_date": "created_date",\n            "status": "status",\n        },\n    },\n    {\n        "name": "source_b",\n        "path": Path("/data/source_b/users.csv"),\n        "format": "csv",\n        "mapping": {\n            "user_id": "user_id",\n            "name": "name",\n            "email_address": "email",\n            "created_at": "created_date",\n        },\n    },\n    {\n        "name": "source_c",\n        "path": Path("/data/source_c/users.parquet"),\n        "format": "parquet",\n        "mapping": {\n            "userId": "user_id",\n            "userName": "name",\n            "email": "email",\n            "joined": "created_date",\n        },\n    },\n]\n\nOUTPUT_COLUMNS = ["user_id", "name", "email", "created_date", "status"]\nMERGED_OUTPUT = Path("/app/merged_users.parquet")\nCONFLICT_OUTPUT = Path("/app/conflicts.json")\n\n\ndef normalize_scalar(value: Any) -> Any:\n    """Convert pandas/numpy missing values to None and scalars to Python values."""\n    if value is None:\n        return None\n    try:\n        if pd.isna(value):\n            return None\n    except (TypeError, ValueError):\n        pass\n    if hasattr(value, "item"):\n        try:\n            return value.item()\n        except Exception:\n            pass\n    return value\n\n\ndef normalize_date(value: Any) -> str | None:\n    """Normalize date-like values to YYYY-MM-DD strings."""\n    value = normalize_scalar(value)\n    if value in (None, ""):\n        return None\n    parsed = pd.to_datetime(value, errors="coerce")\n    if pd.isna(parsed):\n        return str(value)\n    return parsed.strftime("%Y-%m-%d")\n\n\ndef read_source(config: dict[str, Any]) -> pd.DataFrame:\n    """Read one source and rename fields to the unified schema."""\n    path = config["path"]\n    if config["format"] == "json":\n        df = pd.read_json(path)\n    elif config["format"] == "csv":\n        df = pd.read_csv(path)\n    elif config["format"] == "parquet":\n        df = pd.read_parquet(path)\n    else:\n        raise ValueError(f"Unsupported format: {config[\'format\']}")\n\n    df = df.rename(columns=config["mapping"])\n    keep_cols = [col for col in OUTPUT_COLUMNS if col in df.columns]\n    df = df[keep_cols].copy()\n\n    if "user_id" not in df.columns:\n        raise ValueError(f"Source {config[\'name\']} has no user id column after mapping")\n\n    df["user_id"] = df["user_id"].map(normalize_scalar).astype("int64")\n    if "created_date" in df.columns:\n        df["created_date"] = df["created_date"].map(normalize_date)\n    for col in ["name", "email", "status"]:\n        if col in df.columns:\n            df[col] = df[col].map(lambda x: None if normalize_scalar(x) is None else str(normalize_scalar(x)))\n\n    df["_source"] = config["name"]\n    return df\n\n\ndef build_source_records(source_frames: list[pd.DataFrame]) -> dict[int, dict[str, dict[str, Any]]]:\n    """Build nested records: user_id -> source -> field values."""\n    records: dict[int, dict[str, dict[str, Any]]] = {}\n    for df in source_frames:\n        for _, row in df.iterrows():\n            user_id = int(row["user_id"])\n            source_name = str(row["_source"])\n            values: dict[str, Any] = {}\n            for col in OUTPUT_COLUMNS:\n                if col in row.index:\n                    value = normalize_scalar(row[col])\n                    if value is not None:\n                        values[col] = int(value) if col == "user_id" else value\n            records.setdefault(user_id, {})[source_name] = values\n    return records\n\n\ndef select_by_priority(user_sources: dict[str, dict[str, Any]], field: str) -> Any:\n    """Select the first non-null field value according to source priority."""\n    for config in SOURCE_CONFIG:\n        source_name = config["name"]\n        if source_name in user_sources and field in user_sources[source_name]:\n            return user_sources[source_name][field]\n    return None\n\n\ndef detect_conflicts(records: dict[int, dict[str, dict[str, Any]]]) -> list[dict[str, Any]]:\n    """Detect fields whose non-null values differ across sources for the same user."""\n    conflicts: list[dict[str, Any]] = []\n    for user_id in sorted(records):\n        user_sources = records[user_id]\n        if len(user_sources) < 2:\n            continue\n        for field in ["name", "email", "created_date", "status"]:\n            values = {\n                source_name: source_values[field]\n                for source_name, source_values in user_sources.items()\n                if field in source_values and source_values[field] is not None\n            }\n            distinct_values = {str(value) for value in values.values()}\n            if len(distinct_values) > 1:\n                conflicts.append(\n                    {\n                        "user_id": user_id,\n                        "field": field,\n                        "values": values,\n                        "selected": select_by_priority(user_sources, field),\n                    }\n                )\n    return conflicts\n\n\ndef merge_users() -> tuple[pd.DataFrame, dict[str, Any]]:\n    """Merge all sources and write Parquet and conflict report outputs."""\n    source_frames = [read_source(config) for config in SOURCE_CONFIG]\n    records = build_source_records(source_frames)\n\n    merged_rows: list[dict[str, Any]] = []\n    for user_id in sorted(records):\n        user_sources = records[user_id]\n        row = {field: select_by_priority(user_sources, field) for field in OUTPUT_COLUMNS}\n        row["user_id"] = int(user_id)\n        merged_rows.append(row)\n\n    merged_df = pd.DataFrame(merged_rows, columns=OUTPUT_COLUMNS)\n    merged_df["user_id"] = merged_df["user_id"].astype("int64")\n    for col in ["name", "email", "created_date", "status"]:\n        merged_df[col] = merged_df[col].astype("string")\n\n    conflicts = detect_conflicts(records)\n    conflict_report = {\n        "total_conflicts": len(conflicts),\n        "conflicts": conflicts,\n    }\n\n    MERGED_OUTPUT.parent.mkdir(parents=True, exist_ok=True)\n    merged_df.to_parquet(MERGED_OUTPUT, index=False)\n    with CONFLICT_OUTPUT.open("w", encoding="utf-8") as f:\n        json.dump(conflict_report, f, indent=2, ensure_ascii=False)\n        f.write("\\n")\n\n    return merged_df, conflict_report\n\n\nif __name__ == "__main__":\n    df, report = merge_users()\n    print(f"Wrote {MERGED_OUTPUT} with {len(df)} rows")\n    print(f"Wrote {CONFLICT_OUTPUT} with {report[\'total_conflicts\']} conflicts")\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/merge_users.py
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# if [ -f /app/merge_users.py ]; then cat -- /app/merge_users.py; else echo '错误: 找不到文件 /app/merge_users.py'; fi
+[?2004l#!/usr/bin/env python3
+"""Merge user data from JSON, CSV, and Parquet sources.
+
+Outputs:
+- /app/merged_users.parquet
+- /app/conflicts.json
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+
+SOURCE_CONFIG = [
+    {
+        "name": "source_a",
+        "path": Path("/data/source_a/users.json"),
+        "format": "json",
+        "mapping": {
+            "id": "user_id",
+            "full_name": "name",
+            "email": "email",
+            "registration_date": "created_date",
+            "status": "status",
+        },
+    },
+    {
+        "name": "source_b",
+        "path": Path("/data/source_b/users.csv"),
+        "format": "csv",
+        "mapping": {
+            "user_id": "user_id",
+            "name": "name",
+            "email_address": "email",
+            "created_at": "created_date",
+        },
+    },
+    {
+        "name": "source_c",
+        "path": Path("/data/source_c/users.parquet"),
+        "format": "parquet",
+        "mapping": {
+            "userId": "user_id",
+            "userName": "name",
+            "email": "email",
+            "joined": "created_date",
+        },
+    },
+]
+
+OUTPUT_COLUMNS = ["user_id", "name", "email", "created_date", "status"]
+MERGED_OUTPUT = Path("/app/merged_users.parquet")
+CONFLICT_OUTPUT = Path("/app/conflicts.json")
+
+
+def normalize_scalar(value: Any) -> Any:
+    """Convert pandas/numpy missing values to None and scalars to Python values."""
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            pass
+    return value
+
+
+def normalize_date(value: Any) -> str | None:
+    """Normalize date-like values to YYYY-MM-DD strings."""
+    value = normalize_scalar(value)
+    if value in (None, ""):
+        return None
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return str(value)
+    return parsed.strftime("%Y-%m-%d")
+
+
+def read_source(config: dict[str, Any]) -> pd.DataFrame:
+    """Read one source and rename fields to the unified schema."""
+    path = config["path"]
+    if config["format"] == "json":
+        df = pd.read_json(path)
+    elif config["format"] == "csv":
+        df = pd.read_csv(path)
+    elif config["format"] == "parquet":
+        df = pd.read_parquet(path)
+    else:
+        raise ValueError(f"Unsupported format: {config['format']}")
+
+    df = df.rename(columns=config["mapping"])
+    keep_cols = [col for col in OUTPUT_COLUMNS if col in df.columns]
+    df = df[keep_cols].copy()
+
+    if "user_id" not in df.columns:
+        raise ValueError(f"Source {config['name']} has no user id column after mapping")
+
+    df["user_id"] = df["user_id"].map(normalize_scalar).astype("int64")
+    if "created_date" in df.columns:
+        df["created_date"] = df["created_date"].map(normalize_date)
+    for col in ["name", "email", "status"]:
+        if col in df.columns:
+            df[col] = df[col].map(lambda x: None if normalize_scalar(x) is None else str(normalize_scalar(x)))
+
+    df["_source"] = config["name"]
+    return df
+
+
+def build_source_records(source_frames: list[pd.DataFrame]) -> dict[int, dict[str, dict[str, Any]]]:
+    """Build nested records: user_id -> source -> field values."""
+    records: dict[int, dict[str, dict[str, Any]]] = {}
+    for df in source_frames:
+        for _, row in df.iterrows():
+            user_id = int(row["user_id"])
+            source_name = str(row["_source"])
+            values: dict[str, Any] = {}
+            for col in OUTPUT_COLUMNS:
+                if col in row.index:
+                    value = normalize_scalar(row[col])
+                    if value is not None:
+                        values[col] = int(value) if col == "user_id" else value
+            records.setdefault(user_id, {})[source_name] = values
+    return records
+
+
+def select_by_priority(user_sources: dict[str, dict[str, Any]], field: str) -> Any:
+    """Select the first non-null field value according to source priority."""
+    for config in SOURCE_CONFIG:
+        source_name = config["name"]
+        if source_name in user_sources and field in user_sources[source_name]:
+            return user_sources[source_name][field]
+    return None
+
+
+def detect_conflicts(records: dict[int, dict[str, dict[str, Any]]]) -> list[dict[str, Any]]:
+    """Detect fields whose non-null values differ across sources for the same user."""
+    conflicts: list[dict[str, Any]] = []
+    for user_id in sorted(records):
+        user_sources = records[user_id]
+        if len(user_sources) < 2:
+            continue
+        for field in ["name", "email", "created_date", "status"]:
+            values = {
+                source_name: source_values[field]
+                for source_name, source_values in user_sources.items()
+                if field in source_values and source_values[field] is not None
+            }
+            distinct_values = {str(value) for value in values.values()}
+            if len(distinct_values) > 1:
+                conflicts.append(
+                    {
+                        "user_id": user_id,
+                        "field": field,
+                        "values": values,
+                        "selected": select_by_priority(user_sources, field),
+                    }
+                )
+    return conflicts
+
+
+def merge_users() -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Merge all sources and write Parquet and conflict report outputs."""
+    source_frames = [read_source(config) for config in SOURCE_CONFIG]
+    records = build_source_records(source_frames)
+
+    merged_rows: list[dict[str, Any]] = []
+    for user_id in sorted(records):
+        user_sources = records[user_id]
+        row = {field: select_by_priority(user_sources, field) for field in OUTPUT_COLUMNS}
+        row["user_id"] = int(user_id)
+        merged_rows.append(row)
+
+    merged_df = pd.DataFrame(merged_rows, columns=OUTPUT_COLUMNS)
+    merged_df["user_id"] = merged_df["user_id"].astype("int64")
+    for col in ["name", "email", "created_date", "status"]:
+        merged_df[col] = merged_df[col].astype("string")
+
+    conflicts = detect_conflicts(records)
+    conflict_report = {
+        "total_conflicts": len(conflicts),
+        "conflicts": conflicts,
+    }
+
+    MERGED_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    merged_df.to_parquet(MERGED_OUTPUT, index=False)
+    with CONFLICT_OUTPUT.open("w", encoding="utf-8") as f:
+        json.dump(conflict_report, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    return merged_df, conflict_report
+
+
+if __name__ == "__main__":
+    df, report = merge_users()
+    print(f"Wrote {MERGED_OUTPUT} with {len(df)} rows")
+    print(f"Wrote {CONFLICT_OUTPUT} with {report['total_conflicts']} conflicts")
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python /app/merge_users.py && python - <<'PY'
+[?2004l[?2004h> import json, pandas as pd, os
+[?2004l[?2004h> print('merged exists', os.path.exists('/app/merged_users.parquet'))
+[?2004l[?2004h> print('conflicts exists', os.path.exists('/app/conflicts.json'))
+[?2004l[?2004h> df = pd.read_parquet('/app/merged_users.parquet')
+[?2004l[?2004h> print(df)
+[?2004l[?2004h> print(df.dtypes)
+[?2004l[?2004h> print(open('/app/conflicts.json').read())
+[?2004l[?2004h> PY
+[?2004lWrote /app/merged_users.parquet with 4 rows
+Wrote /app/conflicts.json with 3 conflicts
+merged exists True
+conflicts exists True
+   user_id         name        email created_date    status
+0      101     John Doe   john@a.com   2024-01-15    active
+1      102   Jane Smith   jane@a.com   2024-02-20  inactive
+2      103   Bob Wilson    bob@b.com   2024-03-01      <NA>
+3      104  Alice Brown  alice@c.com   2024-04-01      <NA>
+user_id                  int64
+name            string[python]
+email           string[python]
+created_date    string[python]
+status          string[python]
+dtype: object
+{
+  "total_conflicts": 3,
+  "conflicts": [
+    {
+      "user_id": 101,
+      "field": "name",
+      "values": {
+        "source_a": "John Doe",
+        "source_b": "John Doe",
+        "source_c": "John D."
+      },
+      "selected": "John Doe"
+    },
+    {
+      "user_id": 101,
+      "field": "email",
+      "values": {
+        "source_a": "john@a.com",
+        "source_b": "john@b.com",
+        "source_c": "john@c.com"
+      },
+      "selected": "john@a.com"
+    },
+    {
+      "user_id": 101,
+      "field": "created_date",
+      "values": {
+        "source_a": "2024-01-15",
+        "source_b": "2024-01-10",
+        "source_c": "2024-01-20"
+      },
+      "selected": "2024-01-15"
+    }
+  ]
+}
+
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python3 - /app/test_merge_users.py <<'PY'
+[?2004lwn"\n    assert df.loc[104, "email"] == "alice@c.com"\n    assert df.loc[104, "created_date"] == "2024-04-01"\n\n\ndef test_created_date_format_is_yyyy_mm_dd():\n    df = pd.read_parquet(MERGED_OUTPUT)\n    pattern = re.compile(r"^\\d{4}-\\d{2}-\\d{2}$")\n    assert df["created_date"].notna().all()\n    assert df["created_date"].map(lambda value: bool(pattern.match(str(value)))).all()\n\n\ndef test_conflict_report_structure_count_and_selected_values():\n    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:\n        report = json.load(f)\n\n    assert set(report) == {"total_conflicts", "conflicts"}\n    assert report["total_conflicts"] == len(report["conflicts"])\n    assert report["total_conflicts"] == 3\n\n    conflicts_by_field = {(item["user_id"], item["field"]): item for item in report["conflicts"]}\n    assert set(conflicts_by_field) == {\n        (101, "name"),\n        (101, "email"),\n        (101, "created_date"),\n    }\n\n    assert conflicts_by_field[(101, "name")] == {\n        "user_id": 101,\n        "field": "name",\n        "values": {\n            "source_a": "John Doe",\n            "source_b": "John Doe",\n            "source_c": "John D.",\n        },\n        "selected": "John Doe",\n    }\n    assert conflicts_by_field[(101, "email")]["selected"] == "john@a.com"\n    assert conflicts_by_field[(101, "created_date")]["selected"] == "2024-01-15"\n\n\ndef test_conflict_report_values_are_actual_differing_source_values():\n    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:\n        report = json.load(f)\n\n    for conflict in report["conflicts"]:\n        values = conflict["values"]\n        assert len(values) >= 2\n        assert len({str(value) for value in values.values()}) > 1\n        # The selected value must be present in the highest-priority available source.\n        for source_name in ["source_a", "source_b", "source_c"]:\n            if source_name in values:\n                assert conflict["selected"] == values[source_name]\n                break\n'
+dir_path = os.path.dirname(path)
+if dir_path:
+    os.makedirs(dir_path, exist_ok=True)
+try:
+    with open(path, 'w', encodi[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'import json\nimport re\nfrom pathlib import Path\n\nimport pandas as pd\n\nfrom merge_users import CONFLICT_OUTPUT, MERGED_OUTPUT, merge_users, read_source, SOURCE_CONFIG\n\n\ndef setup_module(module):\n    # Regenerate outputs so tests validate the current implementation and files.\n    merge_users()\n\n\ndef test_output_files_exist_and_have_expected_schema():\n    assert MERGED_OUTPUT.exists(), f"Missing {MERGED_OUTPUT}"\n    assert CONFLICT_OUTPUT.exists(), f"Missing {CONFLICT_OUTPUT}"\n\n    df = pd.read_parquet(MERGED_OUTPUT)\n    assert list(df.columns) == ["user_id", "name", "email", "created_date", "status"]\n    assert pd.api.types.is_integer_dtype(df["user_id"]), df.dtypes\n\n\ndef test_all_unique_users_are_included_once():\n    source_ids = set()\n    for config in SOURCE_CONFIG:\n        normalized = read_source(config)\n        source_ids.update(normalized["user_id"].astype(int).tolist())\n\n    df = pd.read_parquet(MERGED_OUTPUT)\n    output_ids = df["user_id"].astype(int).tolist()\n\n    assert set(output_ids) == source_ids\n    assert len(output_ids) == len(set(output_ids))\n    assert len(output_ids) == 4\n\n\ndef test_field_mappings_and_priority_resolution():\n    df = pd.read_parquet(MERGED_OUTPUT).set_index("user_id")\n\n    # user 101 appears in all sources. All selected values should come from source_a.\n    assert df.loc[101, "name"] == "John Doe"\n    assert df.loc[101, "email"] == "john@a.com"\n    assert df.loc[101, "created_date"] == "2024-01-15"\n    assert df.loc[101, "status"] == "active"\n\n    # source_b-only user validates user_id/name/email_address/created_at mapping.\n    assert df.loc[103, "name"] == "Bob Wilson"\n    assert df.loc[103, "email"] == "bob@b.com"\n    assert df.loc[103, "created_date"] == "2024-03-01"\n\n    # source_c-only user validates userId/userName/email/joined mapping.\n    assert df.loc[104, "name"] == "Alice Brown"\n    assert df.loc[104, "email"] == "alice@c.com"\n    assert df.loc[104, "created_date"] == "2024-04-01"\n\n\ndef test_created_date_format_is_yyyy_mm_dd():\n    df = pd.read_parquet(MERGED_OUTPUT)\n    pattern = re.compile(r"^\\d{4}-\\d{2}-\\d{2}$")\n    assert df["created_date"].notna().all()\n    assert df["created_date"].map(lambda value: bool(pattern.match(str(value)))).all()\n\n\ndef test_conflict_report_structure_count_and_selected_values():\n    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:\n        report = json.load(f)\n\n    assert set(report) == {"total_conflicts", "conflicts"}\n    assert report["total_conflicts"] == len(report["conflicts"])\n    assert report["total_conflicts"] == 3\n\n    conflicts_by_field = {(item["user_id"], item["field"]): item for item in report["conflicts"]}\n    assert set(conflicts_by_field) == {\n        (101, "name"),\n        (101, "email"),\n        (101, "created_date"),\n    }\n\n    assert conflicts_by_field[(101, "name")] == {\n        "user_id": 101,\n        "field": "name",\n        "values": {\n            "source_a": "John Doe",\n            "source_b": "John Doe",\n            "source_c": "John D.",\n        },\n        "selected": "John Doe",\n    }\n    assert conflicts_by_field[(101, "email")]["selected"] == "john@a.com"\n    assert conflicts_by_field[(101, "created_date")]["selected"] == "2024-01-15"\n\n\ndef test_conflict_report_values_are_actual_differing_source_values():\n    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:\n        report = json.load(f)\n\n    for conflict in report["conflicts"]:\n        values = conflict["values"]\n        assert len(values) >= 2\n        assert len({str(value) for value in values.values()}) > 1\n        # The selected value must be present in the highest-priority available source.\n        for source_name in ["source_a", "source_b", "source_c"]:\n            if source_name in values:\n                assert conflict["selected"] == values[source_name]\n                break\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/test_merge_users.py
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# if [ -f /app/test_merge_users.py ]; then cat -- /app/test_merge_users.py; else echo '错误: 找不到文件 /app/test_merge_users.py'; fi
+[?2004limport json
+import re
+from pathlib import Path
+
+import pandas as pd
+
+from merge_users import CONFLICT_OUTPUT, MERGED_OUTPUT, merge_users, read_source, SOURCE_CONFIG
+
+
+def setup_module(module):
+    # Regenerate outputs so tests validate the current implementation and files.
+    merge_users()
+
+
+def test_output_files_exist_and_have_expected_schema():
+    assert MERGED_OUTPUT.exists(), f"Missing {MERGED_OUTPUT}"
+    assert CONFLICT_OUTPUT.exists(), f"Missing {CONFLICT_OUTPUT}"
+
+    df = pd.read_parquet(MERGED_OUTPUT)
+    assert list(df.columns) == ["user_id", "name", "email", "created_date", "status"]
+    assert pd.api.types.is_integer_dtype(df["user_id"]), df.dtypes
+
+
+def test_all_unique_users_are_included_once():
+    source_ids = set()
+    for config in SOURCE_CONFIG:
+        normalized = read_source(config)
+        source_ids.update(normalized["user_id"].astype(int).tolist())
+
+    df = pd.read_parquet(MERGED_OUTPUT)
+    output_ids = df["user_id"].astype(int).tolist()
+
+    assert set(output_ids) == source_ids
+    assert len(output_ids) == len(set(output_ids))
+    assert len(output_ids) == 4
+
+
+def test_field_mappings_and_priority_resolution():
+    df = pd.read_parquet(MERGED_OUTPUT).set_index("user_id")
+
+    # user 101 appears in all sources. All selected values should come from source_a.
+    assert df.loc[101, "name"] == "John Doe"
+    assert df.loc[101, "email"] == "john@a.com"
+    assert df.loc[101, "created_date"] == "2024-01-15"
+    assert df.loc[101, "status"] == "active"
+
+    # source_b-only user validates user_id/name/email_address/created_at mapping.
+    assert df.loc[103, "name"] == "Bob Wilson"
+    assert df.loc[103, "email"] == "bob@b.com"
+    assert df.loc[103, "created_date"] == "2024-03-01"
+
+    # source_c-only user validates userId/userName/email/joined mapping.
+    assert df.loc[104, "name"] == "Alice Brown"
+    assert df.loc[104, "email"] == "alice@c.com"
+    assert df.loc[104, "created_date"] == "2024-04-01"
+
+
+def test_created_date_format_is_yyyy_mm_dd():
+    df = pd.read_parquet(MERGED_OUTPUT)
+    pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    assert df["created_date"].notna().all()
+    assert df["created_date"].map(lambda value: bool(pattern.match(str(value)))).all()
+
+
+def test_conflict_report_structure_count_and_selected_values():
+    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:
+        report = json.load(f)
+
+    assert set(report) == {"total_conflicts", "conflicts"}
+    assert report["total_conflicts"] == len(report["conflicts"])
+    assert report["total_conflicts"] == 3
+
+    conflicts_by_field = {(item["user_id"], item["field"]): item for item in report["conflicts"]}
+    assert set(conflicts_by_field) == {
+        (101, "name"),
+        (101, "email"),
+        (101, "created_date"),
+    }
+
+    assert conflicts_by_field[(101, "name")] == {
+        "user_id": 101,
+        "field": "name",
+        "values": {
+            "source_a": "John Doe",
+            "source_b": "John Doe",
+            "source_c": "John D.",
+        },
+        "selected": "John Doe",
+    }
+    assert conflicts_by_field[(101, "email")]["selected"] == "john@a.com"
+    assert conflicts_by_field[(101, "created_date")]["selected"] == "2024-01-15"
+
+
+def test_conflict_report_values_are_actual_differing_source_values():
+    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:
+        report = json.load(f)
+
+    for conflict in report["conflicts"]:
+        values = conflict["values"]
+        assert len(values) >= 2
+        assert len({str(value) for value in values.values()}) > 1
+        # The selected value must be present in the highest-priority available source.
+        for source_name in ["source_a", "source_b", "source_c"]:
+            if source_name in values:
+                assert conflict["selected"] == values[source_name]
+                break
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python3 -m pytest -v -- /app/test_merge_users.py
+[?2004l/usr/local/bin/python3: No module named pytest
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# wc -l /app/test_merge_users.py
+[?2004l106 /app/test_merge_users.py
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python3 - /app/test_merge_users.py <<'PY'
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> old_str = 'def test_conflict_report_values_are_actual_differing_source_values():\n    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:\n        report = json.load(f)\n\n    for conflict in report["conflicts"]:\n        values = conflict["values"]\n        assert len(values) >= 2\n        assert len({str(value) for value in values.values()}) > 1\n        # The selected value must be present in the highest-priority available source.\n        for source_name in ["source_a", "source_b", "source_c"]:\n            if source_name in values:\n                assert conflict["selected"] == values[source_name]\n                break\n'
+[?2004l[?2004h> new_str = 'def test_conflict_report_values_are_actual_differing_source_values():\n    with open(CONFLICT_OUTPUT, encoding="utf-8") as f:\n        report = json.load(f)\n\n    for conflict in report["conflicts"]:\n        values = conflict["values"]\n        assert len(values) >= 2\n        assert len({str(value) for value in values.values()}) > 1\n        # The selected value must be present in the highest-priority available source.\n        for source_name in ["source_a", "source_b", "source_c"]:\n            if source_name in values:\n                assert conflict["selected"] == values[source_name]\n                break\n\n\nif __name__ == "__main__":\n    setup_module(None)\n    test_output_files_exist_and_have_expected_schema()\n    test_all_unique_users_are_included_once()\n    test_field_mappings_and_priority_resolution()\n    test_created_date_format_is_yyyy_mm_dd()\n    test_conflict_report_structure_count_and_selected_values()\n    test_conflict_report_values_are_actual_differing_source_values()\n    print("All merge_users validation tests passed")\n'
+[?2004l[?2004h> 
+[?2004l[?2004h> def normalize_text(text: str) -> str:
+[?2004l[?2004h>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+[?2004l[?2004h>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+[?2004l[?2004h> 
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+[?2004l[?2004h>         content = f.read()
+[?2004l[?2004h> except FileNotFoundError:
+[?2004l[?2004h>     print(f"错误: 找不到文件 {path}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"修改失败: {exc}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> 
+[?2004l[?2004h> content = normalize_text(content)
+[?2004l[?2004h> old_str = normalize_text(old_str)
+[?2004l[?2004h> new_str = normalize_text(new_str)
+[?2004l[?2004h> count = content.count(old_str)
+[?2004l[?2004h> if count == 0:
+[?2004l[?2004h>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 write_full_file 全量覆盖")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> if count > 1:
+[?2004l[?2004h>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>     f.write(content.replace(old_str, new_str))
+[?2004l[?2004h> print(f"成功: 已更新 {path}。修改已持久化。")
+[?2004l[?2004h> PY
+[?2004l成功: 已更新 /app/test_merge_users.py。修改已持久化。
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python /app/test_merge_users.py
+[?2004lAll merge_users validation tests passed
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@929fb9fdf275:/app# python - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> import pandas as pd
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004l[?2004h> merged = Path('/app/merged_users.parquet')
+[?2004l[?2004h> conflicts = Path('/app/conflicts.json')
+[?2004l[?2004h> print('merged_exists=', merged.exists())
+[?2004l[?2004h> print('conflicts_exists=', conflicts.exists())
+[?2004l[?2004h> df = pd.read_parquet(merged)
+[?2004l[?2004h> print('rows=', len(df))
+[?2004l[?2004h> print('columns=', list(df.columns))
+[?2004l[?2004h> print('user_ids=', df['user_id'].astype(int).tolist())
+[?2004l[?2004h> print('dtypes=', {k: str(v) for k, v in df.dtypes.items()})
+[?2004l[?2004h> with conflicts.open(encoding='utf-8') as f:
+[?2004l[?2004h>     report = json.load(f)
+[?2004l[?2004h> print('total_conflicts=', report['total_conflicts'])
+[?2004l[?2004h> print('conflict_keys=', [(c['user_id'], c['field']) for c in report['conflicts']])
+[?2004l[?2004h> PY
+[?2004lmerged_exists= True
+conflicts_exists= True
+rows= 4
+columns= ['user_id', 'name', 'email', 'created_date', 'status']
+user_ids= [101, 102, 103, 104]
+dtypes= {'user_id': 'int64', 'name': 'string', 'email': 'string', 'created_date': 'string', 'status': 'string'}
+total_conflicts= 3
+conflict_keys= [(101, 'name'), (101, 'email'), (101, 'created_date')]
+[?2004hroot@929fb9fdf275:/app# true; tmux wait -S done
+[?2004l[?2004hroot@929fb9fdf275:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@929fb9fdf275:/app# 

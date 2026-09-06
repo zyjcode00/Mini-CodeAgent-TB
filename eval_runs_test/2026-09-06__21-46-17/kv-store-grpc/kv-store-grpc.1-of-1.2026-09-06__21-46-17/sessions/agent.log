@@ -1,0 +1,283 @@
+[?2004hroot@634f057f29cc:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@634f057f29cc:/app# clear
+[?2004l[H[J[3J[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# set +e
+[?2004l[?2004hroot@634f057f29cc:/app# 
+[?2004l[?2004hroot@634f057f29cc:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@634f057f29cc:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@634f057f29cc:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@634f057f29cc:/app# 
+[?2004l[?2004hroot@634f057f29cc:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@634f057f29cc:/app# 
+[?2004l[?2004hroot@634f057f29cc:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@634f057f29cc:/app# 
+[?2004l[?2004hroot@634f057f29cc:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@634f057f29cc:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@634f057f29cc:/app# 
+[?2004l[?2004hroot@634f057f29cc:/app# apt-get update || true
+[?2004l0% [Working]            Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+0% [1 InRelease 0 B/151 kB 0%]                              0% [Working]            Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+0% [2 InRelease 1448 B/55.4 kB 3%]                                  0% [Working]            Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+0% [3 InRelease 7240 B/34.8 kB 21%]                                   0% [Working]0% [Working]            Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+0% [4 Packages 14.5 kB/8790 kB 0%]                                  0% [4 Packages 353 kB/8790 kB 4%]24% [4 Packages 1035 kB/8790 kB 12%]80% [4 Packages 7546 kB/8790 kB 86%]                                    90% [Working]90% [4 Packages store 0 B] [Waiting for headers]                                                Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+90% [4 Packages store 0 B] [5 Packages 6924 B/6924 B 100%]                                                          90% [4 Packages store 0 B] [Waiting for headers]                                                Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [337 kB]
+91% [4 Packages store 0 B] [6 Packages 8688 B/337 kB 3%]                                                        93% [4 Packages store 0 B]93% [4 Packages store 0 B]                          96% [Working]96% [5 Packages store 0 B]                          98% [Working]98% [6 Packages store 0 B]                          100% [Working]              Fetched 9375 kB in 2s (4964 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+[?2004l.
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# pwd && find /app -maxdepth 2 -type f -printf '%p\n' 2>/dev/null | sort && python3 -m pip show grpcio grpcio-tools 2>&1 || true
+[?2004l/app
+[33mWARNING: Package(s) not found: grpcio, grpcio-tools[0m[33m
+[0m[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# if [ -f /app/kv-store.proto ]; then cat -- /app/kv-store.proto; else echo '错误: 找不到文件 /app/kv-store.proto'; fi
+[?2004l错误: 找不到文件 /app/kv-store.proto
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# if [ -f /app/server.py ]; then cat -- /app/server.py; else echo '错误: 找不到文件 /app/server.py'; fi
+[?2004l错误: 找不到文件 /app/server.py
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# if [ -f /app/kv_store_pb2_grpc.py ]; then cat -- /app/kv_store_pb2_grpc.py; else echo '错误: 找不到文件 /app/kv_store_pb2_grpc.py'; fi
+[?2004l错误: 找不到文件 /app/kv_store_pb2_grpc.py
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# if [ -f /app/kv_store_pb2.py ]; then cat -- /app/kv_store_pb2.py; else echo '错误: 找不到文件 /app/kv_store_pb2.py'; fi
+[?2004l错误: 找不到文件 /app/kv_store_pb2.py
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# python3 - /app/kv-store.proto <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'syntax = "proto3";\n\nservice KVStore {\n  rpc GetVal(GetValRequest) returns (GetValResponse);\n  rpc SetVal(SetValRequest) returns (SetValResponse);\n}\n\nmessage GetValRequest {\n  string key = 1;\n}\n\nmessage GetValResponse {\n  int32 val = 1;\n}\n\nmessage SetValRequest {\n  string key = 1;\n  int32 value = 2;\n}\n\nmessage SetValResponse {\n  int32 val = 1;\n}\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/kv-store.proto
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# python3 - /app/server.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'from concurrent import futures\n\nimport grpc\n\nimport kv_store_pb2\nimport kv_store_pb2_grpc\n\n\nclass Server(kv_store_pb2_grpc.KVStoreServicer):\n    def __init__(self):\n        self._store = {}\n\n    def GetVal(self, request, context):\n        return kv_store_pb2.GetValResponse(val=self._store.get(request.key, 0))\n\n    def SetVal(self, request, context):\n        self._store[request.key] = request.value\n        return kv_store_pb2.SetValResponse(val=request.value)\n\n\ndef serve():\n    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))\n    kv_store_pb2_grpc.add_KVStoreServicer_to_server(Server(), server)\n    server.add_insecure_port("[::]:5328")\n    server.start()\n    print("KVStore server listening on port 5328", flush=True)\n    server.wait_for_termination()\n\n\nif __name__ == "__main__":\n    serve()\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/server.py
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# python3 -m pip install --break-system-packages grpcio==1.73.0 grpcio-tools==1.73.0 && python3 -m grpc_tools.protoc -I/app --python_out=/app --grpc_python_out=/app /app/kv-store.proto && ls -l /app && python3 -c 'import grpc, grpc_tools, kv_store_pb2, kv_store_pb2_grpc; print(grpc.__version__)'
+[?2004lCollecting grpcio==1.73.0
+  Downloading grpcio-1.73.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (3.8 kB)
+Collecting grpcio-tools==1.73.0
+  Downloading grpcio_tools-1.73.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.3 kB)
+Collecting protobuf<7.0.0,>=6.30.0 (from grpcio-tools==1.73.0)
+  Downloading protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl.metadata (593 bytes)
+Collecting setuptools (from grpcio-tools==1.73.0)
+  Downloading setuptools-84.0.0-py3-none-any.whl.metadata (6.6 kB)
+Downloading grpcio-1.73.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (6.0 MB)
+[?25l   [38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/6.0 MB[0m [31m?[0m eta [36m-:--:--[0m[2K   [38;5;197m━[0m[38;5;197m╸[0m[38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.3/6.0 MB[0m [31m?[0m eta [36m-:--:--[0m[2K   [38;5;197m━━━━━━━━[0m[38;5;197m╸[0m[38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m1.3/6.0 MB[0m [31m5.2 MB/s[0m eta [36m0:00:01[0m[2K   [38;5;197m━━━━━━━━━━━━━━━━━━━[0m[38;5;237m╺[0m[38;5;237m━━━━━━━━━━━━━━━━━━━━[0m [32m2.9/6.0 MB[0m [31m6.4 MB/s[0m eta [36m0:00:01[0m[2K   [38;5;197m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m[38;5;197m╸[0m[38;5;237m━━━━━━━━━━[0m [32m4.5/6.0 MB[0m [31m7.7 MB/s[0m eta [36m0:00:01[0m[2K   [38;5;70m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m6.0/6.0 MB[0m [31m7.5 MB/s[0m eta [36m0:00:00[0m
+[?25hDownloading grpcio_tools-1.73.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.7 MB)
+[?25l   [38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/2.7 MB[0m [31m?[0m eta [36m-:--:--[0m[2K   [38;5;197m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m[38;5;197m╸[0m[38;5;237m━━━━━━━━[0m [32m2.1/2.7 MB[0m [31m10.3 MB/s[0m eta [36m0:00:01[0m[2K   [38;5;197m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m[38;5;197m╸[0m[38;5;237m━━━━[0m [32m2.4/2.7 MB[0m [31m9.0 MB/s[0m eta [36m0:00:01[0m[2K   [38;5;197m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m[38;5;197m╸[0m[38;5;237m━━━━[0m [32m2.4/2.7 MB[0m [31m9.0 MB/s[0m eta [36m0:00:01[0m[2K   [38;5;70m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m2.7/2.7 MB[0m [31m3.3 MB/s[0m eta [36m0:00:00[0m
+[?25hDownloading protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl (323 kB)
+Downloading setuptools-84.0.0-py3-none-any.whl (818 kB)
+[?25l   [38;5;237m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/818.2 kB[0m [31m?[0m eta [36m-:--:--[0m[2K   [38;5;197m━━━━━━━━━━━━━━━━━━━━━━━━━[0m[38;5;197m╸[0m[38;5;237m━━━━━━━━━━━━━━[0m [32m524.3/818.2 kB[0m [31m6.8 MB/s[0m eta [36m0:00:01[0m[2K   [38;5;70m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m818.2/818.2 kB[0m [31m2.8 MB/s[0m eta [36m0:00:00[0m
+[?25hInstalling collected packages: setuptools, protobuf, grpcio, grpcio-tools
+Successfully installed grpcio-1.73.0 grpcio-tools-1.73.0 protobuf-6.33.6 setuptools-84.0.0
+[33mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.[0m[33m
+[0m
+[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m A new release of pip is available: [0m[31;49m24.3.1[0m[39;49m -> [0m[32;49m26.2.1[0m
+[1m[[0m[34;49mnotice[0m[1;39;49m][0m[39;49m To update, run: [0m[32;49mpip install --upgrade pip[0m
+total 20
+-rw-r--r-- 1 root root  347 Sep  6 13:51 kv-store.proto
+-rw-r--r-- 1 root root 1999 Sep  6 13:53 kv_store_pb2.py
+-rw-r--r-- 1 root root 4954 Sep  6 13:53 kv_store_pb2_grpc.py
+-rw-r--r-- 1 root root  816 Sep  6 13:51 server.py
+1.73.0
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004lwith open(path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(content)
+    print(f"成功: 已写入 {path}")
+except Exception as exc:
+    print(f"写入失败: {exc}")
+PY
+true; tmux wait -S done
+[?2004hroot@634f057f29cc:/app# python3 - /app/test_server.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'import os\nimport subprocess\nimport sys\nimport time\n\nimport grpc\n\nimport kv_store_pb2\nimport kv_store_pb2_grpc\n\n\nHOST = "127.0.0.1:5328"\n\n\ndef wait_for_server(channel, timeout=10):\n    deadline = time.monotonic() + timeout\n    while time.monotonic() < deadline:\n        try:\n            grpc.channel_ready_future(channel).result(timeout=0.25)\n            return\n        except grpc.FutureTimeoutError:\n            pass\n    raise AssertionError("server did not become ready on port 5328")\n\n\ndef test_kv_store_over_grpc():\n    env = os.environ.copy()\n    env["PYTHONPATH"] = "/app" + os.pathsep + env.get("PYTHONPATH", "")\n    process = subprocess.Popen(\n        [sys.executable, "/app/server.py"],\n        cwd="/app",\n        env=env,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n    )\n    channel = grpc.insecure_channel(HOST)\n    try:\n        wait_for_server(channel)\n        client = kv_store_pb2_grpc.KVStoreStub(channel)\n\n        assert client.GetVal(kv_store_pb2.GetValRequest(key="missing")).val == 0\n        assert client.SetVal(\n            kv_store_pb2.SetValRequest(key="answer", value=42)\n        ).val == 42\n        assert client.GetVal(kv_store_pb2.GetValRequest(key="answer")).val == 42\n        assert client.SetVal(\n            kv_store_pb2.SetValRequest(key="answer", value=-7)\n        ).val == -7\n        assert client.GetVal(kv_store_pb2.GetValRequest(key="answer")).val == -7\n    finally:\n        channel.close()\n        process.terminate()\n        try:\n            process.wait(timeout=5)\n        except subprocess.TimeoutExpired:\n            process.kill()\n            process.wait()\n\n\nif __name__ == "__main__":\n    test_kv_store_over_grpc()\n    print("KVStore integration test passed")\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 /app/test_server.py
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# python3 -m pytest -v -- /app/test_server.py
+[?2004l/usr/local/bin/python3: No module named pytest
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# python3 /app/test_server.py && python3 -m pip show grpcio grpcio-tools | grep -E '^(Name|Version):'
+[?2004lKVStore integration test passed
+Name: grpcio
+Version: 1.73.0
+Name: grpcio-tools
+Version: 1.73.0
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# set -e
+[?2004l[?2004hroot@634f057f29cc:/app# if [ -f /app/kvstore-server.pid ] && kill -0 "$(cat /app/kvstore-server.pid)" 2>/dev/null; then
+[?2004l[?2004h>   pid=$(cat /app/kvstore-server.pid)
+[?2004l[?2004h> else
+[?2004l[?2004h>   nohup python3 /app/server.py >/app/kvstore-server.log 2>&1 </dev/null &
+[?2004l[?2004h>   pid=$!
+[?2004l[?2004h>   printf '%s\n' "$pid" >/app/kvstore-server.pid
+[?2004l[?2004h> fi
+[?2004l[1] 506
+[?2004hroot@634f057f29cc:/app# for i in $(seq 1 40); do
+[?2004l[?2004h>   if python3 -c 'import socket; s=socket.create_connection(("127.0.0.1", 5328), 0.2); s.close()' 2>/dev/null; then break; fi
+[?2004l[?2004h>   sleep 0.25
+[?2004l[?2004h> done
+[?2004l[?2004hroot@634f057f29cc:/app# kill -0 "$pid"
+[?2004l[?2004hroot@634f057f29cc:/app# ss -ltnp | grep ':5328'
+[?2004lbash: ss: command not found
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# set -u
+[?2004l[?2004hroot@634f057f29cc:/app# if command -v ss >/dev/null 2>&1; then ss -ltnp | grep ':5328' || true; else netstat -ltnp 2>/dev/null | grep ':5328' || true; fi
+[?2004l[?2004hroot@634f057f29cc:/app# pids=$(pgrep -f 'python3? /app/server.py|python3? server.py' || true)
+[?2004l-bash: pgrep: command not found
+[?2004hroot@634f057f29cc:/app# if [ -n "$pids" ]; then
+[?2004l[?2004h>   echo "existing_server_pids=$pids"
+[?2004l[?2004h> else
+[?2004l[?2004h>   nohup python3 /app/server.py >/app/server.log 2>&1 </dev/null &
+[?2004l[?2004h>   echo "started_pid=$!"
+[?2004l[?2004h> fi
+[?2004l[1] 548
+started_pid=548
+[?2004hroot@634f057f29cc:/app# python3 - <<'PY'
+[?2004l[?2004h> import time
+[?2004l[?2004h> import grpc
+[?2004l[?2004h> import kv_store_pb2
+[?2004l[?2004h> import kv_store_pb2_grpc
+[?2004l[?2004h> 
+[?2004l[?2004h> channel = grpc.insecure_channel('127.0.0.1:5328')
+[?2004l[?2004h> try:
+[?2004l[?2004h>     grpc.channel_ready_future(channel).result(timeout=10)
+[?2004l[?2004h>     stub = kv_store_pb2_grpc.KVStoreStub(channel)
+[?2004l[?2004h>     result = stub.SetVal(kv_store_pb2.SetValRequest(key='healthcheck', value=5328), timeout=3)
+[?2004l[?2004h>     assert result.val == 5328
+[?2004l[?2004h>     result = stub.GetVal(kv_store_pb2.GetValRequest(key='healthcheck'), timeout=3)
+[?2004l[?2004h>     assert result.val == 5328
+[?2004l[?2004h>     print('port=5328 rpc=ok')
+[?2004l[?2004h> finally:
+[?2004l[?2004h>     channel.close()
+[?2004l[?2004h> PY
+[?2004lport=5328 rpc=ok
+[?2004hroot@634f057f29cc:/app# if command -v ss >/dev/null 2>&1; then ss -ltnp | grep ':5328' || true; fi
+[?2004l[?2004hroot@634f057f29cc:/app# cat /app/server.log
+[?2004lKVStore server listening on port 5328
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# ps -ef | grep '[p]ython.*server.py' || true
+[?2004l-bash: ps: command not found
+[?2004hroot@634f057f29cc:/app# printf 'pid_file='; cat /app/kvstore-server.pid 2>/dev/null || true
+[?2004lpid_file=506
+[?2004hroot@634f057f29cc:/app# printf 'server_log='; cat /app/server.log 2>/dev/null || true
+[?2004lserver_log=KVStore server listening on port 5328
+[?2004hroot@634f057f29cc:/app# printf 'kvstore_log='; cat /app/kvstore-server.log 2>/dev/null || true
+[?2004lkvstore_log=KVStore server listening on port 5328
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# for pid in 506 548; do if kill -0 "$pid" 2>/dev/null; then echo "$pid alive"; else echo "$pid not-running"; fi; done
+[?2004l506 alive
+548 alive
+[?2004hroot@634f057f29cc:/app# python3 - <<'PY'
+[?2004l[?2004h> import grpc
+[?2004l[?2004h> import kv_store_pb2
+[?2004l[?2004h> import kv_store_pb2_grpc
+[?2004l[?2004h> channel = grpc.insecure_channel('127.0.0.1:5328')
+[?2004l[?2004h> try:
+[?2004l[?2004h>     grpc.channel_ready_future(channel).result(timeout=3)
+[?2004l[?2004h>     print('5328 ready')
+[?2004l[?2004h>     print(kv_store_pb2_grpc.KVStoreStub(channel).GetVal(kv_store_pb2.GetValRequest(key='healthcheck')).val)
+[?2004l[?2004h> finally:
+[?2004l[?2004h>     channel.close()
+[?2004l[?2004h> PY
+[?2004l5328 ready
+0
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@634f057f29cc:/app# if kill -0 548 2>/dev/null; then kill 548; fi
+[?2004l[?2004hroot@634f057f29cc:/app# sleep 0.5
+[?2004l[1]+  Terminated              nohup python3 /app/server.py > /app/server.log 2>&1 < /dev/null
+[?2004hroot@634f057f29cc:/app# if kill -0 548 2>/dev/null; then kill -9 548; fi
+[?2004l[?2004hroot@634f057f29cc:/app# kill -0 506
+[?2004l[?2004hroot@634f057f29cc:/app# python3 - <<'PY'
+[?2004l[?2004h> import grpc
+[?2004l[?2004h> import kv_store_pb2
+[?2004l[?2004h> import kv_store_pb2_grpc
+[?2004l[?2004h> channel = grpc.insecure_channel('127.0.0.1:5328')
+[?2004l[?2004h> try:
+[?2004l[?2004h>     grpc.channel_ready_future(channel).result(timeout=3)
+[?2004l[?2004h>     stub = kv_store_pb2_grpc.KVStoreStub(channel)
+[?2004l[?2004h>     response = stub.SetVal(kv_store_pb2.SetValRequest(key='final-check', value=5328), timeout=3)
+[?2004l[?2004h>     assert response.val == 5328
+[?2004l[?2004h>     assert stub.GetVal(kv_store_pb2.GetValRequest(key='final-check'), timeout=3).val == 5328
+[?2004l[?2004h>     print('server_pid=506 port=5328 rpc=ok')
+[?2004l[?2004h> finally:
+[?2004l[?2004h>     channel.close()
+[?2004l[?2004h> PY
+[?2004lserver_pid=506 port=5328 rpc=ok
+[?2004hroot@634f057f29cc:/app# true; tmux wait -S done
+[?2004l[?2004hroot@634f057f29cc:/app# [?2004l
+logout

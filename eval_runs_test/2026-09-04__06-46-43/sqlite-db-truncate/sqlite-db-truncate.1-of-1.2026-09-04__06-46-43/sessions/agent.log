@@ -1,0 +1,546 @@
+[?2004hroot@ab3c654a53a4:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@ab3c654a53a4:/app# clear
+[?2004l[H[J[3J[?2004hroot@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ab3c654a53a4:/app# set +e
+[?2004l[?2004hroot@ab3c654a53a4:/app# 
+[?2004l[?2004hroot@ab3c654a53a4:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@ab3c654a53a4:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@ab3c654a53a4:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@ab3c654a53a4:/app# 
+[?2004l[?2004hroot@ab3c654a53a4:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@ab3c654a53a4:/app# 
+[?2004l[?2004hroot@ab3c654a53a4:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@ab3c654a53a4:/app# 
+[?2004l[?2004hroot@ab3c654a53a4:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@ab3c654a53a4:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@ab3c654a53a4:/app# 
+[?2004l[?2004hroot@ab3c654a53a4:/app# apt-get update || true
+[?2004l0% [Working]0% [Connecting to archive.ubuntu.com (91.189.92.24)] [Waiting for headers]                                                                          Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+                                                                          0% [Waiting for headers] [1 InRelease 8380 B/126 kB 7%]                                                       Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+0% [2 InRelease 8380 B/256 kB 3%] [1 InRelease 14.2 kB/126 kB 11%]0% [2 InRelease 43.1 kB/256 kB 17%] [1 InRelease 51.8 kB/126 kB 41%]                                                                    0% [2 InRelease 105 kB/256 kB 41%]0% [2 InRelease 123 kB/256 kB 48%]                                  Get:3 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+0% [2 InRelease 249 kB/256 kB 97%] [3 Packages 2659 B/50.0 kB 5%]                                                                 0% [3 Packages 9899 B/50.0 kB 20%]0% [Waiting for headers] [3 Packages 41.8 kB/50.0 kB 83%]                                                         0% [Waiting for headers]0% [3 Packages store 0 B] [Waiting for headers] [Waiting for headers]                                                                     0% [Waiting for headers] [Waiting for headers]                                              Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+0% [4 InRelease 2588 B/126 kB 2%] [Waiting for headers]                                                       0% [Waiting for headers]                        Get:5 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1530 kB]
+0% [Waiting for headers] [5 Packages 2655 B/1530 kB 0%]0% [Waiting for headers] [5 Packages 25.8 kB/1530 kB 2%]                                                        Get:6 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+0% [6 InRelease 2588 B/126 kB 2%] [5 Packages 153 kB/1530 kB 10%]                                                                 0% [5 Packages 211 kB/1530 kB 14%]14% [Waiting for headers] [5 Packages 239 kB/1530 kB 16%]                                                         Get:7 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+15% [7 Packages 2657 B/117 kB 2%] [5 Packages 410 kB/1530 kB 27%]                                                                 16% [Waiting for headers] [5 Packages 566 kB/1530 kB 37%]                                                         Get:8 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+16% [8 Packages 851 B/1808 kB 0%] [5 Packages 566 kB/1530 kB 37%]16% [7 Packages store 0 B] [8 Packages 851 B/1808 kB 0%] [5 Packages 566 kB/1530 kB 37%]                                                                                        16% [8 Packages 3747 B/1808 kB 0%] [5 Packages 572 kB/1530 kB 37%]                                                                  20% [8 Packages 542 kB/1808 kB 30%] [Waiting for headers]                                                         Get:9 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+20% [8 Packages 542 kB/1808 kB 30%] [9 Packages 3041 B/1730 kB 0%]20% [5 Packages store 0 B] [8 Packages 542 kB/1808 kB 30%] [9 Packages 3041 B/1730 kB 0%]                                                                                         21% [8 Packages 604 kB/1808 kB 33%] [9 Packages 142 kB/1730 kB 8%]                                                                  27% [8 Packages 1582 kB/1808 kB 87%] [Waiting for headers]                                                          Get:10 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1212 kB]
+27% [8 Packages 1585 kB/1808 kB 88%] [10 Packages 11.3 kB/1212 kB 1%]27% [9 Packages store 0 B] [8 Packages 1585 kB/1808 kB 88%] [10 Packages 11.3 kB/1212 kB 1%]                                                                                            29% [8 Packages 1767 kB/1808 kB 98%] [10 Packages 326 kB/1212 kB 27%]                                                                     29% [Waiting for headers] [10 Packages 402 kB/1212 kB 33%]                                                          Get:11 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+29% [11 Packages 4625 B/331 kB 1%] [10 Packages 402 kB/1212 kB 33%]29% [8 Packages store 0 B] [11 Packages 6073 B/331 kB 2%] [10 Packages 402 kB/1212 kB 33%]                                                                                          31% [11 Packages 196 kB/331 kB 59%] [10 Packages 701 kB/1212 kB 58%]                                                                    32% [Waiting for headers] [10 Packages 900 kB/1212 kB 74%]                                                          Get:12 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+32% [12 Packages 3629 B/19.3 MB 0%] [10 Packages 900 kB/1212 kB 74%]32% [11 Packages store 0 B] [12 Packages 3629 B/19.3 MB 0%] [10 Packages 900 kB/1212 kB 74%]                                                                                            33% [12 Packages 41.0 kB/19.3 MB 0%] [10 Packages 951 kB/1212 kB 78%]                                                                     34% [12 Packages 249 kB/19.3 MB 1%]34% [10 Packages store 0 B] [12 Packages 252 kB/19.3 MB 1%]                                                           35% [12 Packages 600 kB/19.3 MB 3%]40% [12 Packages 2353 kB/19.3 MB 12%]44% [12 Packages 4168 kB/19.3 MB 22%]48% [12 Packages 5637 kB/19.3 MB 29%]54% [12 Packages 8012 kB/19.3 MB 41%]                                                                                                              2430 kB/s 7s54% [12 Packages 8012 kB/19.3 MB 41%]                                                                                                              2430 kB/s 7s64% [12 Packages 12.3 MB/19.3 MB 64%]                                                                                                              2430 kB/s 5s72% [12 Packages 15.5 MB/19.3 MB 80%]                                                                                                              2430 kB/s 3s77% [12 Packages 17.5 MB/19.3 MB 90%]                                                                                                              2430 kB/s 3s81% [Waiting for headers]                                                                                                                          2430 kB/s 2s                                                                                                                                                               Get:13 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1903 kB]
+81% [13 Packages 11.1 kB/1903 kB 1%]                                                                                                               2430 kB/s 2s81% [12 Packages store 0 B] [13 Packages 11.1 kB/1903 kB 1%]                                                                                       2430 kB/s 2s86% [13 Packages 1708 kB/1903 kB 90%]                                                                                                              2430 kB/s 1s87% [Waiting for headers]                                                                                                                          2430 kB/s 1s                                                                                                                                                               Get:14 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+87% [14 Packages 5225 B/55.8 kB 9%]                                                                                                                2430 kB/s 1s87% [13 Packages store 0 B] [14 Packages 5225 B/55.8 kB 9%]                                                                                        2430 kB/s 1s87% [13 Packages store 0 B] [Waiting for headers]                                                                                                  2430 kB/s 1s                                                                                                                                                               Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2151 kB]
+87% [13 Packages store 0 B] [15 Packages 2628 B/2151 kB 0%]                                                                                        2430 kB/s 1s88% [15 Packages 128 kB/2151 kB 6%]                                                                                                                2430 kB/s 1s88% [14 Packages store 0 B] [15 Packages 129 kB/2151 kB 6%]                                                                                        2430 kB/s 1s88% [15 Packages 138 kB/2151 kB 6%]                                                                                                                2430 kB/s 1s93% [15 Packages 2124 kB/2151 kB 99%]                                                                                                              2430 kB/s 0s93% [Waiting for headers]                                                                                                                          2430 kB/s 0s                                                                                                                                                               Get:16 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1562 kB]
+93% [16 Packages 3871 B/1562 kB 0%]                                                                                                                2430 kB/s 0s93% [15 Packages store 0 B] [16 Packages 5319 B/1562 kB 0%]                                                                                        2430 kB/s 0s94% [16 Packages 218 kB/1562 kB 14%]                                                                                                               2430 kB/s 0s98% [Waiting for headers]                                                                                                                          2430 kB/s 0s                                                                                                                                                               Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+98% [17 Packages 4544 B/48.9 kB 9%]                                                                                                                2430 kB/s 0s98% [16 Packages store 0 B] [17 Packages 4544 B/48.9 kB 9%]                                                                                        2430 kB/s 0s98% [16 Packages store 0 B] [Waiting for headers]                                                                                                  2430 kB/s 0s                                                                                                                                                               Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+98% [16 Packages store 0 B] [18 Packages 2674 B/35.9 kB 7%]                                                                                        2430 kB/s 0s98% [16 Packages store 0 B] [Waiting for headers]                                                                                                  2430 kB/s 0s                                                                                                                                                               Get:19 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+98% [16 Packages store 0 B]                                                                                                                        2430 kB/s 0s98% [Working]                                                                                                                                      2430 kB/s 0s98% [17 Packages store 0 B]                                                                                                                        2430 kB/s 0s99% [Working]                                                                                                                                      2430 kB/s 0s99% [18 Packages store 0 B]                                                                                                                        2430 kB/s 0s99% [Working]                                                                                                                                      2430 kB/s 0s99% [19 Packages store 0 B]                                                                                                                        2430 kB/s 0s100% [Working]                                                                                                                                     2430 kB/s 0s                                                                                                                                                               Fetched 32.5 MB in 10s (3157 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 61%Reading package lists... 61%Reading package lists... 61%Reading package lists... 61%Reading package lists... 62%Reading package lists... 62%Reading package lists... 67%Reading package lists... 67%Reading package lists... 75%Reading package lists... 75%Reading package lists... 82%Reading package lists... 82%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 83%Reading package lists... 87%Reading package lists... 87%Reading package lists... 93%Reading package lists... 93%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@ab3c654a53a4:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ab3c654a53a4:/app# ls -l /app/trunc.db /app 2>&1 && file /app/trunc.db && python - <<'PY'
+[?2004l[?2004h> import os, struct
+[?2004l[?2004h> p='/app/trunc.db'
+[?2004l[?2004h> print('size', os.path.getsize(p))
+[?2004l[?2004h> with open(p,'rb') as f:
+[?2004l[?2004h>     h=f.read(100)
+[?2004l[?2004h> print('header', h[:16])
+[?2004l[?2004h> if len(h)>=100:
+[?2004l[?2004h>     print('page_size', struct.unpack('>H', h[16:18])[0] or 65536)
+[?2004l[?2004h>     print('write/read versions', h[18], h[19])
+[?2004l[?2004h>     print('reserved', h[20])
+[?2004l[?2004h>     print('file change counter', int.from_bytes(h[24:28],'big'))
+[?2004l[?2004h>     print('db pages header', int.from_bytes(h[28:32],'big'))
+[?2004l[?2004h>     print('schema cookie', int.from_bytes(h[40:44],'big'))
+[?2004l[?2004h>     print('schema format', int.from_bytes(h[44:48],'big'))
+[?2004l[?2004h> PY
+[?2004l-rwxr-xr-x 1 root root 4096 Aug 10 16:30 [0m[01;32m/app/trunc.db[0m
+
+/app:
+total 4
+-rwxr-xr-x 1 root root 4096 Aug 10 16:30 [01;32mtrunc.db[0m
+bash: file: command not found
+[?2004hroot@ab3c654a53a4:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ab3c654a53a4:/app# python - <<'PY'
+[?2004l[?2004h> import sqlite3
+[?2004l[?2004h> p='/app/trunc.db'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     con=sqlite3.connect(p)
+[?2004l[?2004h>     cur=con.cursor()
+[?2004l[?2004h>     print('integrity:', cur.execute('pragma integrity_check').fetchall()[:5])
+[?2004l[?2004h>     print('tables:', cur.execute("select type,name,tbl_name,sql from sqlite_master").fetchall())
+[?2004l[?2004h>     for row in cur.execute("select name from sqlite_master where type='table'"):
+[?2004l[?2004h>         print('table',row[0], cur.execute(f'pragma table_info({row[0]})').fetchall())
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             print('count', cur.execute(f'select count(*) from {row[0]}').fetchone())
+[?2004l[?2004h>             print('sample', cur.execute(f'select * from {row[0]} limit 5').fetchall())
+[?2004l[?2004h>         except Exception as e: print('queryerr', e)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('sqlite error:', type(e).__name__, e)
+[?2004l[?2004h> PY
+[?2004lbash: python: command not found
+[?2004hroot@ab3c654a53a4:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ab3c654a53a4:/app# set -u
+[?2004l[?2004hroot@ab3c654a53a4:/app# ls -l /app/trunc.db /app 2>&1
+[?2004l-rwxr-xr-x 1 root root 4096 Aug 10 16:30 [0m[01;32m/app/trunc.db[0m
+
+/app:
+total 4
+-rwxr-xr-x 1 root root 4096 Aug 10 16:30 [01;32mtrunc.db[0m
+[?2004hroot@ab3c654a53a4:/app# python3 - <<'PY'
+[?2004l[?2004h> import os, struct, sqlite3, binascii
+[?2004l[?2004h> p='/app/trunc.db'
+[?2004l[?2004h> print('size', os.path.getsize(p))
+[?2004l[?2004h> with open(p,'rb') as f:
+[?2004l[?2004h>     h=f.read(256)
+[?2004l[?2004h> print('header16', h[:16])
+[?2004l[?2004h> print('header_hex_100', binascii.hexlify(h[:100]).decode())
+[?2004l[?2004h> if len(h)>=100:
+[?2004l[?2004h>     ps=struct.unpack('>H', h[16:18])[0] or 65536
+[?2004l[?2004h>     print('page_size', ps)
+[?2004l[?2004h>     print('write/read versions', h[18], h[19])
+[?2004l[?2004h>     print('reserved', h[20])
+[?2004l[?2004h>     print('usable', ps-h[20])
+[?2004l[?2004h>     print('db_pages_header', int.from_bytes(h[28:32],'big'))
+[?2004l[?2004h>     print('freelist_trunk', int.from_bytes(h[32:36],'big'))
+[?2004l[?2004h>     print('freelist_count', int.from_bytes(h[36:40],'big'))
+[?2004l[?2004h>     print('schema_cookie', int.from_bytes(h[40:44],'big'))
+[?2004l[?2004h>     print('schema_format', int.from_bytes(h[44:48],'big'))
+[?2004l[?2004h>     print('text_encoding', int.from_bytes(h[56:60],'big'))
+[?2004l[?2004h> try:
+[?2004l[?2004h>     con=sqlite3.connect('file:/app/trunc.db?mode=ro', uri=True)
+[?2004l[?2004h>     cur=con.cursor()
+[?2004l[?2004h>     try: print('integrity', cur.execute('pragma integrity_check').fetchall()[:10])
+[?2004l[?2004h>     except Exception as e: print('integrity_error', repr(e))
+[?2004l[?2004h>     try: print('sqlite_master', cur.execute('select type,name,tbl_name,rootpage,sql from sqlite_master').fetchall())
+[?2004l[?2004h>     except Exception as e: print('master_error', repr(e))
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('connect_error', type(e).__name__, e)
+[?2004l[?2004h> PY
+[?2004lsize 4096
+header16 b'\r\x00\x00\x00\n\x0fI\x00\x0f\xf0\x0f\xdf\x0f\xce\x0f\xbd'
+header_hex_100 0d0000000a0f49000ff00fdf0fce0fbd0fac0f9b0f8a0f790f610f49000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+page_size 4012
+write/read versions 15 155
+reserved 15
+usable 3997
+db_pages_header 0
+freelist_trunk 0
+freelist_count 0
+schema_cookie 0
+schema_format 0
+text_encoding 0
+integrity_error DatabaseError('file is not a database')
+master_error DatabaseError('file is not a database')
+[?2004hroot@ab3c654a53a4:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ab3c654a53a4:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import binascii
+[?2004l[?2004h> b=Path('/app/trunc.db').read_bytes()
+[?2004l[?2004h> print('len', len(b))
+[?2004l[?2004h> print('page type', b[0], 'ncell', int.from_bytes(b[3:5],'big'), 'cell_start', int.from_bytes(b[5:7],'big'), 'frag', b[7])
+[?2004l[?2004h> ptrs=[int.from_bytes(b[8+2*i:10+2*i],'big') for i in range(int.from_bytes(b[3:5],'big'))]
+[?2004l[?2004h> print('ptrs', ptrs)
+[?2004l[?2004h> for p in ptrs:
+[?2004l[?2004h>     print('\ncell@',p,'hex',binascii.hexlify(b[p:p+80]).decode())
+[?2004l[?2004h>     # printable preview
+[?2004l[?2004h>     print('ascii', ''.join(chr(c) if 32<=c<127 else '.' for c in b[p:p+100]))
+[?2004l[?2004h> 
+[?2004l[?2004h> def getvar(buf, off):
+[?2004l[?2004h>     v=0
+[?2004l[?2004h>     for i in range(9):
+[?2004l[?2004h>         c=buf[off+i]
+[?2004l[?2004h>         if i==8:
+[?2004l[?2004h>             return (v<<8)|c, off+i+1
+[?2004l[?2004h>         v=(v<<7)|(c&0x7f)
+[?2004l[?2004h>         if not (c&0x80):
+[?2004l[?2004h>             return v, off+i+1
+[?2004l[?2004h>     raise ValueError
+[?2004l[?2004h> 
+[?2004l[?2004h> def serial_len(t):
+[?2004l[?2004h>     if t==0: return 0
+[?2004l[?2004h>     if t==1: return 1
+[?2004l[?2004h>     if t==2: return 2
+[?2004l[?2004h>     if t==3: return 3
+[?2004l[?2004h>     if t==4: return 4
+[?2004l[?2004h>     if t==5: return 6
+[?2004l[?2004h>     if t==6: return 8
+[?2004l[?2004h>     if t==7: return 8
+[?2004l[?2004h>     if t in (8,9): return 0
+[?2004l[?2004h>     if t>=12: return (t-12)//2
+[?2004l[?2004h>     raise ValueError(t)
+[?2004l[?2004h> 
+[?2004l[?2004h> def decode_val(t, data):
+[?2004l[?2004h>     if t==0: return None
+[?2004l[?2004h>     if t==8: return 0
+[?2004l[?2004h>     if t==9: return 1
+[?2004l[?2004h>     if 1<=t<=6:
+[?2004l[?2004h>         return int.from_bytes(data, 'big', signed=True)
+[?2004l[?2004h>     if t>=13 and t%2==1:
+[?2004l[?2004h>         return data.decode('utf-8','replace')
+[?2004l[?2004h>     if t>=12 and t%2==0:
+[?2004l[?2004h>         return data
+[?2004l[?2004h>     return data
+[?2004l[?2004h> 
+[?2004l[?2004h> for p in ptrs:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         payload, o = getvar(b,p)
+[?2004l[?2004h>         rowid, o = getvar(b,o)
+[?2004l[?2004h>         start=o
+[?2004l[?2004h>         hsz, ho = getvar(b,o)
+[?2004l[?2004h>         types=[]
+[?2004l[?2004h>         while ho < start+hsz:
+[?2004l[?2004h>             t, ho = getvar(b,ho); types.append(t)
+[?2004l[?2004h>         dataoff=start+hsz
+[?2004l[?2004h>         vals=[]
+[?2004l[?2004h>         for t in types:
+[?2004l[?2004h>             l=serial_len(t); data=b[dataoff:dataoff+l]; dataoff+=l; vals.append(decode_val(t,data))
+[?2004l[?2004h>         print('PARSED', p, 'payload',payload,'rowid',rowid,'hsz',hsz,'types',types,'vals',vals,'end',dataoff)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('ERR parse',p,e)
+[?2004l[?2004h> PY
+[?2004llen 4096
+page type 13 ncell 10 cell_start 3913 frag 0
+ptrs [4080, 4063, 4046, 4029, 4012, 3995, 3978, 3961, 3937, 3913]
+
+cell@ 4080 hex 0e010400210974657374776f72643030
+ascii ....!.testword00
+
+cell@ 4063 hex 0f020400210174657374776f72643031020e010400210974657374776f72643030
+ascii ....!.testword01.....!.testword00
+
+cell@ 4046 hex 0f030400210174657374776f726430320a0f020400210174657374776f72643031020e010400210974657374776f72643030
+ascii ....!.testword02.....!.testword01.....!.testword00
+
+cell@ 4029 hex 0f040400210174657374776f72643033190f030400210174657374776f726430320a0f020400210174657374776f72643031020e010400210974657374776f72643030
+ascii ....!.testword03.....!.testword02.....!.testword01.....!.testword00
+
+cell@ 4012 hex 0f050400210174657374776f726430342a0f040400210174657374776f72643033190f030400210174657374776f726430320a0f020400210174657374776f72643031020e010400210974657374776f
+ascii ....!.testword04*....!.testword03.....!.testword02.....!.testword01.....!.testword00
+
+cell@ 3995 hex 0f060400210174657374776f72643035320f050400210174657374776f726430342a0f040400210174657374776f72643033190f030400210174657374776f726430320a0f020400210174657374776f
+ascii ....!.testword052....!.testword04*....!.testword03.....!.testword02.....!.testword01.....!.testword0
+
+cell@ 3978 hex 0f070400210174657374776f726430364b0f060400210174657374776f72643035320f050400210174657374776f726430342a0f040400210174657374776f72643033190f030400210174657374776f
+ascii ....!.testword06K....!.testword052....!.testword04*....!.testword03.....!.testword02.....!.testword0
+
+cell@ 3961 hex 0f080400210174657374776f72643037630f070400210174657374776f726430364b0f060400210174657374776f72643035320f050400210174657374776f726430342a0f040400210174657374776f
+ascii ....!.testword07c....!.testword06K....!.testword052....!.testword04*....!.testword03.....!.testword0
+
+cell@ 3937 hex 16090400210774657374776f726430384058ff5c28f5c28f0f080400210174657374776f72643037630f070400210174657374776f726430364b0f060400210174657374776f72643035320f05040021
+ascii ....!.testword08@X.\(.......!.testword07c....!.testword06K....!.testword052....!.testword04*....!.te
+
+cell@ 3913 hex 160a0400210774657374776f726430393fe000000000000016090400210774657374776f726430384058ff5c28f5c28f0f080400210174657374776f72643037630f070400210174657374776f726430
+ascii ....!.testword09?...........!.testword08@X.\(.......!.testword07c....!.testword06K....!.testword052.
+PARSED 4080 payload 14 rowid 1 hsz 4 types [0, 33, 9] vals [None, 'testword00', 1] end 4096
+PARSED 4063 payload 15 rowid 2 hsz 4 types [0, 33, 1] vals [None, 'testword01', 2] end 4080
+PARSED 4046 payload 15 rowid 3 hsz 4 types [0, 33, 1] vals [None, 'testword02', 10] end 4063
+PARSED 4029 payload 15 rowid 4 hsz 4 types [0, 33, 1] vals [None, 'testword03', 25] end 4046
+PARSED 4012 payload 15 rowid 5 hsz 4 types [0, 33, 1] vals [None, 'testword04', 42] end 4029
+PARSED 3995 payload 15 rowid 6 hsz 4 types [0, 33, 1] vals [None, 'testword05', 50] end 4012
+PARSED 3978 payload 15 rowid 7 hsz 4 types [0, 33, 1] vals [None, 'testword06', 75] end 3995
+PARSED 3961 payload 15 rowid 8 hsz 4 types [0, 33, 1] vals [None, 'testword07', 99] end 3978
+PARSED 3937 payload 22 rowid 9 hsz 4 types [0, 33, 7] vals [None, 'testword08', b'@X\xff\\(\xf5\xc2\x8f'] end 3961
+PARSED 3913 payload 22 rowid 10 hsz 4 types [0, 33, 7] vals [None, 'testword09', b'?\xe0\x00\x00\x00\x00\x00\x00'] end 3937
+[?2004hroot@ab3c654a53a4:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ab3c654a53a4:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import struct, re, json
+[?2004l[?2004h> b=Path('/app/trunc.db').read_bytes()
+[?2004l[?2004h> 
+[?2004l[?2004h> def getvar(buf, off):
+[?2004l[?2004h>     v=0
+[?2004l[?2004h>     for i in range(9):
+[?2004l[?2004h>         if off+i >= len(buf): raise EOFError('varint beyond EOF')
+[?2004l[?2004h>         c=buf[off+i]
+[?2004l[?2004h>         if i==8:
+[?2004l[?2004h>             return (v<<8)|c, off+i+1
+[?2004l[?2004h>         v=(v<<7)|(c&0x7f)
+[?2004l[?2004h>         if not (c&0x80):
+[?2004l[?2004h>             return v, off+i+1
+[?2004l[?2004h>     raise ValueError('bad varint')
+[?2004l[?2004h> 
+[?2004l[?2004h> def serial_len(t):
+[?2004l[?2004h>     return {0:0,1:1,2:2,3:3,4:4,5:6,6:8,7:8,8:0,9:0}.get(t, (t-12)//2 if t>=12 else None)
+[?2004l[?2004h> 
+[?2004l[?2004h> def decode_val(t, data):
+[?2004l[?2004h>     if t==0: return None
+[?2004l[?2004h>     if t==8: return 0
+[?2004l[?2004h>     if t==9: return 1
+[?2004l[?2004h>     if 1 <= t <= 6: return int.from_bytes(data, 'big', signed=True)
+[?2004l[?2004h>     if t==7: return struct.unpack('>d', data)[0]
+[?2004l[?2004h>     if t>=13 and t%2: return data.decode('utf-8','replace')
+[?2004l[?2004h>     if t>=12 and not (t%2): return data.hex()
+[?2004l[?2004h>     return data.hex()
+[?2004l[?2004h> 
+[?2004l[?2004h> def parse_cell(off):
+[?2004l[?2004h>     payload, o=getvar(b,off)
+[?2004l[?2004h>     rowid, o=getvar(b,o)
+[?2004l[?2004h>     payload_start=o
+[?2004l[?2004h>     hsz, ho=getvar(b,o)
+[?2004l[?2004h>     if hsz < 1 or payload_start+payload > len(b):
+[?2004l[?2004h>         raise ValueError('invalid payload boundaries')
+[?2004l[?2004h>     types=[]
+[?2004l[?2004h>     while ho < payload_start+hsz:
+[?2004l[?2004h>         t, ho=getvar(b,ho)
+[?2004l[?2004h>         types.append(t)
+[?2004l[?2004h>     if ho != payload_start+hsz:
+[?2004l[?2004h>         raise ValueError('header mismatch')
+[?2004l[?2004h>     dataoff=payload_start+hsz
+[?2004l[?2004h>     vals=[]
+[?2004l[?2004h>     for t in types:
+[?2004l[?2004h>         l=serial_len(t)
+[?2004l[?2004h>         if l is None: raise ValueError(f'bad serial type {t}')
+[?2004l[?2004h>         vals.append(decode_val(t, b[dataoff:dataoff+l]))
+[?2004l[?2004h>         dataoff += l
+[?2004l[?2004h>     if dataoff != payload_start+payload:
+[?2004l[?2004h>         raise ValueError('payload length mismatch')
+[?2004l[?2004h>     return rowid, vals
+[?2004l[?2004h> 
+[?2004l[?2004h> # Parse declared cells from first page, which is already a table leaf page.
+[?2004l[?2004h> if b[0] != 13:
+[?2004l[?2004h>     raise SystemExit(f'Expected raw SQLite table leaf page at offset 0, got {b[0]!r}')
+[?2004l[?2004h> ncell=int.from_bytes(b[3:5],'big')
+[?2004l[?2004h> ptrs=[int.from_bytes(b[8+2*i:10+2*i],'big') for i in range(ncell)]
+[?2004l[?2004h> rows=[]
+[?2004l[?2004h> for off in ptrs:
+[?2004l[?2004h>     rowid, vals = parse_cell(off)
+[?2004l[?2004h>     # observed layout: [id/null-placeholder, word, value]
+[?2004l[?2004h>     if len(vals) >= 3 and isinstance(vals[1], str) and vals[1].startswith('testword'):
+[?2004l[?2004h>         rows.append({'rowid': rowid, 'word': vals[1], 'value': vals[2], 'cell_offset': off})
+[?2004l[?2004h> print(json.dumps(rows, indent=2, ensure_ascii=False))
+[?2004l[?2004h> print('declared_cells', ncell, 'recovered_rows', len(rows))
+[?2004l[?2004h> # independent text scan for possible words not captured by cell pointers
+[?2004l[?2004h> words=sorted(set(m.group(0).decode() for m in re.finditer(rb'testword[0-9A-Za-z_\-]*', b)))
+[?2004l[?2004h> print('word_scan_count', len(words), words)
+[?2004l[?2004h> PY
+[?2004l[
+  {
+    "rowid": 1,
+    "word": "testword00",
+    "value": 1,
+    "cell_offset": 4080
+  },
+  {
+    "rowid": 2,
+    "word": "testword01",
+    "value": 2,
+    "cell_offset": 4063
+  },
+  {
+    "rowid": 3,
+    "word": "testword02",
+    "value": 10,
+    "cell_offset": 4046
+  },
+  {
+    "rowid": 4,
+    "word": "testword03",
+    "value": 25,
+    "cell_offset": 4029
+  },
+  {
+    "rowid": 5,
+    "word": "testword04",
+    "value": 42,
+    "cell_offset": 4012
+  },
+  {
+    "rowid": 6,
+    "word": "testword05",
+    "value": 50,
+    "cell_offset": 3995
+  },
+  {
+    "rowid": 7,
+    "word": "testword06",
+    "value": 75,
+    "cell_offset": 3978
+  },
+  {
+    "rowid": 8,
+    "word": "testword07",
+    "value": 99,
+    "cell_offset": 3961
+  },
+  {
+    "rowid": 9,
+    "word": "testword08",
+    "value": 99.99,
+    "cell_offset": 3937
+  },
+  {
+    "rowid": 10,
+    "word": "testword09",
+    "value": 0.5,
+    "cell_offset": 3913
+  }
+]
+declared_cells 10 recovered_rows 10
+word_scan_count 10 ['testword00', 'testword01', 'testword02', 'testword03', 'testword04', 'testword052', 'testword06K', 'testword07c', 'testword08', 'testword09']
+[?2004hroot@ab3c654a53a4:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ab3c654a53a4:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@ab3c654a53a4:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import json, struct
+[?2004l[?2004h> 
+[?2004l[?2004h> src = Path('/app/trunc.db')
+[?2004l[?2004h> out = Path('/app/recover.json')
+[?2004l[?2004h> b = src.read_bytes()
+[?2004l[?2004h> 
+[?2004l[?2004h> def getvar(buf, off):
+[?2004l[?2004h>     v = 0
+[?2004l[?2004h>     for i in range(9):
+[?2004l[?2004h>         if off + i >= len(buf):
+[?2004l[?2004h>             raise EOFError('varint beyond EOF')
+[?2004l[?2004h>         c = buf[off + i]
+[?2004l[?2004h>         if i == 8:
+[?2004l[?2004h>             return (v << 8) | c, off + i + 1
+[?2004l[?2004h>         v = (v << 7) | (c & 0x7f)
+[?2004l[?2004h>         if not (c & 0x80):
+[?2004l[?2004h>             return v, off + i + 1
+[?2004l[?2004h>     raise ValueError('bad varint')
+[?2004l[?2004h> 
+[?2004l[?2004h> def serial_len(t):
+[?2004l[?2004h>     fixed = {0:0, 1:1, 2:2, 3:3, 4:4, 5:6, 6:8, 7:8, 8:0, 9:0}
+[?2004l[?2004h>     if t in fixed:
+[?2004l[?2004h>         return fixed[t]
+[?2004l[?2004h>     if t >= 12:
+[?2004l[?2004h>         return (t - 12) // 2
+[?2004l[?2004h>     raise ValueError(f'bad serial type {t}')
+[?2004l[?2004h> 
+[?2004l[?2004h> def decode_val(t, data):
+[?2004l[?2004h>     if t == 0: return None
+[?2004l[?2004h>     if t == 8: return 0
+[?2004l[?2004h>     if t == 9: return 1
+[?2004l[?2004h>     if 1 <= t <= 6: return int.from_bytes(data, 'big', signed=True)
+[?2004l[?2004h>     if t == 7: return struct.unpack('>d', data)[0]
+[?2004l[?2004h>     if t >= 13 and t % 2 == 1: return data.decode('utf-8')
+[?2004l[?2004h>     if t >= 12 and t % 2 == 0: return data
+[?2004l[?2004h>     raise ValueError(f'bad serial type {t}')
+[?2004l[?2004h> 
+[?2004l[?2004h> def parse_cell(buf, off):
+[?2004l[?2004h>     payload_size, pos = getvar(buf, off)
+[?2004l[?2004h>     rowid, pos = getvar(buf, pos)
+[?2004l[?2004h>     payload_start = pos
+[?2004l[?2004h>     header_size, hpos = getvar(buf, pos)
+[?2004l[?2004h>     header_end = payload_start + header_size
+[?2004l[?2004h>     payload_end = payload_start + payload_size
+[?2004l[?2004h>     if not (0 < header_size <= payload_size and payload_end <= len(buf)):
+[?2004l[?2004h>         raise ValueError('invalid cell boundaries')
+[?2004l[?2004h>     serial_types = []
+[?2004l[?2004h>     while hpos < header_end:
+[?2004l[?2004h>         st, hpos = getvar(buf, hpos)
+[?2004l[?2004h>         serial_types.append(st)
+[?2004l[?2004h>     if hpos != header_end:
+[?2004l[?2004h>         raise ValueError('record header overrun')
+[?2004l[?2004h>     dpos = header_end
+[?2004l[?2004h>     values = []
+[?2004l[?2004h>     for st in serial_types:
+[?2004l[?2004h>         n = serial_len(st)
+[?2004l[?2004h>         values.append(decode_val(st, buf[dpos:dpos+n]))
+[?2004l[?2004h>         dpos += n
+[?2004l[?2004h>     if dpos != payload_end:
+[?2004l[?2004h>         raise ValueError('record payload size mismatch')
+[?2004l[?2004h>     return rowid, values
+[?2004l[?2004h> 
+[?2004l[?2004h> if len(b) < 8 or b[0] != 0x0d:
+[?2004l[?2004h>     raise SystemExit('Input does not look like a raw SQLite table leaf page')
+[?2004l[?2004h> 
+[?2004l[?2004h> ncell = int.from_bytes(b[3:5], 'big')
+[?2004l[?2004h> ptrs = [int.from_bytes(b[8 + 2*i:10 + 2*i], 'big') for i in range(ncell)]
+[?2004l[?2004h> rows = []
+[?2004l[?2004h> for ptr in ptrs:
+[?2004l[?2004h>     rowid, vals = parse_cell(b, ptr)
+[?2004l[?2004h>     if len(vals) >= 3 and isinstance(vals[1], str):
+[?2004l[?2004h>         rows.append({'word': vals[1], 'value': vals[2]})
+[?2004l[?2004h> 
+[?2004l[?2004h> # Preserve table order by rowid/cell pointer order from the btree cell pointer array.
+[?2004l[?2004h> out.write_text(json.dumps(rows, ensure_ascii=False), encoding='utf-8')
+[?2004l[?2004h> 
+[?2004l[?2004h> # Validation
+[?2004l[?2004h> loaded = json.loads(out.read_text(encoding='utf-8'))
+[?2004l[?2004h> assert loaded == rows
+[?2004l[?2004h> assert all(set(r.keys()) == {'word', 'value'} for r in loaded)
+[?2004l[?2004h> assert len(loaded) == ncell == 10
+[?2004l[?2004h> print(f'wrote {out} with {len(loaded)} recovered rows')
+[?2004l[?2004h> print(out.read_text(encoding='utf-8'))
+[?2004l[?2004h> PY
+[?2004lwrote /app/recover.json with 10 recovered rows
+[{"word": "testword00", "value": 1}, {"word": "testword01", "value": 2}, {"word": "testword02", "value": 10}, {"word": "testword03", "value": 25}, {"word": "testword04", "value": 42}, {"word": "testword05", "value": 50}, {"word": "testword06", "value": 75}, {"word": "testword07", "value": 99}, {"word": "testword08", "value": 99.99}, {"word": "testword09", "value": 0.5}]
+[?2004hroot@ab3c654a53a4:/app# ls -l /app/recover.json
+[?2004l-rw-r--r-- 1 root root 372 Sep  3 22:50 /app/recover.json
+[?2004hroot@ab3c654a53a4:/app# python3 -m json.tool /app/recover.json >/tmp/recover_json_validated.txt && echo 'json validation ok' && cat /tmp/recover_json_validated.txt
+[?2004ljson validation ok
+[
+    {
+        "word": "testword00",
+        "value": 1
+    },
+    {
+        "word": "testword01",
+        "value": 2
+    },
+    {
+        "word": "testword02",
+        "value": 10
+    },
+    {
+        "word": "testword03",
+        "value": 25
+    },
+    {
+        "word": "testword04",
+        "value": 42
+    },
+    {
+        "word": "testword05",
+        "value": 50
+    },
+    {
+        "word": "testword06",
+        "value": 75
+    },
+    {
+        "word": "testword07",
+        "value": 99
+    },
+    {
+        "word": "testword08",
+        "value": 99.99
+    },
+    {
+        "word": "testword09",
+        "value": 0.5
+    }
+]
+[?2004hroot@ab3c654a53a4:/app# true; tmux wait -S done
+[?2004l[?2004hroot@ab3c654a53a4:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@ab3c654a53a4:/app# 

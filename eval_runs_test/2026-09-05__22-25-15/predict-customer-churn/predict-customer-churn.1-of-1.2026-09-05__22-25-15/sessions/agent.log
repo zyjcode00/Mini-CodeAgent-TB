@@ -1,0 +1,323 @@
+[?2004hroot@b12bed070288:/app# asciinema rec --stdin /logs/agent.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@b12bed070288:/app# clear
+[?2004l[H[J[3J[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# set +e
+[?2004l[?2004hroot@b12bed070288:/app# 
+[?2004l[?2004hroot@b12bed070288:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+[?2004l[?2004hroot@b12bed070288:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+[?2004l[?2004hroot@b12bed070288:/app# UV_INDEX_URL="https://pypi.org/simple"
+[?2004l[?2004hroot@b12bed070288:/app# 
+[?2004l[?2004hroot@b12bed070288:/app# if [ -f /etc/apt/sources.list ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@b12bed070288:/app# 
+[?2004l[?2004hroot@b12bed070288:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+[?2004l[?2004h>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+[?2004l[?2004h>     sed -i \
+[?2004l[?2004h>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+[?2004l[?2004h>         /etc/apt/sources.list.d/debian.sources
+[?2004l[?2004h> fi
+[?2004l[?2004hroot@b12bed070288:/app# 
+[?2004l[?2004hroot@b12bed070288:/app# mkdir -p /root/.config/uv
+[?2004l[?2004hroot@b12bed070288:/app# cat > /root/.config/uv/uv.toml <<EOF
+[?2004l[?2004h> index-url = "${UV_INDEX_URL}"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@b12bed070288:/app# 
+[?2004l[?2004hroot@b12bed070288:/app# apt-get update || true
+[?2004l0% [Working]            Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+0% [1 InRelease 5792 B/151 kB 4%]                                 0% [Working]            Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+0% [2 InRelease 5792 B/55.4 kB 10%]                                   0% [Working]            Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+0% [3 InRelease 4344 B/34.8 kB 12%]                                   0% [Working]0% [Working]            Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+0% [4 Packages 5792 B/8790 kB 0%]0% [4 Packages 69.5 kB/8790 kB 1%]17% [4 Packages 207 kB/8790 kB 2%]36% [4 Packages 2357 kB/8790 kB 27%]55% [4 Packages 4626 kB/8790 kB 53%]74% [4 Packages 6838 kB/8790 kB 78%]                                    90% [Working]90% [4 Packages store 0 B] [Waiting for headers]                                                Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+90% [4 Packages store 0 B] [5 Packages 6924 B/6924 B 100%]                                                          90% [4 Packages store 0 B] [Waiting for headers]                                                Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [336 kB]
+91% [4 Packages store 0 B] [6 Packages 4344 B/336 kB 1%]                                                        93% [4 Packages store 0 B]                          96% [Working]96% [5 Packages store 0 B]                          98% [Working]98% [6 Packages store 0 B]                          100% [Working]              Fetched 9375 kB in 3s (3110 kB/s)
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 95%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+[?2004l.
+./data
+./data/training-data.csv
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# git rev-parse --is-inside-work-tree
+[?2004lbash: git: command not found
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# git status --porcelain
+[?2004lbash: git: command not found
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogIkxvZ2lzdGljUmVncmVzc2lvbnx0cmFpbmluZ19maWxlX2NoZWNrc3VtfG1vZGVsLnBrbHx0cmFpbmluZy1kYXRhIiwgInBhdGgiOiAiLiIsICJjb250ZXh0IjogMiwgImZpbGVfcGF0dGVybiI6ICIqLnB5IiwgImNhc2Vfc2Vuc2l0aXZlIjogZmFsc2V9'"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBmbm1hdGNoLCBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhpc3RzKCk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCLplJnor686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5piv55uu5b2VICIgKyBhcmdzWyJwYXRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJlLklHTk9SRUNBU0UpCmV4Y2VwdCByZS5lcnJvciBhcyBlcnJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0IiwgIl9fcHljYWNoZV9fIiwgIi52ZW52IiwgIm5vZGVfbW9kdWxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFyZ3NbImZpbGVfcGF0dGVybiJdKToKICAgIGlmIGFueShwYXJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGludWUKICAgIHRyeToKICAgICAgICBsaW5lcyA9IGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAgICAgIGNvbnRpbnVlCiAgICBmaWxlcyArPSAxCiAgICBtYXRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6CiAgICAgICAgICAgIGJlZm9yZSA9IFtmIntpKzE6NGR9IHwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAgYWZ0ZXIgPSBbZiJ7aSsxOjRkfSB8IHtsaW5lc1tpXX0iIGZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5hcHBlbmQoKG51bWJlciwgbGluZSwgYmVmb3JlLCBhZnRlcikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogICAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHByaW50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgICAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmludChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+[?2004l未找到匹配项。已搜索 0 个文件。
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# git branch --show-current
+[?2004lbash: git: command not found
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# git log -1 --oneline
+[?2004lbash: git: command not found
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 - data/training-data.csv 1 5 true <<'PY'
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> start_line = int(sys.argv[2])
+[?2004l[?2004h> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+[?2004l[?2004h> raw_mode = sys.argv[4].lower() == 'true'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+[?2004l[?2004h>         lines = f.readlines()
+[?2004l[?2004h> except FileNotFoundError:
+[?2004l[?2004h>     print(f"错误: 找不到文件 {path}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"读取失败: {exc}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> 
+[?2004l[?2004h> total_lines = len(lines)
+[?2004l[?2004h> s_idx = max(0, start_line - 1)
+[?2004l[?2004h> e_idx = end_line if end_line is not None else total_lines
+[?2004l[?2004h> selected_lines = lines[s_idx:e_idx]
+[?2004l[?2004h> if raw_mode:
+[?2004l[?2004h>     sys.stdout.write(''.join(selected_lines))
+[?2004l[?2004h> else:
+[?2004l[?2004h>     output = []
+[?2004l[?2004h>     for i, line in enumerate(selected_lines):
+[?2004l[?2004h>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+[?2004l[?2004h>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+[?2004l[?2004h>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+[?2004l[?2004h> PY
+[?2004lgender,SeniorCitizen,Partner,Dependents,tenure,PhoneService,MultipleLines,InternetService,OnlineSecurity,OnlineBackup,DeviceProtection,TechSupport,StreamingTV,StreamingMovies,Contract,PaperlessBilling,PaymentMethod,MonthlyCharges,TotalCharges,Churn
+0,0,0,0,66,0,1,0,2,2,2,2,0,0,2,1,3,47.4,2759,0
+1,0,0,0,5,1,0,0,0,0,0,2,0,0,0,1,2,49.2,1777,1
+1,0,0,1,3,1,0,2,1,1,1,1,1,1,0,0,3,20.85,4913,0
+1,0,0,0,1,1,0,2,1,1,1,1,1,1,0,0,3,20.6,1618,1
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import pandas as pd
+[?2004l[?2004h> p=Path('data/training-data.csv')
+[?2004l[?2004h> print('exists', p.exists(), 'size', p.stat().st_size if p.exists() else None)
+[?2004l[?2004h> df=pd.read_csv(p)
+[?2004l[?2004h> print(df.shape)
+[?2004l[?2004h> print(df.dtypes)
+[?2004l[?2004h> print(df.head(3).to_string())
+[?2004l[?2004h> print('columns', list(df.columns))
+[?2004l[?2004h> if 'Churn' in df.columns: print(df['Churn'].value_counts(dropna=False))
+[?2004l[?2004h> PY
+[?2004lexists True size 233033
+(4930, 20)
+gender                int64
+SeniorCitizen         int64
+Partner               int64
+Dependents            int64
+tenure                int64
+PhoneService          int64
+MultipleLines         int64
+InternetService       int64
+OnlineSecurity        int64
+OnlineBackup          int64
+DeviceProtection      int64
+TechSupport           int64
+StreamingTV           int64
+StreamingMovies       int64
+Contract              int64
+PaperlessBilling      int64
+PaymentMethod         int64
+MonthlyCharges      float64
+TotalCharges          int64
+Churn                 int64
+dtype: object
+   gender  SeniorCitizen  Partner  Dependents  tenure  PhoneService  MultipleLines  InternetService  OnlineSecurity  OnlineBackup  DeviceProtection  TechSupport  StreamingTV  StreamingMovies  Contract  PaperlessBilling  PaymentMethod  MonthlyCharges  TotalCharges  Churn
+0       0              0        0           0      66             0              1                0               2             2                 2            2            0                0         2                 1              3           47.40          2759      0
+1       1              0        0           0       5             1              0                0               0             0                 0            2            0                0         0                 1              2           49.20          1777      1
+2       1              0        0           1       3             1              0                2               1             1                 1            1            1                1         0                 0              3           20.85          4913      0
+columns ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'MonthlyCharges', 'TotalCharges', 'Churn']
+Churn
+0    3622
+1    1308
+Name: count, dtype: int64
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 - <<'PY'
+[?2004l[?2004h> import pandas as pd, numpy as np
+[?2004l[?2004h> from sklearn.linear_model import LogisticRegression
+[?2004l[?2004h> from sklearn.model_selection import train_test_split
+[?2004l[?2004h> from sklearn.metrics import accuracy_score
+[?2004l[?2004h> FEATURES=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges']
+[?2004l[?2004h> df=pd.read_csv('data/training-data.csv')
+[?2004l[?2004h> X=df[FEATURES]; y=df['Churn']
+[?2004l[?2004h> for solver in ['lbfgs','liblinear','newton-cg','sag','saga']:
+[?2004l[?2004h>   try:
+[?2004l[?2004h>     accs=[]; ten=[]
+[?2004l[?2004h>     for rs in [0,1,42,123,2024]:
+[?2004l[?2004h>       Xtr,Xte,ytr,yte=train_test_split(X,y,test_size=0.2,random_state=rs,stratify=y)
+[?2004l[?2004h>       m=LogisticRegression(max_iter=5000,solver=solver,random_state=42)
+[?2004l[?2004h>       m.fit(Xtr,ytr)
+[?2004l[?2004h>       accs.append(accuracy_score(yte,m.predict(Xte)))
+[?2004l[?2004h>       ten.append(m.coef_[0][FEATURES.index('tenure')])
+[?2004l[?2004h>     print(solver, accs, np.mean(accs), ten)
+[?2004l[?2004h>   except Exception as e:
+[?2004l[?2004h>     print(solver, 'ERR', type(e).__name__, e)
+[?2004l[?2004h> PY
+[?2004l/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+lbfgs [0.783975659229209, 0.8093306288032455, 0.8225152129817445, 0.821501014198783, 0.7981744421906694] 0.8070993914807303 [np.float64(-0.03819196324294922), np.float64(-0.03670475151755911), np.float64(-0.03459346643377267), np.float64(-0.035579845068306276), np.float64(-0.03628526345475916)]
+liblinear [0.783975659229209, 0.8103448275862069, 0.8194726166328601, 0.821501014198783, 0.7971602434077079] 0.8064908722109534 [np.float64(-0.038433594038412115), np.float64(-0.036879061300741374), np.float64(-0.03464929253606891), np.float64(-0.03590822649578082), np.float64(-0.03670984877184538)]
+newton-cg [0.783975659229209, 0.808316430020284, 0.8225152129817445, 0.821501014198783, 0.7971602434077079] 0.8066937119675457 [np.float64(-0.038160523348469096), np.float64(-0.036705241669021484), np.float64(-0.03459544985617242), np.float64(-0.03560344844832039), np.float64(-0.036289779975283785)]
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+sag [0.7677484787018256, 0.7961460446247465, 0.8032454361054767, 0.8144016227180527, 0.7768762677484787] 0.791683569979716 [np.float64(-0.05136584950809991), np.float64(-0.049929149231149585), np.float64(-0.048961310952799715), np.float64(-0.04992695335598675), np.float64(-0.05000583821913742)]
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_sag.py:349: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  warnings.warn(
+saga [0.7718052738336714, 0.7920892494929006, 0.8073022312373225, 0.8093306288032455, 0.7728194726166329] 0.7906693711967545 [np.float64(-0.053708787229422975), np.float64(-0.05215472648080626), np.float64(-0.05132862330930729), np.float64(-0.052163883589733506), np.float64(-0.052292963432917346)]
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 - train_churn_model.py <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = '"""Train a customer churn Logistic Regression model.\n\nThis script intentionally performs no scaling, encoding, or other preprocessing.\nThe input data is expected to already contain the required numeric feature\ncolumns and the binary target column ``Churn``.\n"""\n\nfrom __future__ import annotations\n\nimport hashlib\nimport pickle\nfrom pathlib import Path\n\nimport pandas as pd\nfrom sklearn.linear_model import LogisticRegression\n\n\nAPP_DIR = Path(__file__).resolve().parent\nDATA_PATH = APP_DIR / "data" / "training-data.csv"\nCHECKSUM_PATH = APP_DIR / "training_file_checksum.txt"\nMODEL_PATH = APP_DIR / "model.pkl"\nCHUNK_SIZE_BYTES = 4096\n\nFEATURES = [\n    "gender",\n    "SeniorCitizen",\n    "Partner",\n    "Dependents",\n    "tenure",\n    "PhoneService",\n    "MultipleLines",\n    "InternetService",\n    "OnlineSecurity",\n    "OnlineBackup",\n    "DeviceProtection",\n    "TechSupport",\n    "StreamingTV",\n    "StreamingMovies",\n    "Contract",\n    "PaperlessBilling",\n    "PaymentMethod",\n    "MonthlyCharges",\n    "TotalCharges",\n]\nTARGET = "Churn"\n\n\ndef calculate_sha256(path: Path, chunk_size: int = CHUNK_SIZE_BYTES) -> str:\n    """Return the SHA-256 checksum for *path*, reading in fixed-size chunks."""\n    digest = hashlib.sha256()\n    with path.open("rb") as file_obj:\n        for chunk in iter(lambda: file_obj.read(chunk_size), b""):\n            digest.update(chunk)\n    return digest.hexdigest()\n\n\ndef write_training_checksum(data_path: Path = DATA_PATH, checksum_path: Path = CHECKSUM_PATH) -> str:\n    """Calculate and persist the training-data checksum."""\n    checksum = calculate_sha256(data_path, CHUNK_SIZE_BYTES)\n    checksum_path.write_text(checksum + "\\n", encoding="utf-8")\n    return checksum\n\n\ndef load_training_data(data_path: Path = DATA_PATH) -> tuple[pd.DataFrame, pd.Series]:\n    """Load the required features and target from the training CSV."""\n    data = pd.read_csv(data_path)\n    missing_columns = [column for column in FEATURES + [TARGET] if column not in data.columns]\n    if missing_columns:\n        raise ValueError(f"Training data is missing required columns: {missing_columns}")\n    return data[FEATURES], data[TARGET]\n\n\ndef train_model(X: pd.DataFrame, y: pd.Series) -> LogisticRegression:\n    """Train a LogisticRegression directly on the selected raw features."""\n    model = LogisticRegression(max_iter=5000, solver="lbfgs", random_state=42)\n    model.fit(X, y)\n    return model\n\n\ndef save_model(model: LogisticRegression, model_path: Path = MODEL_PATH) -> None:\n    """Serialize the trained model as a pickle file."""\n    with model_path.open("wb") as file_obj:\n        pickle.dump(model, file_obj)\n\n\ndef main() -> LogisticRegression:\n    """Create checksum, train the churn model, save it, and return it."""\n    write_training_checksum(DATA_PATH, CHECKSUM_PATH)\n    X, y = load_training_data(DATA_PATH)\n    model = train_model(X, y)\n    save_model(model, MODEL_PATH)\n    return model\n\n\nif __name__ == "__main__":\n    trained_model = main()\n    print(f"Saved LogisticRegression model to {MODEL_PATH}")\n    print(f"Saved training data checksum to {CHECKSUM_PATH}")\n    print(f"Trained with {trained_model.n_features_in_} features")\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 train_churn_model.py
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 train_churn_model.py && ls -l model.pkl training_file_checksum.txt && cat training_file_checksum.txt
+[?2004l/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+Saved LogisticRegression model to /app/model.pkl
+Saved training data checksum to /app/training_file_checksum.txt
+Trained with 19 features
+-rw-r--r-- 1 root root 1237 Sep  5 14:44 model.pkl
+-rw-r--r-- 1 root root   65 Sep  5 14:44 training_file_checksum.txt
+7c293e65d0733c735e98395b660a4e2cad2e98fa55e3df83bfeb7a72cc9c0c77
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 - test_churn_pipeline.py <<'PY'
+[?2004lPATH)\n    X = data[FEATURES]\n    y = data["Churn"]\n    _, X_test, _, y_test = train_test_split(\n        X,\n        y,\n        test_size=0.2,\n        random_state=42,\n        stratify=y,\n    )\n    model = load_model()\n    accuracy = accuracy_score(y_test, model.predict(X_test))\n    assert accuracy >= 0.79\n'
+dir_path = os.path.dirname(path)
+if dir_path:
+    os.makedirs(dir_path, exist_ok=True)
+try:
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(content)
+    print(f"成功: 已写入 {path}")
+except Exception as exc:
+    print(f"写入失败: {exc}")
+PY
+true; tmux wait -S done
+[?2004h> import os
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> content = 'import hashlib\nimport pickle\nfrom pathlib import Path\n\nimport numpy as np\nimport pandas as pd\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import accuracy_score\nfrom sklearn.model_selection import train_test_split\n\nimport train_churn_model\n\n\nAPP_DIR = Path(__file__).resolve().parent\nDATA_PATH = APP_DIR / "data" / "training-data.csv"\nCHECKSUM_PATH = APP_DIR / "training_file_checksum.txt"\nMODEL_PATH = APP_DIR / "model.pkl"\nFEATURES = train_churn_model.FEATURES\n\n\ndef sha256_in_4kb_chunks(path: Path) -> str:\n    digest = hashlib.sha256()\n    with path.open("rb") as file_obj:\n        for chunk in iter(lambda: file_obj.read(4096), b""):\n            digest.update(chunk)\n    return digest.hexdigest()\n\n\ndef setup_module():\n    train_churn_model.main()\n\n\ndef load_model():\n    with MODEL_PATH.open("rb") as file_obj:\n        return pickle.load(file_obj)\n\n\ndef test_training_checksum_is_written_from_4kb_chunks():\n    assert CHECKSUM_PATH.exists()\n    expected = sha256_in_4kb_chunks(DATA_PATH)\n    assert CHECKSUM_PATH.read_text(encoding="utf-8").strip() == expected\n    assert train_churn_model.calculate_sha256(DATA_PATH, 4096) == expected\n\n\ndef test_model_artifact_is_saved_logistic_regression_with_required_features():\n    assert MODEL_PATH.exists()\n    model = load_model()\n    assert isinstance(model, LogisticRegression)\n    assert model.n_features_in_ == 19\n    assert list(model.feature_names_in_) == FEATURES\n\n\ndef test_model_coefficients_are_non_zero_and_tenure_is_negative():\n    model = load_model()\n    coefficients = model.coef_[0]\n    assert coefficients.shape == (19,)\n    assert np.count_nonzero(coefficients) == 19\n    tenure_index = FEATURES.index("tenure")\n    assert coefficients[tenure_index] < 0\n\n\ndef test_model_accuracy_is_at_least_79_percent_on_test_split():\n    data = pd.read_csv(DATA_PATH)\n    X = data[FEATURES]\n    y = data["Churn"]\n    _, X_test, _, y_test = train_test_split(\n        X,\n        y,\n        test_size=0.2,\n        random_state=42,\n        stratify=y,\n    )\n    model = load_model()\n    accuracy = accuracy_score(y_test, model.predict(X_test))\n    assert accuracy >= 0.79\n'
+[?2004l[?2004h> dir_path = os.path.dirname(path)
+[?2004l[?2004h> if dir_path:
+[?2004l[?2004h>     os.makedirs(dir_path, exist_ok=True)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>         f.write(content)
+[?2004l[?2004h>     print(f"成功: 已写入 {path}")
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"写入失败: {exc}")
+[?2004l[?2004h> PY
+[?2004l成功: 已写入 test_churn_pipeline.py
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 -m pytest -v -- test_churn_pipeline.py
+[?2004l/usr/local/bin/python3: No module named pytest
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 - test_churn_pipeline.py <<'PY'
+[?2004l[?2004h> import sys
+[?2004l[?2004h> path = sys.argv[1]
+[?2004l[?2004h> old_str = 'def test_model_accuracy_is_at_least_79_percent_on_test_split():\n    data = pd.read_csv(DATA_PATH)\n    X = data[FEATURES]\n    y = data["Churn"]\n    _, X_test, _, y_test = train_test_split(\n        X,\n        y,\n        test_size=0.2,\n        random_state=42,\n        stratify=y,\n    )\n    model = load_model()\n    accuracy = accuracy_score(y_test, model.predict(X_test))\n    assert accuracy >= 0.79\n'
+[?2004l[?2004h> new_str = 'def test_model_accuracy_is_at_least_79_percent_on_test_split():\n    data = pd.read_csv(DATA_PATH)\n    X = data[FEATURES]\n    y = data["Churn"]\n    _, X_test, _, y_test = train_test_split(\n        X,\n        y,\n        test_size=0.2,\n        random_state=42,\n        stratify=y,\n    )\n    model = load_model()\n    accuracy = accuracy_score(y_test, model.predict(X_test))\n    assert accuracy >= 0.79\n\n\nif __name__ == "__main__":\n    setup_module()\n    test_training_checksum_is_written_from_4kb_chunks()\n    test_model_artifact_is_saved_logistic_regression_with_required_features()\n    test_model_coefficients_are_non_zero_and_tenure_is_negative()\n    test_model_accuracy_is_at_least_79_percent_on_test_split()\n    print("All churn pipeline tests passed")\n'
+[?2004l[?2004h> 
+[?2004l[?2004h> def normalize_text(text: str) -> str:
+[?2004l[?2004h>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+[?2004l[?2004h>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+[?2004l[?2004h> 
+[?2004l[?2004h> try:
+[?2004l[?2004h>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+[?2004l[?2004h>         content = f.read()
+[?2004l[?2004h> except FileNotFoundError:
+[?2004l[?2004h>     print(f"错误: 找不到文件 {path}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> except Exception as exc:
+[?2004l[?2004h>     print(f"修改失败: {exc}")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> 
+[?2004l[?2004h> content = normalize_text(content)
+[?2004l[?2004h> old_str = normalize_text(old_str)
+[?2004l[?2004h> new_str = normalize_text(new_str)
+[?2004l[?2004h> count = content.count(old_str)
+[?2004l[?2004h> if count == 0:
+[?2004l[?2004h>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 write_full_file 全量覆盖")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> if count > 1:
+[?2004l[?2004h>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+[?2004l[?2004h>     raise SystemExit(0)
+[?2004l[?2004h> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+[?2004l[?2004h>     f.write(content.replace(old_str, new_str))
+[?2004l[?2004h> print(f"成功: 已更新 {path}。修改已持久化。")
+[?2004l[?2004h> PY
+[?2004l成功: 已更新 test_churn_pipeline.py。修改已持久化。
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+[?2004l[?2004hroot@b12bed070288:/app# python3 test_churn_pipeline.py
+[?2004l/usr/local/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+All churn pipeline tests passed
+[?2004hroot@b12bed070288:/app# true; tmux wait -S done
+[?2004l[?2004hroot@b12bed070288:/app# [?2004l
+exit
+[0;32masciinema: recording finished[0m
+[0;32masciinema: asciicast saved to /logs/agent.cast[0m
+[?2004hroot@b12bed070288:/app# 

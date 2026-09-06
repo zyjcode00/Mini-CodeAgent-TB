@@ -1,0 +1,479 @@
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# set +e
+root@b862b856e1ea:/app#
+root@b862b856e1ea:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@b862b856e1ea:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@b862b856e1ea:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@b862b856e1ea:/app#
+root@b862b856e1ea:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@b862b856e1ea:/app#
+root@b862b856e1ea:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@b862b856e1ea:/app#
+root@b862b856e1ea:/app# mkdir -p /root/.config/uv
+root@b862b856e1ea:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@b862b856e1ea:/app#
+root@b862b856e1ea:/app# apt-get update || true
+Hit:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease
+Hit:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease
+Hit:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease
+Reading package lists... Done
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# find /app -maxdepth 2 -type f -printf '%p\n' | sort && echo '--- results.txt ---' && if [ -f /app/results.txt ]; then sed -n '1,120p' /a
+pp/results.txt; else echo '(missing)'; fi
+/app/artifacts/final_clue.zip
+/app/artifacts/glyph_weights.json
+/app/artifacts/symbols.json
+/app/artifacts/tablet.csv
+/app/artifacts/tablet_instructions.txt
+/app/decryptor_server.py
+--- results.txt ---
+(missing)
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# if [ -f /app/artifacts/tablet_instructions.txt ]; then cat -- /app/artifacts/tablet_instructions.txt; else echo '错误: 找不到文件 /app/a
+rtifacts/tablet_instructions.txt'; fi
+Ancient Tablet Cipher
+=====================
+
+1. Filter tablet rows: timestamp % 7 == 0
+2. For each glyph: value (symbols.json) × weight (glyph_weights.json)
+3. Sum all products
+4. Passcode = sum % 100000
+
+Extract: 7z x final_clue.zip -p[passcode] -aoa
+Decrypt: POST http://decryptor:8090/decrypt {"incantation": "..."}
+The final message will be written to `/app/results.txt` if successful.root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# if [ -f /app/artifacts/glyph_weights.json ]; then cat -- /app/artifacts/glyph_weights.json; else echo '错误: 找不到文件 /app/artifacts/g
+lyph_weights.json'; fi
+{
+    "𒀱": 4,
+    "𒁓": 2,
+    "𒅆": 5,
+    "𒀸": 1,
+    "𒋼": 1,
+    "𒄑": 3,
+    "𒁹": 3,
+    "𒁁": 3,
+    "𒀂": 2
+}
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# if [ -f /app/artifacts/symbols.json ]; then cat -- /app/artifacts/symbols.json; else echo '错误: 找不到文件 /app/artifacts/symbols.json'
+; fi
+{
+    "𒀱": 42,
+    "𒁓": 17,
+    "𒅆": 8,
+    "𒀸": 99,
+    "𒋼": 0,
+    "𒄑": 73,
+    "𒁹": 15,
+    "𒁁": 36,
+    "𒀂": 58
+}  root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# python3 - /app/artifacts/tablet.csv 1 80 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+timestamp,glyph
+1039,𒀱
+1045,𒀸
+1057,𒋼
+1064,𒀱
+1001,𒀱
+1071,𒁓
+1029,𒅆
+1050,𒋼
+1078,𒅆
+1015,𒁓
+1008,𒋼
+1036,𒀸
+1070,𒅆
+1092,𒁓
+1043,𒀱
+1057,𒁓
+1014,𒀸
+1063,𒀱
+1003,𒁓
+1002,𒅆
+1077,𒀱root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+hts=json.loads((base/'glyph_weights.json').read_text(encoding='utf-8'))
+total=0
+with (base/'tablet.csv').open(encoding='utf-8') as f:
+    for r in csv.DictReader(f):
+        ts=int(r['timestamp']); glyph=r['glyph']
+        if ts % 7 == 0:
+            total += symbols[glyph]*weights[glyph]
+print(total % 100000)
+PY
+) -aoa -o/tmp/final_clue_extract >/tmp/7z_out.txt && cat /tmp/7z_out.txt && echo '--- extracted files ---' && find /tmp/final_clue_extract -type f -maxdepth 3 -
+printf '%p\n' -exec sh -c 'echo "--- $1 ---"; sed -n "1,120p" "$1"' sh {} \;; else echo '7z not found'; fi
+true; tmux wait -S done
+root@b862b856e1ea:/app# python3 - <<'PY'
+> import csv,json
+> from pathlib import Path
+> base=Path('/app/artifacts')
+> symbols=json.loads((base/'symbols.json').read_text(encoding='utf-8'))
+> weights=json.loads((base/'glyph_weights.json').read_text(encoding='utf-8'))
+> total=0
+> rows=[]
+> with (base/'tablet.csv').open(encoding='utf-8') as f:
+>     for r in csv.DictReader(f):
+>         ts=int(r['timestamp']); glyph=r['glyph']
+>         if ts % 7 == 0:
+>             prod=symbols[glyph]*weights[glyph]
+>             total += prod
+>             rows.append((ts,glyph,symbols[glyph],weights[glyph],prod))
+> print('matching rows:')
+> for row in rows:
+>     print(row)
+> print('sum=', total)
+> print('passcode=', total % 100000)
+> PY
+matching rows:
+(1057, '𒋼', 0, 1, 0)
+(1064, '𒀱', 42, 4, 168)
+(1001, '𒀱', 42, 4, 168)
+(1071, '𒁓', 17, 2, 34)
+(1029, '𒅆', 8, 5, 40)
+(1050, '𒋼', 0, 1, 0)
+(1078, '𒅆', 8, 5, 40)
+(1015, '𒁓', 17, 2, 34)
+(1008, '𒋼', 0, 1, 0)
+(1036, '𒀸', 99, 1, 99)
+(1092, '𒁓', 17, 2, 34)
+(1043, '𒀱', 42, 4, 168)
+(1057, '𒁓', 17, 2, 34)
+sum= 819
+passcode= 819
+root@b862b856e1ea:/app# rm -rf /tmp/final_clue_extract && mkdir -p /tmp/final_clue_extract
+root@b862b856e1ea:/app# if command -v 7z >/dev/null 2>&1; then 7z x /app/artifacts/final_clue.zip -p$(python3 - <<'PY'
+> import csv,json
+> from pathlib import Path
+> base=Path('/app/artifacts')
+> symbols=json.loads((base/'symbols.json').read_text(encoding='utf-8'))
+> weights=json.loads((base/'glyph_weights.json').read_text(encoding='utf-8'))
+> total=0
+> with (base/'tablet.csv').open(encoding='utf-8') as f:
+>     for r in csv.DictReader(f):
+>         ts=int(r['timestamp']); glyph=r['glyph']
+>         if ts % 7 == 0:
+>             total += symbols[glyph]*weights[glyph]
+> print(total % 100000)
+> PY
+> ) -aoa -o/tmp/final_clue_extract >/tmp/7z_out.txt && cat /tmp/7z_out.txt && echo '--- extracted files ---' && find /tmp/final_clue_extract -type f -maxdepth 3
+ -printf '%p\n' -exec sh -c 'echo "--- $1 ---"; sed -n "1,120p" "$1"' sh {} \;; else echo '7z not found'; fi
+ERROR: Wrong password : sealed_incantation.txt
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# set -o pipefail
+root@b862b856e1ea:/app# 7z l /app/artifacts/final_clue.zip || true
+
+7-Zip [64] 26.02 : Copyright (c) 1999-2026 Igor Pavlov : 2026-06-25
+p7zip Version 16.02 (locale=C.UTF-8,Utf16=on,HugeFiles=on,64 bits,16 CPUs AMD Ryzen 7 255 w/ Radeon 780M Graphics (A70F52)  (LP))
+
+Scanning the drive for archives:
+1 file, 211 bytes (1 KiB)
+
+Listing archive: /app/artifacts/final_clue.zip
+
+--
+Path = /app/artifacts/final_clue.zip
+Type = zip
+Physical Size = 211
+
+   Date      Time    Attr         Size   Compressed  Name
+------------------- ----- ------------ ------------  ------------------------
+2025-08-14 15:49:22 .....           17           47  sealed_incantation.txt
+------------------- ----- ------------ ------------  ------------------------
+2025-08-14 15:49:22                 17           47  1 files
+root@b862b856e1ea:/app# python3 - <<'PY'
+> import zipfile
+> zf=zipfile.ZipFile('/app/artifacts/final_clue.zip')
+> for info in zf.infolist():
+>     print(info.filename, info.flag_bits, info.compress_type, info.file_size)
+> PY
+sealed_incantation.txt 1 99 17
+root@b862b856e1ea:/app# for p in 819 00819 0819 '819\n' '[819]' passcode819; do
+>   echo "--- try <$p> ---"
+>   rm -rf /tmp/final_clue_extract && mkdir -p /tmp/final_clue_extract
+>   7z x /app/artifacts/final_clue.zip -p"$p" -aoa -o/tmp/final_clue_extract >/tmp/7z_try.out 2>/tmp/7z_try.err
+>   rc=$?
+>   echo "rc=$rc"
+>   cat /tmp/7z_try.err
+>   if [ $rc -eq 0 ]; then find /tmp/final_clue_extract -type f -maxdepth 3 -printf '%p\n' -exec sh -c 'echo "--- $1 ---"; sed -n "1,120p" "$1"' sh {} \;; break
+; fi
+> done
+--- try <819> ---
+rc=2
+ERROR: Wrong password : sealed_incantation.txt
+--- try <00819> ---
+rc=0
+find: warning: you have specified the global option -maxdepth after the argument -type, but global options are not positional, i.e., -maxdepth affects tests spe
+cified before it as well as those specified after it.  Please specify global options before other arguments.
+/tmp/final_clue_extract/sealed_incantation.txt
+--- /tmp/final_clue_extract/sealed_incantation.txt ---
+ECHOES-OF-CYPRESSroot@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# curl -sS -X POST http://decryptor:8090/decrypt -H 'Content-Type: application/json' -d '{"incantation":"ECHOES-OF-CYPRESS"}' | tee /tmp/d
+ecryptor_response.txt
+curl: (7) Failed to connect to decryptor port 8090 after 1 ms: Couldn't connect to server
+root@b862b856e1ea:/app# printf '\n--- /app/results.txt if created by service ---\n'
+
+--- /app/results.txt if created by service ---
+root@b862b856e1ea:/app# if [ -f /app/results.txt ]; then cat /app/results.txt; else echo '(missing)'; fi
+(missing)
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# if [ -f /app/decryptor_server.py ]; then cat -- /app/decryptor_server.py; else echo '错误: 找不到文件 /app/decryptor_server.py'; fi
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# ls -l /app/decryptor_server.py /app/artifacts/final_clue.zip /app || true
+-rwxr-xr-x 1 root root  211 Aug 10 16:30 /app/artifacts/final_clue.zip
+-rw-r--r-- 1 root root    0 Sep  5 03:09 /app/decryptor_server.py
+
+/app:
+total 4
+drwxr-xr-x 2 root root 4096 Sep  5 03:09 artifacts
+-rw-r--r-- 1 root root    0 Sep  5 03:09 decryptor_server.py
+root@b862b856e1ea:/app# printf '\n--- listening ports/process hints ---\n'
+
+--- listening ports/process hints ---
+root@b862b856e1ea:/app# (ss -ltnp 2>/dev/null || netstat -ltnp 2>/dev/null || true) | sed -n '1,120p'
+root@b862b856e1ea:/app# printf '\n--- hosts ---\n'
+
+--- hosts ---
+root@b862b856e1ea:/app# getent hosts decryptor || true
+172.28.0.2      decryptor
+root@b862b856e1ea:/app# printf '\n--- response file ---\n'
+
+--- response file ---
+root@b862b856e1ea:/app# if [ -f /tmp/decryptor_response.txt ]; then cat /tmp/decryptor_response.txt; fi
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# set -o pipefail
+root@b862b856e1ea:/app# printf '--- DNS ---\n'
+bash: printf: --: invalid option
+printf: usage: printf [-v var] format [arguments]
+root@b862b856e1ea:/app# getent hosts decryptor || true
+172.28.0.2      decryptor
+root@b862b856e1ea:/app# printf '\n--- ping/port probes ---\n'
+
+--- ping/port probes ---
+root@b862b856e1ea:/app# (ping -c 1 -W 1 decryptor || true) 2>&1 | sed -n '1,20p'
+bash: ping: command not found
+root@b862b856e1ea:/app# for host in decryptor 172.28.0.2 localhost 127.0.0.1; do
+>   for path in / /decrypt /health; do
+>     echo "--- curl http://$host:8090$path ---"
+>     curl -sS --connect-timeout 2 --max-time 5 -i "http://$host:8090$path" 2>&1 | sed -n '1,40p' || true
+>   done
+> done
+--- curl http://decryptor:8090/ ---
+HTTP/1.1 404 NOT FOUND
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:13 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 207
+Access-Control-Allow-Origin: *
+Connection: close
+
+<!doctype html>
+<html lang=en>
+<title>404 Not Found</title>
+<h1>Not Found</h1>
+<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
+--- curl http://decryptor:8090/decrypt ---
+HTTP/1.1 405 METHOD NOT ALLOWED
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:13 GMT
+Content-Type: text/html; charset=utf-8
+Allow: POST, OPTIONS
+Content-Length: 153
+Access-Control-Allow-Origin: *
+Connection: close
+
+<!doctype html>
+<html lang=en>
+<title>405 Method Not Allowed</title>
+<h1>Method Not Allowed</h1>
+<p>The method is not allowed for the requested URL.</p>
+--- curl http://decryptor:8090/health ---
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:13 GMT
+Content-Type: application/json
+Content-Length: 59
+Access-Control-Allow-Origin: *
+Connection: close
+
+{"status":"The ancient decryptor awaits your incantation"}
+--- curl http://172.28.0.2:8090/ ---
+HTTP/1.1 404 NOT FOUND
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:13 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 207
+Access-Control-Allow-Origin: *
+Connection: close
+
+<!doctype html>
+<html lang=en>
+<title>404 Not Found</title>
+<h1>Not Found</h1>
+<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
+--- curl http://172.28.0.2:8090/decrypt ---
+HTTP/1.1 405 METHOD NOT ALLOWED
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:13 GMT
+Content-Type: text/html; charset=utf-8
+Allow: POST, OPTIONS
+Content-Length: 153
+Access-Control-Allow-Origin: *
+Connection: close
+
+<!doctype html>
+<html lang=en>
+<title>405 Method Not Allowed</title>
+<h1>Method Not Allowed</h1>
+<p>The method is not allowed for the requested URL.</p>
+--- curl http://172.28.0.2:8090/health ---
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:13 GMT
+Content-Type: application/json
+Content-Length: 59
+Access-Control-Allow-Origin: *
+Connection: close
+
+{"status":"The ancient decryptor awaits your incantation"}
+--- curl http://localhost:8090/ ---
+curl: (7) Failed to connect to localhost port 8090 after 0 ms: Couldn't connect to server
+--- curl http://localhost:8090/decrypt ---
+curl: (7) Failed to connect to localhost port 8090 after 0 ms: Couldn't connect to server
+--- curl http://localhost:8090/health ---
+curl: (7) Failed to connect to localhost port 8090 after 0 ms: Couldn't connect to server
+--- curl http://127.0.0.1:8090/ ---
+curl: (7) Failed to connect to 127.0.0.1 port 8090 after 0 ms: Couldn't connect to server
+--- curl http://127.0.0.1:8090/decrypt ---
+curl: (7) Failed to connect to 127.0.0.1 port 8090 after 0 ms: Couldn't connect to server
+--- curl http://127.0.0.1:8090/health ---
+curl: (7) Failed to connect to 127.0.0.1 port 8090 after 0 ms: Couldn't connect to server
+root@b862b856e1ea:/app# printf '\n--- POST retry ---\n'
+
+--- POST retry ---
+root@b862b856e1ea:/app# for i in 1 2 3 4 5; do
+>   echo "attempt $i"
+>   curl -sS --connect-timeout 2 --max-time 10 -i -X POST http://decryptor:8090/decrypt -H 'Content-Type: application/json' -d '{"incantation":"ECHOES-OF-CYPRES
+S"}' 2>&1 | tee /tmp/decryptor_response_${i}.txt
+>   sleep 1
+> done
+attempt 1
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:13 GMT
+Content-Type: application/json
+Content-Length: 115
+Access-Control-Allow-Origin: *
+Connection: close
+
+{"message":"The ancient mechanism recognizes your incantation. The message has been revealed.","status":"success"}
+attempt 2
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:14 GMT
+Content-Type: application/json
+Content-Length: 115
+Access-Control-Allow-Origin: *
+Connection: close
+
+{"message":"The ancient mechanism recognizes your incantation. The message has been revealed.","status":"success"}
+attempt 3
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:16 GMT
+Content-Type: application/json
+Content-Length: 115
+Access-Control-Allow-Origin: *
+Connection: close
+
+{"message":"The ancient mechanism recognizes your incantation. The message has been revealed.","status":"success"}
+attempt 4
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:17 GMT
+Content-Type: application/json
+Content-Length: 115
+Access-Control-Allow-Origin: *
+Connection: close
+
+{"message":"The ancient mechanism recognizes your incantation. The message has been revealed.","status":"success"}
+attempt 5
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.13.1
+Date: Sat, 05 Sep 2026 03:11:18 GMT
+Content-Type: application/json
+Content-Length: 115
+Access-Control-Allow-Origin: *
+Connection: close
+
+{"message":"The ancient mechanism recognizes your incantation. The message has been revealed.","status":"success"}
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@b862b856e1ea:/app# printf '%s\n' '--- /app/results.txt content ---'
+--- /app/results.txt content ---
+root@b862b856e1ea:/app# if [ -f /app/results.txt ]; then cat /app/results.txt; else echo '(missing)'; fi
+What is etched, endures.
+root@b862b856e1ea:/app# printf '\n%s\n' '--- file metadata ---'
+
+--- file metadata ---
+root@b862b856e1ea:/app# ls -l /app/results.txt 2>/dev/null || true
+-rw-r--r-- 1 root root 25 Sep  5 03:11 /app/results.txt
+root@b862b856e1ea:/app# true; tmux wait -S done
+root@b862b856e1ea:/app#

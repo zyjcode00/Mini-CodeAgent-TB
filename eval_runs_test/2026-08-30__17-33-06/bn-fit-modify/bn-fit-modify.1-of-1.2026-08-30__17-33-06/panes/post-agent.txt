@@ -1,0 +1,457 @@
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# set +e
+root@920f79a41845:/app#
+root@920f79a41845:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@920f79a41845:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@920f79a41845:/app# UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+root@920f79a41845:/app#
+root@920f79a41845:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@920f79a41845:/app#
+root@920f79a41845:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@920f79a41845:/app#
+root@920f79a41845:/app# mkdir -p /root/.config/uv
+root@920f79a41845:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@920f79a41845:/app#
+root@920f79a41845:/app# apt-get update || true
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:3 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:6 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1527 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1200 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2149 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1525 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1842 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Fetched 32.4 MB in 26s (1253 kB/s)
+Reading package lists... Done
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+./bn_sample_10k.csv
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# pwd && ls -l /app && printf '\nDATA HEAD\n' && sed -n '1,5p' /app/bn_sample_10k.csv && printf '\nOUTPUTS\n' && for f in /app/learned_dag
+.csv /app/intervened_dag.csv /app/final_bn_sample.csv; do if [ -f "$f" ]; then echo "--- $f"; sed -n '1,8p' "$f"; fi; done
+/app
+total 828
+-rw-r--r-- 1 root root 844949 Aug 30 09:37 bn_sample_10k.csv
+
+DATA HEAD
+"U","Y","R","D","M"
+65.1595787086976,55.0497451938166,73.1506268775402,57.6615550291927,64.3384681778361
+44.6029054197735,43.600175682188,38.589412608575,45.9401940372555,21.2469494226791
+54.4564237284025,54.1307611128149,47.302573583304,41.8194189531508,52.392400251044
+57.3210008646862,61.0491365637276,48.9899101338243,54.4998895140635,52.223173316915
+
+OUTPUTS
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJtb2RlIjogImxpc3QiLCAicGF0aCI6ICIuIiwgInN5bWJvbF90eXBlIjogImFsbCJ
+9'"'"'));exec(compile(base64.b64decode('"'"'CmltcG9ydCBhc3QsIG9zCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAphcmdzID0gQVJHUwpyb290ID0gUGF0aChhcmdzWyJwYXRoIl0pLnJlc29sdmUo
+KQppZiBub3Qgcm9vdC5leGlzdHMoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E5LiN5a2Y5ZyoICIgKyBhcmdzWyJwYXRoIl0pCmlmIG5vdCByb290LmlzX2RpcigpOgogICAgcmFpc2Ug
+U3lzdGVtRXhpdCgi6ZSZ6K+vOiDot6/lvoTkuI3mmK/nm67lvZUgIiArIGFyZ3NbInBhdGgiXSkKaXRlbXMgPSBbXQpmb3IgY3VycmVudCwgZGlycywgZmlsZXMgaW4gb3Mud2Fsayhyb290KToKICAgIGRpcnNb
+Ol0gPSBbZCBmb3IgZCBpbiBkaXJzIGlmIGQgbm90IGluIHsiLmdpdCIsICJfX3B5Y2FjaGVfXyIsICJub2RlX21vZHVsZXMiLCAidmVudiIsICIudmVudiIsICJlbnYiLCAiLmVudiJ9XQogICAgZm9yIGZpbGVu
+YW1lIGluIGZpbGVzOgogICAgICAgIGlmIG5vdCBmaWxlbmFtZS5lbmRzd2l0aCgiLnB5Iik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgZmlsZV9wYXRoID0gUGF0aChjdXJyZW50KSAvIGZpbGVuYW1l
+CiAgICAgICAgdHJ5OgogICAgICAgICAgICB0cmVlID0gYXN0LnBhcnNlKGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKSwgZmlsZW5hbWU9c3RyKGZpbGVfcGF0
+aCkpCiAgICAgICAgZXhjZXB0IChTeW50YXhFcnJvciwgT1NFcnJvciwgVmFsdWVFcnJvcik6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgcmVsYXRpdmUgPSBzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3Rv
+KHJvb3QpKQogICAgICAgIGZvciBub2RlIGluIGFzdC53YWxrKHRyZWUpOgogICAgICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUsIGFzdC5DbGFzc0RlZik6CiAgICAgICAgICAgICAgICBpdGVtcy5hcHBlbmQo
+KG5vZGUubmFtZSwgImNsYXNzIiwgcmVsYXRpdmUsIG5vZGUubGluZW5vLCBnZXRhdHRyKG5vZGUsICJlbmRfbGluZW5vIiwgbm9kZS5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhub2RlKSwgTm9uZSkpCiAg
+ICAgICAgICAgICAgICBmb3IgY2hpbGQgaW4gbm9kZS5ib2R5OgogICAgICAgICAgICAgICAgICAgIGlmIGlzaW5zdGFuY2UoY2hpbGQsIChhc3QuRnVuY3Rpb25EZWYsIGFzdC5Bc3luY0Z1bmN0aW9uRGVmKSk6
+CiAgICAgICAgICAgICAgICAgICAgICAgIGl0ZW1zLmFwcGVuZCgoY2hpbGQubmFtZSwgImZ1bmN0aW9uIiwgcmVsYXRpdmUsIGNoaWxkLmxpbmVubywgZ2V0YXR0cihjaGlsZCwgImVuZF9saW5lbm8iLCBjaGls
+ZC5saW5lbm8pLCBhc3QuZ2V0X2RvY3N0cmluZyhjaGlsZCksIG5vZGUubmFtZSkpCiAgICAgICAgICAgIGVsaWYgaXNpbnN0YW5jZShub2RlLCAoYXN0LkZ1bmN0aW9uRGVmLCBhc3QuQXN5bmNGdW5jdGlvbkRl
+ZikpIGFuZCBub3QgYW55KGlzaW5zdGFuY2UocGFyZW50LCBhc3QuQ2xhc3NEZWYpIGFuZCBub2RlIGluIHBhcmVudC5ib2R5IGZvciBwYXJlbnQgaW4gYXN0LndhbGsodHJlZSkpOgogICAgICAgICAgICAgICAg
+aXRlbXMuYXBwZW5kKChub2RlLm5hbWUsICJmdW5jdGlvbiIsIHJlbGF0aXZlLCBub2RlLmxpbmVubywgZ2V0YXR0cihub2RlLCAiZW5kX2xpbmVubyIsIG5vZGUubGluZW5vKSwgYXN0LmdldF9kb2NzdHJpbmco
+bm9kZSksIE5vbmUpKQppZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBhcmdzWyJuYW1lIl0gaW4gaXRlbVswXV0KaWYgYXJncy5nZXQoInN5
+bWJvbF90eXBlIiwgImFsbCIpICE9ICJhbGwiOgogICAgaXRlbXMgPSBbaXRlbSBmb3IgaXRlbSBpbiBpdGVtcyBpZiBpdGVtWzFdID09IGFyZ3NbInN5bWJvbF90eXBlIl1dCmlmIG5vdCBpdGVtczoKICAgIHBy
+aW50KCLmnKrmib7liLDnrKblj7c6ICIgKyBhcmdzLmdldCgibmFtZSIsICLku7vkvZUiKSkKZWxpZiBhcmdzWyJtb2RlIl0gPT0gImZpbmQiOgogICAgcHJpbnQoZiLwn5SNIOaJvuWIsCB7bGVuKGl0ZW1zKX0g
+5Liq5Yy56YWN6aG5IikKICAgIHByaW50KCI9IiAqIDgwKQogICAgZm9yIGluZGV4LCBpdGVtIGluIGVudW1lcmF0ZShpdGVtcywgMSk6CiAgICAgICAgbmFtZSwga2luZCwgZmlsZW5hbWUsIHN0YXJ0LCBlbmQs
+IGRvYywgcGFyZW50ID0gaXRlbQogICAgICAgIHByaW50KGYiXFxuW3tpbmRleH1dIHtraW5kLnVwcGVyKCl9OiB7bmFtZX0iKQogICAgICAgIGlmIHBhcmVudDogcHJpbnQoIiAgICDniLbnsbs6ICIgKyBwYXJl
+bnQpCiAgICAgICAgcHJpbnQoZiIgICAg8J+TgSDmlofku7Y6IHtmaWxlbmFtZX0iKQogICAgICAgIHByaW50KGYiICAgIPCfk40g6KGM5Y+3OiBMe3N0YXJ0fSAtIEx7ZW5kfSIpCiAgICAgICAgaWYgZG9jOiBw
+cmludCgiXFxuICAgIPCfkqwg5paH5qGj5a2X56ym5LiyOlxcbiIgKyAiXFxuIi5qb2luKCIgICAgICAgIiArIGxpbmUgZm9yIGxpbmUgaW4gZG9jLnN0cmlwKCkuc3BsaXRsaW5lcygpWzo1XSkpCmVsc2U6CiAg
+ICBwcmludChmIvCfk4og6aG555uu56ym5Y+357Si5byVICjlhbEge2xlbihpdGVtcyl9IOS4quWumuS5iSkiKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgaXRlbSBpbiBzb3J0ZWQoaXRlbXMsIGtleT1s
+YW1iZGEgeDogKHhbMl0sIHhbM10pKToKICAgICAgICBuYW1lLCBraW5kLCBmaWxlbmFtZSwgc3RhcnQsIGVuZCwgZG9jLCBwYXJlbnQgPSBpdGVtCiAgICAgICAgZGlzcGxheSA9IChwYXJlbnQgKyAiLiIgaWYg
+cGFyZW50IGVsc2UgIiIpICsgbmFtZQogICAgICAgIHByaW50KGYiXFxu8J+TgSB7ZmlsZW5hbWV9XFxueyfwn5OmJyBpZiBraW5kID09ICdjbGFzcycgZWxzZSAn4pqhJ30gICB7ZGlzcGxheX0gKEx7c3RhcnR9
+LUx7ZW5kfSkiKQogICAgICAgIGlmIGRvYzogcHJpbnQoIiAgICDwn5KsICIgKyBkb2Muc3RyaXAoKS5zcGxpdGxpbmVzKClbMF0pCg=='"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+未找到符号: 任何
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogImJuX3NhbXBsZXxsZWFybmVkX2RhZ3xpbnRlcnZlbmVkX2RhZ3x
+maW5hbF9ibnxCYXllc2lhbnxEQUciLCAicGF0aCI6ICIuIiwgImNvbnRleHQiOiAyLCAiZmlsZV9wYXR0ZXJuIjogIioiLCAiY2FzZV9zZW5zaXRpdmUiOiBmYWxzZX0='"'"'));exec(compile(base64.b64
+decode('"'"'CmltcG9ydCBmbm1hdGNoLCBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhpc3RzKCk6CiAg
+ICByYWlzZSBTeXN0ZW1FeGl0KCLplJnor686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeivrzog6Lev5b6E
+5LiN5piv55uu5b2VICIgKyBhcmdzWyJwYXRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJlLklHTk9SRUNB
+U0UpCmV4Y2VwdCByZS5lcnJvciBhcyBlcnJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0IiwgIl9fcHljYWNo
+ZV9fIiwgIi52ZW52IiwgIm5vZGVfbW9kdWxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFyZ3NbImZpbGVf
+cGF0dGVybiJdKToKICAgIGlmIGFueShwYXJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGludWUKICAgIHRy
+eToKICAgICAgICBsaW5lcyA9IGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAgICAgIGNvbnRp
+bnVlCiAgICBmaWxlcyArPSAxCiAgICBtYXRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6CiAgICAgICAg
+ICAgIGJlZm9yZSA9IFtmIntpKzE6NGR9IHwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAgYWZ0ZXIgPSBb
+ZiJ7aSsxOjRkfSB8IHtsaW5lc1tpXX0iIGZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5hcHBlbmQoKG51
+bWJlciwgbGluZSwgYmVmb3JlLCBhZnRlcikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3QpKSwgbWF0Y2hl
+cykpCmlmIG5vdCByZXN1bHRzOgogICAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNIXSDmkJzntKLn
+u5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwgbWF0Y2hlcyBp
+biByZXN1bHRzOgogICAgICAgIHByaW50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5lLCBiZWZvcmUs
+IGFmdGVyIGluIG1hdGNoZXM6CiAgICAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkKICAgICAgICAg
+ICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHByaW50KCJcXG4i
+ICsgIj0iICogODApCiAgICBwcmludChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g5Liq5paH5Lu2
+IikK'"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+未找到匹配项。已搜索 1 个文件。
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 - <<'PY'
+> import pandas as pd
+> x=pd.read_csv('/app/bn_sample_10k.csv')
+> print(x.shape)
+> print(x.dtypes)
+> print(x.corr().round(3).to_string())
+> PY
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'pandas'
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 - <<'PY'
+> mods=['numpy','pandas','scipy','sklearn','pgmpy','pomegranate','networkx']
+> for m in mods:
+>  try:
+>   mod=__import__(m); print(m, getattr(mod,'__version__','ok'))
+>  except Exception as e: print(m, type(e).__name__, str(e))
+> PY
+numpy ModuleNotFoundError No module named 'numpy'
+pandas ModuleNotFoundError No module named 'pandas'
+scipy ModuleNotFoundError No module named 'scipy'
+sklearn ModuleNotFoundError No module named 'sklearn'
+pgmpy ModuleNotFoundError No module named 'pgmpy'
+pomegranate ModuleNotFoundError No module named 'pomegranate'
+networkx ModuleNotFoundError No module named 'networkx'
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# command -v R || true; command -v Rscript || true; command -v ruby || true; command -v perl || true; command -v sqlite3 || true; command
+-v bc || true
+/usr/bin/R
+/usr/bin/Rscript
+/usr/bin/perl
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# awk -F, 'NR==1{next} NR==2{for(i=1;i<=NF;i++){gsub(/"/,"",$i); x[i]=$i}; next} {for(i=1;i<=NF;i++){gsub(/"/,"",$i); s[i]+=$i; ss[i]+=$i*
+$i}; for(i=1;i<=NF;i++)for(j=i+1;j<=NF;j++){c[i,j]+=$i*$j}} END{n=NR-1; for(i=1;i<=5;i++)m[i]=s[i]/n; for(i=1;i<=5;i++){printf "%s mean %.5f sd %.5f\n", "UYRDM"
+\,i,m[i],sqrt((ss[i]-n*m[i]*m[i])/(n-1))}; print "CORR"; for(i=1;i<=5;i++){for(j=i+1;j<=5;j++){cov=(c[i,j]-n*m[i]*m[j])/(n-1); sd1=sqrt((ss[i]-n*m[i]*m[i])/(n-1
+));sd2=sqrt((ss[j]-n*m[j]*m[j])/(n-1)); printf "%s-%s %.5f\n",substr("UYRDM",i,1),substr("UYRDM",j,1),cov/sd1/sd2}}}' /app/bn_sample_10k.csv
+awk: 1: unexpected character '\'
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# head -n 1 /app/bn_sample_10k.csv | tr ',' '\n' | nl -ba; wc -l /app/bn_sample_10k.csv
+     1  "U"
+     2  "Y"
+     3  "R"
+     4  "D"
+     5  "M"
+10001 /app/bn_sample_10k.csv
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# Rscript -e 'cat(paste(installed.packages()[,1], collapse="\n"))' | grep -Ei 'bn|igraph|MASS|mvtnorm|dag|network' || true
+MASS
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# Rscript - <<'RS'
+> x <- read.csv('/app/bn_sample_10k.csv')
+> print(round(cor(x),3))
+> print(summary(x))
+> RS
+      U     Y     R     D     M
+U 1.000 0.603 0.704 0.537 0.662
+Y 0.603 1.000 0.431 0.539 0.385
+R 0.704 0.431 1.000 0.382 0.599
+D 0.537 0.539 0.382 1.000 0.348
+M 0.662 0.385 0.599 0.348 1.000
+       U               Y                 R                 D
+ Min.   : 7.66   Min.   :  1.669   Min.   : -8.889   Min.   :-31.02
+ 1st Qu.:43.23   1st Qu.: 41.245   1st Qu.: 36.284   1st Qu.: 26.17
+ Median :50.53   Median : 50.462   Median : 46.441   Median : 38.05
+ Mean   :50.48   Mean   : 50.355   Mean   : 46.414   Mean   : 38.03
+ 3rd Qu.:57.64   3rd Qu.: 59.288   3rd Qu.: 56.530   3rd Qu.: 49.98
+ Max.   :96.56   Max.   :108.007   Max.   :101.872   Max.   :105.98
+       M
+ Min.   :-18.31
+ 1st Qu.: 29.87
+ Median : 41.46
+ Mean   : 41.44
+ 3rd Qu.: 52.97
+ Max.   :105.17
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# cat > /tmp/infer_bn.R <<'RS'
+> x <- read.csv('/app/bn_sample_10k.csv'); vars <- names(x); n <- nrow(x); p <- length(vars)
+> # Allowed directed edges: U cannot have parents.
+> pairs <- list();
+> for (i in 1:p) for (j in 1:p) if (i != j && j != 1) pairs[[length(pairs)+1]] <- c(i,j) # from i to j
+> m <- length(pairs); best <- list(score=-Inf); count <- 0
+> acyclic <- function(edges) {
+>   adj <- matrix(FALSE,p,p)
+>   if (length(edges)) for (e in edges) adj[e[1],e[2]] <- TRUE
+>   state <- integer(p)
+>   dfs <- function(v) { state[v] <<- 1; z <- which(adj[v,]); for (w in z) { if(state[w]==1) return(FALSE); if(state[w]==0 && !dfs(w)) return(FALSE) }; state[v]
+ <<- 2; TRUE }
+>   for(v in 1:p) if(state[v]==0 && !dfs(v)) return(FALSE); TRUE
+> }
+> local <- function(child, pars) {
+>   y <- x[[child]]
+>   if (!length(pars)) rss <- sum((y-mean(y))^2) else rss <- sum(lm(y ~ ., data=x[c(pars)])$residuals^2)
+>   k <- length(pars)+2
+>   -n/2*(log(2*pi)+1+log(rss/n)) - .5*k*log(n)
+> }
+> # recurse combinations of 6 edges
+> choose6 <- function(start, picked) {
+>   left <- 6-length(picked); if (left==0) {
+>     if(!acyclic(picked)) return()
+>     count <<- count+1; pars <- vector('list',p); for(i in 1:p) pars[[i]] <- integer()
+>     for(e in picked) pars[[e[2]]] <- c(pars[[e[2]]],e[1])
+>     sc <- sum(sapply(1:p,function(j)local(j,pars[[j]])))
+>     if(sc > best$score) best <<- list(score=sc, edges=picked, pars=pars)
+>     return()
+>   }
+>   if(m-start+1 < left) return()
+>   for(i in start:(m-left+1)) choose6(i+1,c(picked,list(pairs[[i]])))
+> }
+> choose6(1,list()); cat('candidates',count,'best',best$score,'\n')
+> for(e in best$edges) cat(vars[e[2]],',',vars[e[1]],'\n',sep='')
+> cat('parents\n'); for(j in 1:p) cat(vars[j],':',paste(vars[best$pars[[j]]],collapse=','),'\n')
+> RS
+root@920f79a41845:/app# Rscript /tmp/infer_bn.R
+candidates 2240 best -193627.6
+Y,U
+R,U
+D,U
+M,U
+D,Y
+M,R
+parents
+U :
+Y : U
+R : U
+D : U,Y
+M : U,R
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 - /app/generate_bn.R <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "set.seed(20260830)\ndata <- read.csv('/app/bn_sample_10k.csv', check.names=FALSE)\nvars <- names(data)\nif (!identical(vars, c('U','Y','R','D','M')
+)) stop('Unexpected input columns')\n\n# Maximum-likelihood Gaussian conditional regressions for the recovered DAG.\nfit <- function(child, parents) {\n  formul
+a <- if (length(parents)) reformulate(parents, response=child) else as.formula(paste(child, '~ 1'))\n  lm(formula, data=data)\n}\nmodels <- list(\n  U=fit('U',
+character()),\n  Y=fit('Y', 'U'),\n  R=fit('R', 'U'),\n  D=fit('D', c('U','Y')),\n  M=fit('M', c('U','R'))\n)\npredict_node <- function(model, newdata) as.numer
+ic(predict(model, newdata=newdata)) + rnorm(nrow(newdata), 0, sigma(model))\n\nedges <- data.frame(to=c('Y','R','D','M','D','M'), from=c('U','U','U','U','Y','R'
+))\nwrite.csv(edges, '/app/learned_dag.csv', row.names=FALSE, quote=FALSE)\nintervened_edges <- edges[edges$to != 'Y', , drop=FALSE]\nwrite.csv(intervened_edges
+, '/app/intervened_dag.csv', row.names=FALSE, quote=FALSE)\n\n# Truncated factorization under do(Y=0): Y is fixed, so its incoming edge is removed.\nout <- data
+.frame(\n  U=predict_node(models$U, data.frame()),\n  Y=0.0\n)\nout$R <- predict_node(models$R, out)\nout$D <- predict_node(models$D, out)\nout$M <- predict_nod
+e(models$M, out)\nout <- out[, vars]\nwrite.csv(out, '/app/final_bn_sample.csv', row.names=FALSE, quote=FALSE)\nRS\nRscript /app/generate_bn.R\nls -l /app/learn
+ed_dag.csv /app/intervened_dag.csv /app/final_bn_sample.csv"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/generate_bn.R
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# if [ -f /app/generate_bn.R ]; then cat -- /app/generate_bn.R; else echo '错误: 找不到文件 /app/generate_bn.R'; fi
+set.seed(20260830)
+data <- read.csv('/app/bn_sample_10k.csv', check.names=FALSE)
+vars <- names(data)
+if (!identical(vars, c('U','Y','R','D','M'))) stop('Unexpected input columns')
+
+# Maximum-likelihood Gaussian conditional regressions for the recovered DAG.
+fit <- function(child, parents) {
+  formula <- if (length(parents)) reformulate(parents, response=child) else as.formula(paste(child, '~ 1'))
+  lm(formula, data=data)
+}
+models <- list(
+  U=fit('U', character()),
+  Y=fit('Y', 'U'),
+  R=fit('R', 'U'),
+  D=fit('D', c('U','Y')),
+  M=fit('M', c('U','R'))
+)
+predict_node <- function(model, newdata) as.numeric(predict(model, newdata=newdata)) + rnorm(nrow(newdata), 0, sigma(model))
+
+edges <- data.frame(to=c('Y','R','D','M','D','M'), from=c('U','U','U','U','Y','R'))
+write.csv(edges, '/app/learned_dag.csv', row.names=FALSE, quote=FALSE)
+intervened_edges <- edges[edges$to != 'Y', , drop=FALSE]
+write.csv(intervened_edges, '/app/intervened_dag.csv', row.names=FALSE, quote=FALSE)
+
+# Truncated factorization under do(Y=0): Y is fixed, so its incoming edge is removed.
+out <- data.frame(
+  U=predict_node(models$U, data.frame()),
+  Y=0.0
+)
+out$R <- predict_node(models$R, out)
+out$D <- predict_node(models$D, out)
+out$M <- predict_node(models$M, out)
+out <- out[, vars]
+write.csv(out, '/app/final_bn_sample.csv', row.names=FALSE, quote=FALSE)
+RS
+Rscript /app/generate_bn.R
+ls -l /app/learned_dag.csv /app/intervened_dag.csv /app/final_bn_sample.csvroot@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 - /app/generate_bn.R <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = "predict_node <- function(model, newdata) as.numeric(predict(model, newdata=newdata)) + rnorm(nrow(newdata), 0, sigma(model))\n\nedges <- data.frame
+(to=c('Y','R','D','M','D','M'), from=c('U','U','U','U','Y','R'))"
+> new_str = "n_samples <- 10000\npredict_node <- function(model, newdata) {\n  values <- as.numeric(predict(model, newdata=newdata))\n  values + rnorm(nrow(newd
+ata), 0, sigma(model))\n}\n\nedges <- data.frame(to=c('Y','R','D','M','D','M'), from=c('U','U','U','U','Y','R'))"
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/generate_bn.R。修改已持久化。
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 - /app/generate_bn.R <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "set.seed(20260830)\ndata <- read.csv('/app/bn_sample_10k.csv', check.names=FALSE)\nvars <- names(data)\nif (!identical(vars, c('U','Y','R','D','M')
+)) stop('Unexpected input columns')\nn_samples <- 10000\n\n# Fit one Gaussian conditional distribution for each node in the recovered DAG.\nfit <- function(chil
+d, parents) {\n  formula <- if (length(parents)) reformulate(parents, response=child) else as.formula(paste(child, '~ 1'))\n  lm(formula, data=data)\n}\nmodels
+<- list(\n  U=fit('U', character()),\n  Y=fit('Y', 'U'),\n  R=fit('R', 'U'),\n  D=fit('D', c('U','Y')),\n  M=fit('M', c('U','R'))\n)\npredict_node <- function(m
+odel, newdata) {\n  as.numeric(predict(model, newdata=newdata)) + rnorm(nrow(newdata), 0, sigma(model))\n}\n\nedges <- data.frame(\n  to=c('Y','R','D','M','D','
+M'),\n  from=c('U','U','U','U','Y','R')\n)\nwrite.csv(edges, '/app/learned_dag.csv', row.names=FALSE, quote=FALSE)\n\n# Under do(Y=0), remove the incoming edge
+to Y and retain all other factors.\nintervened_edges <- edges[edges$to != 'Y', , drop=FALSE]\nwrite.csv(intervened_edges, '/app/intervened_dag.csv', row.names=F
+ALSE, quote=FALSE)\n\n# Generate in topological order using the truncated factorization.\nout <- data.frame(U=rnorm(n_samples, coef(models$U)[1], sigma(models$U
+)))\nout$Y <- 0.0\nout$R <- predict_node(models$R, out)\nout$D <- predict_node(models$D, out)\nout$M <- predict_node(models$M, out)\nout <- out[, vars]\nwrite.c
+sv(out, '/app/final_bn_sample.csv', row.names=FALSE, quote=FALSE)\n"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/generate_bn.R
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# Rscript /app/generate_bn.R
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# python3 - /app/test_bn_outputs.R <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = "read_edges <- function(path) read.csv(path, check.names=FALSE, stringsAsFactors=FALSE)\nedge_key <- function(e) paste(e$from, e$to, sep='->')\n\nle
+arned <- read_edges('/app/learned_dag.csv')\nstopifnot(nrow(learned) == 6, identical(names(learned), c('to','from')))\nstopifnot(!any(learned$to == 'U'))\nstopi
+fnot(length(unique(edge_key(learned))) == 6)\n\n# A small DFS cycle check for the five-node graph.\nvertices <- c('U','Y','R','D','M')\nadj <- lapply(vertices,
+function(v) learned$to[learned$from == v])\nnames(adj) <- vertices\nstate <- setNames(integer(length(vertices)), vertices)\nvisit <- function(v) {\n  state[v] <
+<- 1\n  for (w in adj[[v]]) {\n    stopifnot(state[w] != 1)\n    if (state[w] == 0) visit(w)\n  }\n  state[v] <<- 2\n}\nfor (v in vertices) if (state[v] == 0) v
+isit(v)\n\nintervened <- read_edges('/app/intervened_dag.csv')\nstopifnot(nrow(intervened) == 5)\nstopifnot(setequal(edge_key(intervened), setdiff(edge_key(lear
+ned), 'U->Y')))\n\nsample <- read.csv('/app/final_bn_sample.csv', check.names=FALSE)\nstopifnot(nrow(sample) == 10000, identical(names(sample), vertices))\nstop
+ifnot(all(sample$Y == 0), all(is.finite(as.matrix(sample))))\nstopifnot(sd(sample$U) > 0, sd(sample$R) > 0, sd(sample$D) > 0, sd(sample$M) > 0)\ncat('All Bayesi
+an Network output checks passed\\n')\n"
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_bn_outputs.R
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# Rscript /app/test_bn_outputs.R
+All Bayesian Network output checks passed
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# printf '%s\n' 'learned_dag.csv'; sed -n '1,8p' /app/learned_dag.csv; printf '%s\n' 'intervened_dag.csv'; sed -n '1,7p' /app/intervened_d
+ag.csv; printf '%s\n' 'final_bn_sample.csv'; sed -n '1,3p' /app/final_bn_sample.csv; wc -l /app/final_bn_sample.csv
+learned_dag.csv
+to,from
+Y,U
+R,U
+D,U
+M,U
+D,Y
+M,R
+intervened_dag.csv
+to,from
+R,U
+D,U
+M,U
+D,Y
+M,R
+final_bn_sample.csv
+U,Y,R,D,M
+52.8883406777953,0,44.3837820774253,37.9321455719447,28.7556636784781
+66.0548161462598,0,84.2286302165244,21.2759237962831,78.6015270022701
+10001 /app/final_bn_sample.csv
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@920f79a41845:/app# git -C /app status --short 2>/dev/null || true
+root@920f79a41845:/app# true; tmux wait -S done
+root@920f79a41845:/app#

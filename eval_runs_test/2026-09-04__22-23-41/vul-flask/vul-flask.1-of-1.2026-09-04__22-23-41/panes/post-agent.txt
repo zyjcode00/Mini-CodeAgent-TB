@@ -1,0 +1,1373 @@
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# set +e
+root@4cf8b3f2ec11:/app#
+root@4cf8b3f2ec11:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@4cf8b3f2ec11:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@4cf8b3f2ec11:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@4cf8b3f2ec11:/app#
+root@4cf8b3f2ec11:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@4cf8b3f2ec11:/app#
+root@4cf8b3f2ec11:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@4cf8b3f2ec11:/app#
+root@4cf8b3f2ec11:/app# mkdir -p /root/.config/uv
+root@4cf8b3f2ec11:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@4cf8b3f2ec11:/app#
+root@4cf8b3f2ec11:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/ubuntu noble InRelease [256 kB]
+Get:2 http://mirrors.ustc.edu.cn/ubuntu noble-updates InRelease [126 kB]
+Get:3 http://mirrors.ustc.edu.cn/ubuntu noble-backports InRelease [126 kB]
+Get:4 http://mirrors.ustc.edu.cn/ubuntu noble-security InRelease [126 kB]
+Get:5 http://mirrors.ustc.edu.cn/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:6 http://mirrors.ustc.edu.cn/ubuntu noble/main amd64 Packages [1808 kB]
+Get:7 http://mirrors.ustc.edu.cn/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:8 http://mirrors.ustc.edu.cn/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:9 http://mirrors.ustc.edu.cn/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:10 http://mirrors.ustc.edu.cn/ubuntu noble-updates/universe amd64 Packages [2151 kB]
+Get:11 http://mirrors.ustc.edu.cn/ubuntu noble-updates/restricted amd64 Packages [1903 kB]
+Get:12 http://mirrors.ustc.edu.cn/ubuntu noble-updates/main amd64 Packages [1562 kB]
+Get:13 http://mirrors.ustc.edu.cn/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Get:14 http://mirrors.ustc.edu.cn/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:15 http://mirrors.ustc.edu.cn/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:16 http://mirrors.ustc.edu.cn/ubuntu noble-security/restricted amd64 Packages [1730 kB]
+Get:17 http://mirrors.ustc.edu.cn/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:18 http://mirrors.ustc.edu.cn/ubuntu noble-security/universe amd64 Packages [1530 kB]
+Get:19 http://mirrors.ustc.edu.cn/ubuntu noble-security/main amd64 Packages [1212 kB]
+Fetched 32.5 MB in 5s (6808 kB/s)
+Reading package lists... Done
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# python3 -c 'import base64,json;ARGS=json.loads(base64.b64decode('"'"'eyJwYXR0ZXJuIjogImRlZiByZW5kZXJfdGVtcGxhdGVfc3RyaW5nfHJlbmRlcl90ZW1
+wbGF0ZV9zdHJpbmciLCAicGF0aCI6ICIvYXBwL2ZsYXNrXzEuMS4xIiwgImNvbnRleHQiOiAzLCAiZmlsZV9wYXR0ZXJuIjogIioucHkiLCAiY2FzZV9zZW5zaXRpdmUiOiB0cnVlfQ=='"'"'));exec(compil
+e(base64.b64decode('"'"'CmltcG9ydCBmbm1hdGNoLCBvcywgcmUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmFyZ3MgPSBBUkdTCnJvb3QgPSBQYXRoKGFyZ3NbInBhdGgiXSkKaWYgbm90IHJvb3QuZXhp
+c3RzKCk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCLplJnor686IOi3r+W+hOS4jeWtmOWcqCAiICsgYXJnc1sicGF0aCJdKQppZiBub3Qgcm9vdC5pc19kaXIoKToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIumUmeiv
+rzog6Lev5b6E5LiN5piv55uu5b2VICIgKyBhcmdzWyJwYXRoIl0pCnRyeToKICAgIHJlZ2V4ID0gcmUuY29tcGlsZShhcmdzWyJwYXR0ZXJuIl0sIDAgaWYgYXJnc1siY2FzZV9zZW5zaXRpdmUiXSBlbHNlIHJl
+LklHTk9SRUNBU0UpCmV4Y2VwdCByZS5lcnJvciBhcyBlcnJvcjoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIuato+WImeihqOi+vuW8j+mUmeivrzogIiArIHN0cihlcnJvcikpCmV4Y2x1ZGVkID0geyIuZ2l0Iiwg
+Il9fcHljYWNoZV9fIiwgIi52ZW52IiwgIm5vZGVfbW9kdWxlcyIsICIucHl0ZXN0X2NhY2hlIn0KcmVzdWx0cywgdG90YWwsIGZpbGVzID0gW10sIDAsIDAKZm9yIGZpbGVfcGF0aCBpbiByb290LnJnbG9iKGFy
+Z3NbImZpbGVfcGF0dGVybiJdKToKICAgIGlmIGFueShwYXJ0IGluIGV4Y2x1ZGVkIGZvciBwYXJ0IGluIGZpbGVfcGF0aC5wYXJ0cykgb3Igbm90IGZpbGVfcGF0aC5pc19maWxlKCk6CiAgICAgICAgY29udGlu
+dWUKICAgIHRyeToKICAgICAgICBsaW5lcyA9IGZpbGVfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IiwgZXJyb3JzPSJpZ25vcmUiKS5zcGxpdGxpbmVzKCkKICAgIGV4Y2VwdCBPU0Vycm9yOgogICAg
+ICAgIGNvbnRpbnVlCiAgICBmaWxlcyArPSAxCiAgICBtYXRjaGVzID0gW10KICAgIGZvciBudW1iZXIsIGxpbmUgaW4gZW51bWVyYXRlKGxpbmVzLCAxKToKICAgICAgICBpZiByZWdleC5zZWFyY2gobGluZSk6
+CiAgICAgICAgICAgIGJlZm9yZSA9IFtmIntpKzE6NGR9IHwge2xpbmVzW2ldfSIgZm9yIGkgaW4gcmFuZ2UobWF4KDAsIG51bWJlci1hcmdzWyJjb250ZXh0Il0tMSksIG51bWJlci0xKV0KICAgICAgICAgICAg
+YWZ0ZXIgPSBbZiJ7aSsxOjRkfSB8IHtsaW5lc1tpXX0iIGZvciBpIGluIHJhbmdlKG51bWJlciwgbWluKGxlbihsaW5lcyksIG51bWJlcithcmdzWyJjb250ZXh0Il0pKV0KICAgICAgICAgICAgbWF0Y2hlcy5h
+cHBlbmQoKG51bWJlciwgbGluZSwgYmVmb3JlLCBhZnRlcikpOyB0b3RhbCArPSAxCiAgICBpZiBtYXRjaGVzOgogICAgICAgIHJlc3VsdHMuYXBwZW5kKChzdHIoZmlsZV9wYXRoLnJlbGF0aXZlX3RvKHJvb3Qp
+KSwgbWF0Y2hlcykpCmlmIG5vdCByZXN1bHRzOgogICAgcHJpbnQoZiLmnKrmib7liLDljLnphY3pobnjgILlt7LmkJzntKIge2ZpbGVzfSDkuKrmlofku7bjgIIiKQplbHNlOgogICAgcHJpbnQoZiJbU0VBUkNI
+XSDmkJzntKLnu5Pmnpw6IOWFseaJvuWIsCB7dG90YWx9IOWkhOWMuemFje+8jOWIhuW4g+WcqCB7bGVuKHJlc3VsdHMpfSDkuKrmlofku7bkuK0iKQogICAgcHJpbnQoIj0iICogODApCiAgICBmb3IgbmFtZSwg
+bWF0Y2hlcyBpbiByZXN1bHRzOgogICAgICAgIHByaW50KGYiXFxuW0ZJTEVdIHtuYW1lfSAoe2xlbihtYXRjaGVzKX0g5aSE5Yy56YWNKVxcbiIgKyAiLSIgKiA4MCkKICAgICAgICBmb3IgbnVtYmVyLCBsaW5l
+LCBiZWZvcmUsIGFmdGVyIGluIG1hdGNoZXM6CiAgICAgICAgICAgIGlmIGJlZm9yZTogcHJpbnQoIiAgICBb5LiK5LiL5paHXVxcbiIgKyAiXFxuIi5qb2luKCIgICAgIiArIHggZm9yIHggaW4gYmVmb3JlKSkK
+ICAgICAgICAgICAgcHJpbnQoZiI+Pj4ge251bWJlcjo0ZH0gfCB7bGluZX0iKQogICAgICAgICAgICBpZiBhZnRlcjogcHJpbnQoIlxcbiIuam9pbigiICAgICIgKyB4IGZvciB4IGluIGFmdGVyKSkKICAgIHBy
+aW50KCJcXG4iICsgIj0iICogODApCiAgICBwcmludChmIltET05FXSDmkJzntKLlrozmiJA6IHt0b3RhbH0g5aSE5Yy56YWN77yMe2xlbihyZXN1bHRzKX0g5Liq5paH5Lu277yM5YWx5pCc57SiIHtmaWxlc30g
+5Liq5paH5Lu2IikK'"'"'),'"'"'<workspace-tool>'"'"','"'"'exec'"'"'))'
+[SEARCH] 搜索结果: 共找到 11 处匹配，分布在 6 个文件中
+================================================================================
+\n[FILE] tests/test_templating.py (5 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n      33 | def test_original_win(app, client):\n      34 |     @app.route("/")\n      35 |     def index():
+>>>   36 |         return flask.render_template_string("{{ config }}", config=42)
+      37 | \n      38 |     rv = client.get("/")\n      39 |     assert rv.data == b"42"
+    [上下文]\n      46 |     def context_processor():\n      47 |         return dict(foo=42)\n      48 |
+>>>   49 |     rv = flask.render_template_string("Hello {{ config.WORLD_NAME }} {{ foo }}")
+      50 |     assert rv == "Hello Special World 42"\n      51 | \n      52 |
+    [上下文]\n      55 |     def index():\n      56 |         flask.g.foo = 23\n      57 |         flask.session["test"] = "aha"
+>>>   58 |         return flask.render_template_string(
+      59 |             """\n      60 |             {{ request.args.foo }}\n      61 |             {{ g.foo }}
+    [上下文]\n     111 | \n     112 | \n     113 | def test_escaping_without_template_filename(app, client, req_ctx):
+>>>  114 |     assert flask.render_template_string("{{ foo }}", foo="<test>") == "&lt;test&gt;"
+     115 |     assert flask.render_template("mail.txt", foo="<test>") == "<test> Mail"\n     116 | \n     117 |
+    [上下文]\n     317 |     assert app.jinja_env.globals["get_stuff"] == get_stuff\n     318 |     assert app.jinja_env.globals["get_stuff"](), 42\n     319 |
+>>>  320 |     rv = flask.render_template_string("{{ get_stuff() }}")
+     321 |     assert rv == "42"\n     322 | \n     323 |
+\n[FILE] tests/test_blueprints.py (2 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n     704 | def test_context_processing(app, client):\n     705 |     answer_bp = flask.Blueprint("answer_bp", __name__)\n     706 |
+>>>  707 |     template_string = lambda: flask.render_template_string(  # noqa: E731
+     708 |         "{% if notanswer %}{{ notanswer }} is not the answer. {% endif %}"\n     709 |         "{% if answer %}{{ answer }} is the answer.{% endif %}
+"\n     710 |     )
+    [上下文]\n     758 |     assert app.jinja_env.globals["get_answer"]() == 42\n     759 | \n     760 |     with app.app_context():
+>>>  761 |         rv = flask.render_template_string("{{ get_answer() }}")
+     762 |         assert rv == "42"\n     763 | \n     764 |
+\n[FILE] tests/test_appctx.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n     169 | \n     170 |     app.app_ctx_globals_class = CustomRequestGlobals\n     171 |     with app.app_context():
+>>>  172 |         assert flask.render_template_string("{{ g.spam }}") == "eggs"
+     173 | \n     174 | \n     175 | def test_context_refcounts(app, client):
+\n[FILE] tests/test_helpers.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n     262 |         assert rv.data == b"3"\n     263 | \n     264 |     def test_template_escaping(self, app, req_ctx):
+>>>  265 |         render = flask.render_template_string
+     266 |         rv = flask.json.htmlsafe_dumps("</script>")\n     267 |         assert rv == u'"\\u003c/script\\u003e"'\n     268 |         assert type(rv) =
+= text_type
+\n[FILE] src/flask/templating.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n     141 |     )\n     142 | \n     143 |
+>>>  144 | def render_template_string(source, **context):
+     145 |     """Renders a template from the given template source string\n     146 |     with the given context. Template variables will be autoescaped.\n
+ 147 |
+\n[FILE] src/flask/__init__.py (1 处匹配)\n--------------------------------------------------------------------------------
+    [上下文]\n      55 | from .signals import signals_available\n      56 | from .signals import template_rendered\n      57 | from .templating import render_te
+mplate
+>>>   58 | from .templating import render_template_string
+      59 | \n      60 | __version__ = "1.1.1"
+\n================================================================================
+[DONE] 搜索完成: 11 处匹配，6 个文件，共搜索 73 个文件
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# git rev-parse --is-inside-work-tree
+bash: git: command not found
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# git status --porcelain
+bash: git: command not found
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# git branch --show-current
+bash: git: command not found
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# git log -1 --oneline
+bash: git: command not found
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# python3 - /app/flask_1.1.1/src/flask/templating.py 1 220 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+# -*- coding: utf-8 -*-
+"""
+    flask.templating
+    ~~~~~~~~~~~~~~~~
+
+    Implements the bridge to Jinja2.
+
+    :copyright: 2010 Pallets
+    :license: BSD-3-Clause
+"""
+from jinja2 import BaseLoader
+from jinja2 import Environment as BaseEnvironment
+from jinja2 import TemplateNotFound
+
+from .globals import _app_ctx_stack
+from .globals import _request_ctx_stack
+from .signals import before_render_template
+from .signals import template_rendered
+
+
+def _default_template_ctx_processor():
+    """Default template context processor.  Injects `request`,
+    `session` and `g`.
+    """
+    reqctx = _request_ctx_stack.top
+    appctx = _app_ctx_stack.top
+    rv = {}
+    if appctx is not None:
+        rv["g"] = appctx.g
+    if reqctx is not None:
+        rv["request"] = reqctx.request
+        rv["session"] = reqctx.session
+    return rv
+
+
+class Environment(BaseEnvironment):
+    """Works like a regular Jinja2 environment but has some additional
+    knowledge of how Flask's blueprint works so that it can prepend the
+    name of the blueprint to referenced templates if necessary.
+    """
+
+    def __init__(self, app, **options):
+        if "loader" not in options:
+            options["loader"] = app.create_global_jinja_loader()
+        BaseEnvironment.__init__(self, **options)
+        self.app = app
+
+
+class DispatchingJinjaLoader(BaseLoader):
+    """A loader that looks for templates in the application and all
+    the blueprint folders.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    def get_source(self, environment, template):
+        if self.app.config["EXPLAIN_TEMPLATE_LOADING"]:
+            return self._get_source_explained(environment, template)
+        return self._get_source_fast(environment, template)
+
+    def _get_source_explained(self, environment, template):
+        attempts = []
+        trv = None
+
+        for srcobj, loader in self._iter_loaders(template):
+            try:
+                rv = loader.get_source(environment, template)
+                if trv is None:
+                    trv = rv
+            except TemplateNotFound:
+                rv = None
+            attempts.append((loader, srcobj, rv))
+
+        from .debughelpers import explain_template_loading_attempts
+
+        explain_template_loading_attempts(self.app, template, attempts)
+
+        if trv is not None:
+            return trv
+        raise TemplateNotFound(template)
+
+    def _get_source_fast(self, environment, template):
+        for _srcobj, loader in self._iter_loaders(template):
+            try:
+                return loader.get_source(environment, template)
+            except TemplateNotFound:
+                continue
+        raise TemplateNotFound(template)
+
+    def _iter_loaders(self, template):
+        loader = self.app.jinja_loader
+        if loader is not None:
+            yield self.app, loader
+
+        for blueprint in self.app.iter_blueprints():
+            loader = blueprint.jinja_loader
+            if loader is not None:
+                yield blueprint, loader
+
+    def list_templates(self):
+        result = set()
+        loader = self.app.jinja_loader
+        if loader is not None:
+            result.update(loader.list_templates())
+
+        for blueprint in self.app.iter_blueprints():
+            loader = blueprint.jinja_loader
+            if loader is not None:
+                for template in loader.list_templates():
+                    result.add(template)
+
+        return list(result)
+
+
+def _render(template, context, app):
+    """Renders the template and fires the signal"""
+
+    before_render_template.send(app, template=template, context=context)
+    rv = template.render(context)
+    template_rendered.send(app, template=template, context=context)
+    return rv
+
+
+def render_template(template_name_or_list, **context):
+    """Renders a template from the template folder with the given
+    context.
+
+    :param template_name_or_list: the name of the template to be
+                                  rendered, or an iterable with template names
+                                  the first one existing will be rendered
+    :param context: the variables that should be available in the
+                    context of the template.
+    """
+    ctx = _app_ctx_stack.top
+    ctx.app.update_template_context(context)
+    return _render(
+        ctx.app.jinja_env.get_or_select_template(template_name_or_list),
+        context,
+        ctx.app,
+    )
+
+
+def render_template_string(source, **context):
+    """Renders a template from the given template source string
+    with the given context. Template variables will be autoescaped.
+
+    :param source: the source code of the template to be
+                   rendered
+    :param context: the variables that should be available in the
+                    context of the template.
+    """
+    ctx = _app_ctx_stack.top
+    ctx.app.update_template_context(context)
+    return _render(ctx.app.jinja_env.from_string(source), context, ctx.app)
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# python3 - /app/flask_1.1.1/src/flask/templating.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = 'def render_template_string(source, **context):\n    """Renders a template from the given template source string\n    with the given context. Templa
+te variables will be autoescaped.\n\n    :param source: the source code of the template to be\n                   rendered\n    :param context: the variables th
+at should be available in the\n                    context of the template.\n    """\n    ctx = _app_ctx_stack.top\n    ctx.app.update_template_context(context)
+\n    return _render(ctx.app.jinja_env.from_string(source), context, ctx.app)\n'
+> new_str = 'def render_template_string(source, **context):\n    """Renders a string as plain text with the given context.\n\n    Historically this function com
+piled ``source`` as a Jinja2 template.\n    That made it easy for applications to accidentally evaluate untrusted\n    user input passed directly to this functi
+on, resulting in server-side\n    template injection.  Treat the supplied string as data instead: render a\n    small, trusted wrapper template that outputs the
+ original string through\n    Jinja\'s autoescaping machinery.  Delimiters such as ``{{ ... }}`` in the\n    input are therefore returned literally instead of b
+eing executed.\n\n    :param source: the text to be rendered.\n    :param context: accepted for API compatibility and context processors,\n                    b
+ut not used to evaluate the source string as a template.\n    """\n    ctx = _app_ctx_stack.top\n    ctx.app.update_template_context(context)\n    context["__fl
+ask_plain_template_string_source"] = str(source)\n    return _render(\n        ctx.app.jinja_env.from_string("{{ __flask_plain_template_string_source }}"),\n
+     context,\n        ctx.app,\n    )\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/flask_1.1.1/src/flask/templating.py。修改已持久化。
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# python3 - /app/flask_1.1.1/tests/conftest.py 1 220 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+# -*- coding: utf-8 -*-
+"""
+    tests.conftest
+    ~~~~~~~~~~~~~~
+
+    :copyright: 2010 Pallets
+    :license: BSD-3-Clause
+"""
+import os
+import pkgutil
+import sys
+import textwrap
+
+import pytest
+from _pytest import monkeypatch
+
+import flask
+from flask import Flask as _Flask
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _standard_os_environ():
+    """Set up ``os.environ`` at the start of the test session to have
+    standard values. Returns a list of operations that is used by
+    :func:`._reset_os_environ` after each test.
+    """
+    mp = monkeypatch.MonkeyPatch()
+    out = (
+        (os.environ, "FLASK_APP", monkeypatch.notset),
+        (os.environ, "FLASK_ENV", monkeypatch.notset),
+        (os.environ, "FLASK_DEBUG", monkeypatch.notset),
+        (os.environ, "FLASK_RUN_FROM_CLI", monkeypatch.notset),
+        (os.environ, "WERKZEUG_RUN_MAIN", monkeypatch.notset),
+    )
+
+    for _, key, value in out:
+        if value is monkeypatch.notset:
+            mp.delenv(key, False)
+        else:
+            mp.setenv(key, value)
+
+    yield out
+    mp.undo()
+
+
+@pytest.fixture(autouse=True)
+def _reset_os_environ(monkeypatch, _standard_os_environ):
+    """Reset ``os.environ`` to the standard environ after each test,
+    in case a test changed something without cleaning up.
+    """
+    monkeypatch._setitem.extend(_standard_os_environ)
+
+
+class Flask(_Flask):
+    testing = True
+    secret_key = "test key"
+
+
+@pytest.fixture
+def app():
+    app = Flask("flask_test", root_path=os.path.dirname(__file__))
+    return app
+
+
+@pytest.fixture
+def app_ctx(app):
+    with app.app_context() as ctx:
+        yield ctx
+
+
+@pytest.fixture
+def req_ctx(app):
+    with app.test_request_context() as ctx:
+        yield ctx
+
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
+
+
+@pytest.fixture
+def test_apps(monkeypatch):
+    monkeypatch.syspath_prepend(
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "test_apps"))
+    )
+
+
+@pytest.fixture(autouse=True)
+def leak_detector():
+    yield
+
+    # make sure we're not leaking a request context since we are
+    # testing flask internally in debug mode in a few cases
+    leaks = []
+    while flask._request_ctx_stack.top is not None:
+        leaks.append(flask._request_ctx_stack.pop())
+    assert leaks == []
+
+
+@pytest.fixture(params=(True, False))
+def limit_loader(request, monkeypatch):
+    """Patch pkgutil.get_loader to give loader without get_filename or archive.
+
+    This provides for tests where a system has custom loaders, e.g. Google App
+    Engine's HardenedModulesHook, which have neither the `get_filename` method
+    nor the `archive` attribute.
+
+    This fixture will run the testcase twice, once with and once without the
+    limitation/mock.
+    """
+    if not request.param:
+        return
+
+    class LimitedLoader(object):
+        def __init__(self, loader):
+            self.loader = loader
+
+        def __getattr__(self, name):
+            if name in ("archive", "get_filename"):
+                msg = "Mocking a loader which does not have `%s.`" % name
+                raise AttributeError(msg)
+            return getattr(self.loader, name)
+
+    old_get_loader = pkgutil.get_loader
+
+    def get_loader(*args, **kwargs):
+        return LimitedLoader(old_get_loader(*args, **kwargs))
+
+    monkeypatch.setattr(pkgutil, "get_loader", get_loader)
+
+
+@pytest.fixture
+def modules_tmpdir(tmpdir, monkeypatch):
+    """A tmpdir added to sys.path."""
+    rv = tmpdir.mkdir("modules_tmpdir")
+    monkeypatch.syspath_prepend(str(rv))
+    return rv
+
+
+@pytest.fixture
+def modules_tmpdir_prefix(modules_tmpdir, monkeypatch):
+    monkeypatch.setattr(sys, "prefix", str(modules_tmpdir))
+    return modules_tmpdir
+
+
+@pytest.fixture
+def site_packages(modules_tmpdir, monkeypatch):
+    """Create a fake site-packages."""
+    rv = (
+        modules_tmpdir.mkdir("lib")
+        .mkdir("python{x[0]}.{x[1]}".format(x=sys.version_info))
+        .mkdir("site-packages")
+    )
+    monkeypatch.syspath_prepend(str(rv))
+    return rv
+
+
+@pytest.fixture
+def install_egg(modules_tmpdir, monkeypatch):
+    """Generate egg from package name inside base and put the egg into
+    sys.path."""
+
+    def inner(name, base=modules_tmpdir):
+        if not isinstance(name, str):
+            raise ValueError(name)
+        base.join(name).ensure_dir()
+        base.join(name).join("__init__.py").ensure()
+
+        egg_setup = base.join("setup.py")
+        egg_setup.write(
+            textwrap.dedent(
+                """
+        from setuptools import setup
+        setup(name='{0}',
+              version='1.0',
+              packages=['site_egg'],
+              zip_safe=True)
+        """.format(
+                    name
+                )
+            )
+        )
+
+        import subprocess
+
+        subprocess.check_call(
+            [sys.executable, "setup.py", "bdist_egg"], cwd=str(modules_tmpdir)
+        )
+        egg_path, = modules_tmpdir.join("dist/").listdir()
+        monkeypatch.syspath_prepend(str(egg_path))
+        return egg_path
+
+    return inner
+
+
+@pytest.fixture
+def purge_module(request):
+    def inner(name):
+        request.addfinalizer(lambda: sys.modules.pop(name, None))
+
+    return inner
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# python3 - /app/flask_1.1.1/tests/test_ssti_mitigation.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '# -*- coding: utf-8 -*-\n"""\n    tests.test_ssti_mitigation\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n    Regression tests for treating render_template_s
+tring input as plain text.\n\n    :copyright: 2010 Pallets\n    :license: BSD-3-Clause\n"""\nimport flask\n\n\ndef test_render_template_string_does_not_evaluate
+_jinja_expression(req_ctx):\n    rv = flask.render_template_string("{{233*233}}")\n\n    assert rv == "{{233*233}}"\n    assert "54289" not in rv\n\n\ndef test_
+render_template_string_preserves_ordinary_text(req_ctx):\n    assert flask.render_template_string("Hello, plain text!") == "Hello, plain text!"\n\n\ndef test_re
+nder_template_string_escapes_html_without_executing_payload(req_ctx):\n    rv = flask.render_template_string("<b>{{233*233}}</b>")\n\n    assert rv == "&lt;b&gt
+;{{233*233}}&lt;/b&gt;"\n    assert "<b>" not in rv\n    assert "54289" not in rv\n\n\ndef test_render_template_string_route_treats_query_param_as_plain_text(ap
+p, client):\n    @app.route("/")\n    def index():\n        return flask.render_template_string(flask.request.args["name"])\n\n    rv = client.get("/?name={{233
+*233}}")\n\n    assert rv.data == b"{{233*233}}"\n    assert b"54289" not in rv.data\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/flask_1.1.1/tests/test_ssti_mitigation.py
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# python3 -m pytest -v -- /app/flask_1.1.1/tests/test_ssti_mitigation.py
+/opt/venv/bin/python3: No module named pytest
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# python3 - /app/flask_1.1.1/test_ssti_mitigation_direct.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = '# -*- coding: utf-8 -*-\n"""Direct regression checks for render_template_string SSTI mitigation."""\nimport os\nimport sys\n\nROOT = os.path.dirnam
+e(os.path.abspath(__file__))\nSRC = os.path.join(ROOT, "src")\nsys.path.insert(0, SRC)\n\nimport flask  # noqa: E402\n\n\ndef make_app():\n    app = flask.Flask
+("ssti_mitigation_direct")\n    app.testing = True\n    app.secret_key = "test key"\n    return app\n\n\ndef test_render_template_string_does_not_evaluate_jinja
+_expression():\n    app = make_app()\n    with app.test_request_context():\n        rv = flask.render_template_string("{{233*233}}")\n\n    assert rv == "{{233*
+233}}", rv\n    assert "54289" not in rv, rv\n\n\ndef test_render_template_string_preserves_ordinary_text():\n    app = make_app()\n    with app.test_request_co
+ntext():\n        rv = flask.render_template_string("Hello, plain text!")\n\n    assert rv == "Hello, plain text!", rv\n\n\ndef test_render_template_string_esca
+pes_html_without_executing_payload():\n    app = make_app()\n    with app.test_request_context():\n        rv = flask.render_template_string("<b>{{233*233}}</b>
+")\n\n    assert rv == "&lt;b&gt;{{233*233}}&lt;/b&gt;", rv\n    assert "<b>" not in rv, rv\n    assert "54289" not in rv, rv\n\n\ndef test_render_template_stri
+ng_route_treats_query_param_as_plain_text():\n    app = make_app()\n\n    @app.route("/")\n    def index():\n        return flask.render_template_string(flask.r
+equest.args["name"])\n\n    client = app.test_client()\n    rv = client.get("/?name={{233*233}}")\n\n    assert rv.data == b"{{233*233}}", rv.data\n    assert b
+"54289" not in rv.data, rv.data\n\n\ndef main():\n    tests = [\n        test_render_template_string_does_not_evaluate_jinja_expression,\n        test_render_te
+mplate_string_preserves_ordinary_text,\n        test_render_template_string_escapes_html_without_executing_payload,\n        test_render_template_string_route_t
+reats_query_param_as_plain_text,\n    ]\n    for test in tests:\n        test()\n        print("PASS", test.__name__)\n    print("All direct SSTI mitigation che
+cks passed for", flask.__file__)\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/flask_1.1.1/test_ssti_mitigation_direct.py
+root@4cf8b3f2ec11:/app# true; tmux wait -S done
+root@4cf8b3f2ec11:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app# cd /app/flask_1.1.1 && python3 test_ssti_mitigation_direct.py
+Traceback (most recent call last):
+  File "/app/flask_1.1.1/test_ssti_mitigation_direct.py", line 10, in <module>
+    import flask  # noqa: E402
+    ^^^^^^^^^^^^
+  File "/app/flask_1.1.1/src/flask/__init__.py", line 14, in <module>
+    from jinja2 import escape
+ModuleNotFoundError: No module named 'jinja2'
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# cd /app/flask_1.1.1 && ls -la && find .. -maxdepth 3 -type d \( -name 'site-packages' -o -name 'venv' -o -name '.venv' \) 2>
+/dev/null | head -50
+total 132
+drwxr-xr-x 8 root root  4096 Sep  4 14:27 .
+drwxr-xr-x 3 root root  4096 Sep  4 14:24 ..
+-rw-r--r-- 1 root root  2436 Jul  8  2019 .azure-pipelines.yml
+drwxr-xr-x 2 root root  4096 Sep  4 14:24 .github
+-rw-r--r-- 1 root root   199 Jul  8  2019 .gitignore
+-rw-r--r-- 1 root root   671 Jul  8  2019 .pre-commit-config.yaml
+-rw-r--r-- 1 root root 45782 Jul  8  2019 CHANGES.rst
+-rw-r--r-- 1 root root  3358 Jul  8  2019 CODE_OF_CONDUCT.md
+-rw-r--r-- 1 root root  6490 Jul  8  2019 CONTRIBUTING.rst
+-rw-r--r-- 1 root root  1475 Jul  8  2019 LICENSE.rst
+-rw-r--r-- 1 root root   131 Jul  8  2019 MANIFEST.in
+-rw-r--r-- 1 root root  2161 Jul  8  2019 README.rst
+drwxr-xr-x 2 root root  4096 Sep  4 14:24 artwork
+drwxr-xr-x 6 root root  4096 Sep  4 14:24 docs
+drwxr-xr-x 4 root root  4096 Sep  4 14:24 examples
+-rw-r--r-- 1 root root   868 Jul  8  2019 setup.cfg
+-rw-r--r-- 1 root root  2611 Jul  8  2019 setup.py
+drwxr-xr-x 3 root root  4096 Sep  4 14:24 src
+-rw-r--r-- 1 root root  2070 Sep  4 14:27 test_ssti_mitigation_direct.py
+drwxr-xr-x 5 root root  4096 Sep  4 14:26 tests
+-rw-r--r-- 1 root root  1799 Jul  8  2019 tox.ini
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# python3 - <<'PY'
+> import sys, subprocess, os
+> print(sys.executable)
+> print(sys.path)
+> for mod in ['jinja2','werkzeug','click','itsdangerous']:
+>     try:
+>         m=__import__(mod)
+>         print(mod, 'OK', getattr(m,'__file__',None))
+>     except Exception as e:
+>         print(mod, 'ERR', repr(e))
+> PY
+/opt/venv/bin/python3
+['', '/usr/lib/python312.zip', '/usr/lib/python3.12', '/usr/lib/python3.12/lib-dynload', '/opt/venv/lib/python3.12/site-packages']
+jinja2 ERR ModuleNotFoundError("No module named 'jinja2'")
+werkzeug ERR ModuleNotFoundError("No module named 'werkzeug'")
+click ERR ModuleNotFoundError("No module named 'click'")
+itsdangerous ERR ModuleNotFoundError("No module named 'itsdangerous'")
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# python3 - /app/flask_1.1.1/setup.py 1 220 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+import io
+import re
+
+from setuptools import find_packages
+from setuptools import setup
+
+with io.open("README.rst", "rt", encoding="utf8") as f:
+    readme = f.read()
+
+with io.open("src/flask/__init__.py", "rt", encoding="utf8") as f:
+    version = re.search(r'__version__ = "(.*?)"', f.read()).group(1)
+
+setup(
+    name="Flask",
+    version=version,
+    url="https://palletsprojects.com/p/flask/",
+    project_urls={
+        "Documentation": "https://flask.palletsprojects.com/",
+        "Code": "https://github.com/pallets/flask",
+        "Issue tracker": "https://github.com/pallets/flask/issues",
+    },
+    license="BSD-3-Clause",
+    author="Armin Ronacher",
+    author_email="armin.ronacher@active-4.com",
+    maintainer="Pallets",
+    maintainer_email="contact@palletsprojects.com",
+    description="A simple framework for building complex web applications.",
+    long_description=readme,
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Web Environment",
+        "Framework :: Flask",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "Topic :: Software Development :: Libraries :: Application Frameworks",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
+    packages=find_packages("src"),
+    package_dir={"": "src"},
+    include_package_data=True,
+    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
+    install_requires=[
+        "Werkzeug>=0.15",
+        "Jinja2>=2.10.1",
+        "itsdangerous>=0.24",
+        "click>=5.1",
+    ],
+    extras_require={
+        "dotenv": ["python-dotenv"],
+        "dev": [
+            "pytest",
+            "coverage",
+            "tox",
+            "sphinx",
+            "pallets-sphinx-themes",
+            "sphinxcontrib-log-cabinet",
+            "sphinx-issues",
+        ],
+        "docs": [
+            "sphinx",
+            "pallets-sphinx-themes",
+            "sphinxcontrib-log-cabinet",
+            "sphinx-issues",
+        ],
+    },
+    entry_points={"console_scripts": ["flask = flask.cli:main"]},
+)
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# python3 - /app/flask_1.1.1/tox.ini 1 220 true <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+[tox]
+envlist =
+    py{37,36,35,27,py3,py}
+    py37-{simplejson,devel,lowest}
+    docs-html
+    coverage
+
+[testenv]
+passenv = LANG
+deps =
+    pytest
+    coverage
+    greenlet
+    blinker
+    python-dotenv
+
+    lowest: Werkzeug==0.15
+    lowest: Jinja2==2.10
+    lowest: itsdangerous==0.24
+    lowest: Click==5.1
+
+    devel: https://github.com/pallets/werkzeug/archive/master.tar.gz
+    devel: https://github.com/pallets/markupsafe/archive/master.tar.gz
+    devel: https://github.com/pallets/jinja/archive/master.tar.gz
+    devel: https://github.com/pallets/itsdangerous/archive/master.tar.gz
+    devel: https://github.com/pallets/click/archive/master.tar.gz
+
+    simplejson: simplejson
+
+commands =
+    # the examples need to be installed to test successfully
+    pip install -q -e examples/tutorial[test]
+    pip install -q -e examples/javascript[test]
+
+    # pytest-cov doesn't seem to play nice with -p
+    coverage run -p -m pytest --tb=short -Werror {posargs:tests examples}
+
+[testenv:nightly]
+# courtesy Python nightly test, don't fail the build in CI
+ignore_outcome = true
+commands =
+    pip install -q -e examples/tutorial[test]
+    pip install -q -e examples/javascript[test]
+    coverage run -p -m pytest --tb=short -Werror --junitxml=test-results.xml {posargs:tests examples}
+
+[testenv:stylecheck]
+deps = pre-commit
+skip_install = true
+commands = pre-commit run --all-files --show-diff-on-failure
+
+[testenv:docs-html]
+deps =
+    -r docs/requirements.txt
+commands = sphinx-build -W -b html -d {envtmpdir}/doctrees docs {envtmpdir}/html
+
+[testenv:coverage]
+deps = coverage
+skip_install = true
+commands =
+    coverage combine
+    coverage html
+    coverage report
+
+[testenv:coverage-ci]
+deps = coverage
+skip_install = true
+commands =
+    coverage combine
+    coverage xml
+    coverage report
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# python3 -m pip install 'Jinja2==3.0.3' 'Werkzeug==2.0.3' 'itsdangerous==2.0.1' 'click>=5.1' pytest
+Collecting Jinja2==3.0.3
+  Downloading Jinja2-3.0.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting Werkzeug==2.0.3
+  Downloading Werkzeug-2.0.3-py3-none-any.whl.metadata (4.5 kB)
+Collecting itsdangerous==2.0.1
+  Downloading itsdangerous-2.0.1-py3-none-any.whl.metadata (2.9 kB)
+Collecting click>=5.1
+  Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting pytest
+  Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+Collecting MarkupSafe>=2.0 (from Jinja2==3.0.3)
+  Downloading markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Collecting iniconfig>=1.0.1 (from pytest)
+  Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting packaging>=22 (from pytest)
+  Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting pluggy<2,>=1.5 (from pytest)
+  Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+Collecting pygments>=2.7.2 (from pytest)
+  Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Downloading Jinja2-3.0.3-py3-none-any.whl (133 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.6/133.6 kB 423.3 kB/s eta 0:00:00
+Downloading Werkzeug-2.0.3-py3-none-any.whl (289 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 289.2/289.2 kB 357.9 kB/s eta 0:00:00
+Downloading itsdangerous-2.0.1-py3-none-any.whl (18 kB)
+Downloading click-8.5.0-py3-none-any.whl (125 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 436.5 kB/s eta 0:00:00
+Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 386.5/386.5 kB 391.9 kB/s eta 0:00:00
+Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Downloading markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Downloading packaging-26.3-py3-none-any.whl (129 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 130.0/130.0 kB 444.9 kB/s eta 0:00:00
+Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 463.2 kB/s eta 0:00:00
+Installing collected packages: Werkzeug, pygments, pluggy, packaging, MarkupSafe, itsdangerous, iniconfig, click, pytest, Jinja2
+Successfully installed Jinja2-3.0.3 MarkupSafe-3.0.3 Werkzeug-2.0.3 click-8.5.0 iniconfig-2.3.0 itsdangerous-2.0.1 packaging-26.3 pluggy-1.6.0 pygments-2.21.0 p
+ytest-9.1.1
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# cd /app/flask_1.1.1 && python3 test_ssti_mitigation_direct.py
+PASS test_render_template_string_does_not_evaluate_jinja_expression
+PASS test_render_template_string_preserves_ordinary_text
+PASS test_render_template_string_escapes_html_without_executing_payload
+PASS test_render_template_string_route_treats_query_param_as_plain_text
+All direct SSTI mitigation checks passed for /app/flask_1.1.1/src/flask/__init__.py
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# python3 -m pytest -v -- /app/flask_1.1.1/tests/test_ssti_mitigation.py
+ImportError while loading conftest '/app/flask_1.1.1/tests/conftest.py'.
+tests/conftest.py:17: in <module>
+    import flask
+E   ModuleNotFoundError: No module named 'flask'
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# cd /app/flask_1.1.1 && PYTHONPATH=/app/flask_1.1.1/src python3 -m pytest -v -- tests/test_ssti_mitigation.py
+===================================================================== test session starts ======================================================================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /opt/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /app/flask_1.1.1
+configfile: setup.cfg
+collected 4 items
+
+tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression ERROR                                                      [ 25%]
+tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text ERROR                                                                 [ 50%]
+tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload ERROR                                                  [ 75%]
+tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text ERROR                                                  [100%]
+
+============================================================================ ERRORS ============================================================================
+_______________________________________ ERROR at setup of test_render_template_string_does_not_evaluate_jinja_expression _______________________________________
+
+    @pytest.fixture(scope="session", autouse=True)
+    def _standard_os_environ():
+        """Set up ``os.environ`` at the start of the test session to have
+        standard values. Returns a list of operations that is used by
+        :func:`._reset_os_environ` after each test.
+        """
+        mp = monkeypatch.MonkeyPatch()
+        out = (
+>           (os.environ, "FLASK_APP", monkeypatch.notset),
+                                      ^^^^^^^^^^^^^^^^^^
+            (os.environ, "FLASK_ENV", monkeypatch.notset),
+            (os.environ, "FLASK_DEBUG", monkeypatch.notset),
+            (os.environ, "FLASK_RUN_FROM_CLI", monkeypatch.notset),
+            (os.environ, "WERKZEUG_RUN_MAIN", monkeypatch.notset),
+        )
+E       AttributeError: module '_pytest.monkeypatch' has no attribute 'notset'
+
+tests/conftest.py:29: AttributeError
+____________________________________________ ERROR at setup of test_render_template_string_preserves_ordinary_text _____________________________________________
+
+    @pytest.fixture(scope="session", autouse=True)
+    def _standard_os_environ():
+        """Set up ``os.environ`` at the start of the test session to have
+        standard values. Returns a list of operations that is used by
+        :func:`._reset_os_environ` after each test.
+        """
+        mp = monkeypatch.MonkeyPatch()
+        out = (
+>           (os.environ, "FLASK_APP", monkeypatch.notset),
+                                      ^^^^^^^^^^^^^^^^^^
+            (os.environ, "FLASK_ENV", monkeypatch.notset),
+            (os.environ, "FLASK_DEBUG", monkeypatch.notset),
+            (os.environ, "FLASK_RUN_FROM_CLI", monkeypatch.notset),
+            (os.environ, "WERKZEUG_RUN_MAIN", monkeypatch.notset),
+        )
+E       AttributeError: module '_pytest.monkeypatch' has no attribute 'notset'
+
+tests/conftest.py:29: AttributeError
+_____________________________________ ERROR at setup of test_render_template_string_escapes_html_without_executing_payload _____________________________________
+
+    @pytest.fixture(scope="session", autouse=True)
+    def _standard_os_environ():
+        """Set up ``os.environ`` at the start of the test session to have
+        standard values. Returns a list of operations that is used by
+        :func:`._reset_os_environ` after each test.
+        """
+        mp = monkeypatch.MonkeyPatch()
+        out = (
+>           (os.environ, "FLASK_APP", monkeypatch.notset),
+                                      ^^^^^^^^^^^^^^^^^^
+            (os.environ, "FLASK_ENV", monkeypatch.notset),
+            (os.environ, "FLASK_DEBUG", monkeypatch.notset),
+            (os.environ, "FLASK_RUN_FROM_CLI", monkeypatch.notset),
+            (os.environ, "WERKZEUG_RUN_MAIN", monkeypatch.notset),
+        )
+E       AttributeError: module '_pytest.monkeypatch' has no attribute 'notset'
+
+tests/conftest.py:29: AttributeError
+_____________________________________ ERROR at setup of test_render_template_string_route_treats_query_param_as_plain_text _____________________________________
+
+    @pytest.fixture(scope="session", autouse=True)
+    def _standard_os_environ():
+        """Set up ``os.environ`` at the start of the test session to have
+        standard values. Returns a list of operations that is used by
+        :func:`._reset_os_environ` after each test.
+        """
+        mp = monkeypatch.MonkeyPatch()
+        out = (
+>           (os.environ, "FLASK_APP", monkeypatch.notset),
+                                      ^^^^^^^^^^^^^^^^^^
+            (os.environ, "FLASK_ENV", monkeypatch.notset),
+            (os.environ, "FLASK_DEBUG", monkeypatch.notset),
+            (os.environ, "FLASK_RUN_FROM_CLI", monkeypatch.notset),
+            (os.environ, "WERKZEUG_RUN_MAIN", monkeypatch.notset),
+        )
+E       AttributeError: module '_pytest.monkeypatch' has no attribute 'notset'
+
+tests/conftest.py:29: AttributeError
+======================================================================= warnings summary =======================================================================
+src/flask/json/__init__.py:31
+  /app/flask_1.1.1/src/flask/json/__init__.py:31: DeprecationWarning: Importing 'itsdangerous.json' is deprecated and will be removed in ItsDangerous 2.1. Use P
+ython's 'json' module instead.
+    _slash_escape = "\\/" not in _json.dumps("/")
+
+src/flask/json/__init__.py:61
+  /app/flask_1.1.1/src/flask/json/__init__.py:61: DeprecationWarning: Importing 'itsdangerous.json' is deprecated and will be removed in ItsDangerous 2.1. Use P
+ython's 'json' module instead.
+    class JSONEncoder(_json.JSONEncoder):
+
+src/flask/json/__init__.py:103
+  /app/flask_1.1.1/src/flask/json/__init__.py:103: DeprecationWarning: Importing 'itsdangerous.json' is deprecated and will be removed in ItsDangerous 2.1. Use
+Python's 'json' module instead.
+    class JSONDecoder(_json.JSONDecoder):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=================================================================== short test summary info ====================================================================
+ERROR tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression - AttributeError: module '_pytest.monkeypatch' has no attrib
+ute 'notset'
+ERROR tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text - AttributeError: module '_pytest.monkeypatch' has no attribute 'notset
+'
+ERROR tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload - AttributeError: module '_pytest.monkeypatch' has no at
+tribute 'notset'
+ERROR tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text - AttributeError: module '_pytest.monkeypatch' has no at
+tribute 'notset'
+================================================================ 3 warnings, 4 errors in 0.06s =================================================================
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# cd /app/flask_1.1.1 && nl -ba tests/conftest.py | sed -n '1,90p'
+     1  # -*- coding: utf-8 -*-
+     2  """
+     3      tests.conftest
+     4      ~~~~~~~~~~~~~~
+     5
+     6      :copyright: 2010 Pallets
+     7      :license: BSD-3-Clause
+     8  """
+     9  import os
+    10  import pkgutil
+    11  import sys
+    12  import textwrap
+    13
+    14  import pytest
+    15  from _pytest import monkeypatch
+    16
+    17  import flask
+    18  from flask import Flask as _Flask
+    19
+    20
+    21  @pytest.fixture(scope="session", autouse=True)
+    22  def _standard_os_environ():
+    23      """Set up ``os.environ`` at the start of the test session to have
+    24      standard values. Returns a list of operations that is used by
+    25      :func:`._reset_os_environ` after each test.
+    26      """
+    27      mp = monkeypatch.MonkeyPatch()
+    28      out = (
+    29          (os.environ, "FLASK_APP", monkeypatch.notset),
+    30          (os.environ, "FLASK_ENV", monkeypatch.notset),
+    31          (os.environ, "FLASK_DEBUG", monkeypatch.notset),
+    32          (os.environ, "FLASK_RUN_FROM_CLI", monkeypatch.notset),
+    33          (os.environ, "WERKZEUG_RUN_MAIN", monkeypatch.notset),
+    34      )
+    35
+    36      for _, key, value in out:
+    37          if value is monkeypatch.notset:
+    38              mp.delenv(key, False)
+    39          else:
+    40              mp.setenv(key, value)
+    41
+    42      yield out
+    43      mp.undo()
+    44
+    45
+    46  @pytest.fixture(autouse=True)
+    47  def _reset_os_environ(monkeypatch, _standard_os_environ):
+    48      """Reset ``os.environ`` to the standard environ after each test,
+    49      in case a test changed something without cleaning up.
+    50      """
+    51      monkeypatch._setitem.extend(_standard_os_environ)
+    52
+    53
+    54  class Flask(_Flask):
+    55      testing = True
+    56      secret_key = "test key"
+    57
+    58
+    59  @pytest.fixture
+    60  def app():
+    61      app = Flask("flask_test", root_path=os.path.dirname(__file__))
+    62      return app
+    63
+    64
+    65  @pytest.fixture
+    66  def app_ctx(app):
+    67      with app.app_context() as ctx:
+    68          yield ctx
+    69
+    70
+    71  @pytest.fixture
+    72  def req_ctx(app):
+    73      with app.test_request_context() as ctx:
+    74          yield ctx
+    75
+    76
+    77  @pytest.fixture
+    78  def client(app):
+    79      return app.test_client()
+    80
+    81
+    82  @pytest.fixture
+    83  def test_apps(monkeypatch):
+    84      monkeypatch.syspath_prepend(
+    85          os.path.abspath(os.path.join(os.path.dirname(__file__), "test_apps"))
+    86      )
+    87
+    88
+    89  @pytest.fixture(autouse=True)
+    90  def leak_detector():
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# python3 - <<'PY'
+> from _pytest import monkeypatch
+> print([name for name in dir(monkeypatch) if 'not' in name.lower() or 'Not' in name])
+> print(getattr(monkeypatch, 'notset', None))
+> print(getattr(monkeypatch, 'Notset', None))
+> PY
+['NOTSET', 'NotSetType', 'annotated_getattr', 'annotations']
+None
+None
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# python3 - /app/flask_1.1.1/tests/conftest.py <<'PY'
+> import sys
+> path = sys.argv[1]
+> old_str = 'import pytest\nfrom _pytest import monkeypatch\n\nimport flask\n'
+> new_str = 'import pytest\nfrom _pytest import monkeypatch\n\nif not hasattr(monkeypatch, "notset"):\n    monkeypatch.notset = monkeypatch.NOTSET\n\nimport fla
+sk\n'
+>
+> def normalize_text(text: str) -> str:
+>     text = text.replace('\r\n', '\n').replace('\r', '\n')
+>     return '\n'.join(line.rstrip() for line in text.split('\n'))
+>
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         content = f.read()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"修改失败: {exc}")
+>     raise SystemExit(0)
+>
+> content = normalize_text(content)
+> old_str = normalize_text(old_str)
+> new_str = normalize_text(new_str)
+> count = content.count(old_str)
+> if count == 0:
+>     print("错误: 在文件中找不到 old_str。\n建议：\n1. 使用 read_file(raw_mode=True) 获取原始内容\n2. 检查是否有多余的空格或换行符\n3. 如果文件较大，考虑使用 w
+rite_full_file 全量覆盖")
+>     raise SystemExit(0)
+> if count > 1:
+>     print(f"错误: 匹配到 {count} 处相同的代码，请提供更具体的 old_str 以确保唯一性。")
+>     raise SystemExit(0)
+> with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>     f.write(content.replace(old_str, new_str))
+> print(f"成功: 已更新 {path}。修改已持久化。")
+> PY
+成功: 已更新 /app/flask_1.1.1/tests/conftest.py。修改已持久化。
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# cd /app/flask_1.1.1 && PYTHONPATH=/app/flask_1.1.1/src python3 -m pytest -v -- tests/test_ssti_mitigation.py
+===================================================================== test session starts ======================================================================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /opt/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /app/flask_1.1.1
+configfile: setup.cfg
+collected 4 items
+
+tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression PASSED                                                     [ 25%]
+tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text PASSED                                                                [ 50%]
+tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload PASSED                                                 [ 75%]
+tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text PASSED                                                 [100%]
+
+======================================================================= warnings summary =======================================================================
+src/flask/json/__init__.py:31
+  /app/flask_1.1.1/src/flask/json/__init__.py:31: DeprecationWarning: Importing 'itsdangerous.json' is deprecated and will be removed in ItsDangerous 2.1. Use P
+ython's 'json' module instead.
+    _slash_escape = "\\/" not in _json.dumps("/")
+
+src/flask/json/__init__.py:61
+  /app/flask_1.1.1/src/flask/json/__init__.py:61: DeprecationWarning: Importing 'itsdangerous.json' is deprecated and will be removed in ItsDangerous 2.1. Use P
+ython's 'json' module instead.
+    class JSONEncoder(_json.JSONEncoder):
+
+src/flask/json/__init__.py:103
+  /app/flask_1.1.1/src/flask/json/__init__.py:103: DeprecationWarning: Importing 'itsdangerous.json' is deprecated and will be removed in ItsDangerous 2.1. Use
+Python's 'json' module instead.
+    class JSONDecoder(_json.JSONDecoder):
+
+tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression
+tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text
+tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload
+tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text
+  /app/flask_1.1.1/src/flask/helpers.py:878: DeprecationWarning: 'pkgutil.get_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.fi
+nd_spec() instead
+    loader = pkgutil.get_loader(root_mod_name)
+
+tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression
+tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text
+tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload
+tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text
+  /usr/lib/python3.12/pkgutil.py:291: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spe
+c() instead
+    return find_loader(fullname)
+
+tests/test_ssti_mitigation.py: 11 warnings
+  /opt/venv/lib/python3.12/site-packages/werkzeug/routing.py:1010: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constan
+t instead
+    parts = parts or [ast.Str("")]
+
+tests/test_ssti_mitigation.py: 26 warnings
+  /opt/venv/lib/python3.12/site-packages/werkzeug/routing.py:1007: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constan
+t instead
+    _convert(elem) if is_dynamic else ast.Str(s=elem)
+
+tests/test_ssti_mitigation.py: 26 warnings
+  /usr/lib/python3.12/ast.py:587: DeprecationWarning: Attribute s is deprecated and will be removed in Python 3.14; use value instead
+    return Constant(*args, **kwargs)
+
+tests/test_ssti_mitigation.py: 40 warnings
+  /opt/venv/lib/python3.12/site-packages/werkzeug/routing.py:1014: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constan
+t instead
+    if isinstance(p, ast.Str) and isinstance(ret[-1], ast.Str):
+
+tests/test_ssti_mitigation.py: 32 warnings
+  /opt/venv/lib/python3.12/site-packages/werkzeug/routing.py:1015: DeprecationWarning: Attribute s is deprecated and will be removed in Python 3.14; use value i
+nstead
+    ret[-1] = ast.Str(ret[-1].s + p.s)
+
+tests/test_ssti_mitigation.py: 16 warnings
+  /opt/venv/lib/python3.12/site-packages/werkzeug/routing.py:1015: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constan
+t instead
+    ret[-1] = ast.Str(ret[-1].s + p.s)
+
+tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression
+tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text
+tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload
+tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text
+  /app/flask_1.1.1/src/flask/json/__init__.py:211: DeprecationWarning: Importing 'itsdangerous.json' is deprecated and will be removed in ItsDangerous 2.1. Use
+Python's 'json' module instead.
+    rv = _json.dumps(obj, **kwargs)
+
+tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression
+tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text
+tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload
+tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text
+  /opt/venv/lib/python3.12/site-packages/jinja2/environment.py:362: DeprecationWarning: The 'autoescape' extension is deprecated and will be removed in Jinja 3.
+1. This is built in now.
+    self.extensions = load_extensions(self, extensions)
+
+tests/test_ssti_mitigation.py::test_render_template_string_does_not_evaluate_jinja_expression
+tests/test_ssti_mitigation.py::test_render_template_string_preserves_ordinary_text
+tests/test_ssti_mitigation.py::test_render_template_string_escapes_html_without_executing_payload
+tests/test_ssti_mitigation.py::test_render_template_string_route_treats_query_param_as_plain_text
+  /opt/venv/lib/python3.12/site-packages/jinja2/environment.py:362: DeprecationWarning: The 'with' extension is deprecated and will be removed in Jinja 3.1. Thi
+s is built in now.
+    self.extensions = load_extensions(self, extensions)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================================================== 4 passed, 174 warnings in 0.03s ================================================================
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# git rev-parse --is-inside-work-tree
+bash: git: command not found
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# git status --porcelain
+bash: git: command not found
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# git branch --show-current
+bash: git: command not found
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@4cf8b3f2ec11:/app/flask_1.1.1# git log -1 --oneline
+bash: git: command not found
+root@4cf8b3f2ec11:/app/flask_1.1.1# true; tmux wait -S done
+root@4cf8b3f2ec11:/app/flask_1.1.1#

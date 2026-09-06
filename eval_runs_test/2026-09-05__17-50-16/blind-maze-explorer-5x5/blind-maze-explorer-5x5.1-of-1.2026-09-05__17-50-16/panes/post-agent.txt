@@ -1,0 +1,618 @@
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# set +e
+root@af9250e80e29:/app#
+root@af9250e80e29:/app# APT_MIRROR="http://mirrors.ustc.edu.cn/debian"
+root@af9250e80e29:/app# APT_SECURITY_MIRROR="http://mirrors.ustc.edu.cn/debian-security"
+root@af9250e80e29:/app# UV_INDEX_URL="https://pypi.org/simple"
+root@af9250e80e29:/app#
+root@af9250e80e29:/app# if [ -f /etc/apt/sources.list ]; then
+>     cp /etc/apt/sources.list /etc/apt/sources.list.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list
+> fi
+root@af9250e80e29:/app#
+root@af9250e80e29:/app# if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+>     cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak || true
+>     sed -i \
+>         -e "s|http://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|https://deb.debian.org/debian|${APT_MIRROR}|g" \
+>         -e "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         -e "s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" \
+>         /etc/apt/sources.list.d/debian.sources
+> fi
+root@af9250e80e29:/app#
+root@af9250e80e29:/app# mkdir -p /root/.config/uv
+root@af9250e80e29:/app# cat > /root/.config/uv/uv.toml <<EOF
+> index-url = "${UV_INDEX_URL}"
+> EOF
+root@af9250e80e29:/app#
+root@af9250e80e29:/app# apt-get update || true
+Get:1 http://mirrors.ustc.edu.cn/debian bookworm InRelease [151 kB]
+Get:2 http://mirrors.ustc.edu.cn/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://mirrors.ustc.edu.cn/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://mirrors.ustc.edu.cn/debian bookworm/main amd64 Packages [8790 kB]
+Get:5 http://mirrors.ustc.edu.cn/debian bookworm-updates/main amd64 Packages [6924 B]
+Get:6 http://mirrors.ustc.edu.cn/debian-security bookworm-security/main amd64 Packages [336 kB]
+Fetched 9375 kB in 4s (2652 kB/s)
+Reading package lists... Done
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# ls -la /app && file /app/maze_game.sh || true && sed -n '1,200p' /app/maze_game.sh
+total 12
+drwxr-xr-x 1 root root 4096 Sep  5 09:50 .
+drwxr-xr-x 1 root root 4096 Sep  5 09:50 ..
+-rwxr-xr-x 1 root root   80 Aug 10 16:30 maze_game.sh
+bash: file: command not found
+#!/bin/bash
+
+# Run the protected maze server
+python3 /protected/maze_server.py root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# find . -name .git -prune -o -name __pycache__ -prune -o -name .venv -prune -o -name node_modules -prune -o -print | sort
+.
+./maze_game.sh
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# printf 'move N\nmove E & S & W\nquit\n' | timeout 5 /app/maze_game.sh
+Welcome to the Blind Maze Explorer!
+You start at position 'S'. Use 'move N/S/E/W' commands to navigate.
+You can also use batch commands like 'move N & E', 'move S & S & W'
+Type 'exit' to quit the game.
+> hit wall
+> hit wall & moved & hit wall
+> Invalid command 'quit'. Use 'move N/S/E/W' or 'exit'.
+> root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+debug: bool = False):\n        self.debug = debug\n        self.proc = subprocess.Popen(\n            [cmd],\n            stdin=subprocess.PIPE,\n            st
+dout=subprocess.PIPE,\n            stderr=subprocess.STDOUT,\n            text=True,\n            bufsize=0,\n        )\n        banner = self._read_until_promp
+t(timeout=10)\n        if self.debug:\n            print("[banner]", repr(banner), file=sys.stderr)\n        if "Blind Maze Explorer" not in banner:\n
+  raise RuntimeError(f"Unexpected maze banner/output: {banner!r}")\n\n    def _read_until_prompt(self, timeout: float = 5.0) -> str:\n        assert self.proc.s
+tdout is not None\n        start = time.time()\n        chunks: List[str] = []\n        while True:\n            if time.time() - start > timeout:\n
+    raise TimeoutError(f"Timed out waiting for prompt; got {\'\'.join(chunks)!r}")\n            ch = self.proc.stdout.read(1)\n            if ch == "":\n
+         if self.proc.poll() is not None:\n                    break\n                time.sleep(0.01)\n                continue\n            chunks.append(ch)\
+n            if "\\n> " in "".join(chunks) or "".join(chunks).endswith("> "):\n                break\n        return "".join(chunks)\n\n    def move(self, direc
+tion: str) -> str:\n        assert direction in DIRS\n        assert self.proc.stdin is not None\n        self.proc.stdin.write(f"move {direction}\\n")\n
+ self.proc.stdin.flush()\n        out = self._read_until_prompt()\n        # Output after a command is usually: "hit wall\\n> "\n        cleaned = out.replace("
+> ", "").strip()\n        if self.debug:\n            print(f"[move {direction}] {cleaned!r}", file=sys.stderr)\n        if cleaned not in {"hit wall", "moved",
+ "reached exit"}:\n            raise RuntimeError(f"Unexpected response to move {direction}: {out!r} -> {cleaned!r}")\n        return cleaned\n\n    def close(s
+elf) -> None:\n        if self.proc.poll() is not None:\n            return\n        try:\n            assert self.proc.stdin is not None\n            self.proc
+.stdin.write("exit\\n")\n            self.proc.stdin.flush()\n            # The process may or may not print a final message; wait briefly.\n            self.pr
+oc.wait(timeout=3)\n        except Exception:\n            self.proc.kill()\n            self.proc.wait(timeout=3)\n\n\n@dataclass\nclass ExplorationResult:\n
+  open_cells: Set[Coord] = field(default_factory=set)\n    wall_cells: Set[Coord] = field(default_factory=set)\n    start: Coord = (0, 0)\n    exit: Optional[Co
+ord] = None\n\n\nclass MazeExplorer:\n    def __init__(self, move_func: Callable[[str], str], debug: bool = False):\n        self.move_func = move_func\n
+ self.debug = debug\n        self.result = ExplorationResult(open_cells={(0, 0)}, start=(0, 0))\n        self.current: Coord = (0, 0)\n        self.visited: Set
+[Coord] = set()\n\n    def _move(self, direction: str) -> str:\n        resp = self.move_func(direction)\n        target = add(self.current, DIRS[direction])\n
+       if resp == "hit wall":\n            self.result.wall_cells.add(target)\n     root@af9250e80e29:/app# python3 - /app/explore_maze.py <<'PY'
+exi> import os
+ > import sys
+> path = sys.argv[1]
+> content = '#!/usr/bin/env python3\n"""Automated blind maze explorer.\n\nRuns /app/maze_game.sh, explores every reachable open cell via DFS, then exits the\nma
+ze process and writes /app/maze_map.txt.\n"""\nfrom __future__ import annotations\n\nimport argparse\nimport subprocess\nimport sys\nimport time\nfrom dataclass
+es import dataclass, field\nfrom pathlib import Path\nfrom typing import Callable, Dict, Iterable, List, Optional, Set, Tuple\n\nCoord = Tuple[int, int]\n\nDIRS
+: Dict[str, Coord] = {\n    "N": (0, -1),\n    "E": (1, 0),\n    "S": (0, 1),\n    "W": (-1, 0),\n}\nOPPOSITE = {"N": "S", "S": "N", "E": "W", "W": "E"}\nORDER
+= ["N", "E", "S", "W"]\n\n\ndef add(a: Coord, b: Coord) -> Coord:\n    return (a[0] + b[0], a[1] + b[1])\n\n\nclass MazeProcessClient:\n    """Line/prompt orien
+ted client for /app/maze_game.sh."""\n\n    def __init__(self, cmd: str = "/app/maze_game.sh", debug: bool = False):\n        self.debug = debug\n        self.p
+roc = subprocess.Popen(\n            [cmd],\n            stdin=subprocess.PIPE,\n            stdout=subprocess.PIPE,\n            stderr=subprocess.STDOUT,\n
+         text=True,\n            bufsize=0,\n        )\n        banner = self._read_until_prompt(timeout=10)\n        if self.debug:\n            print("[banner
+]", repr(banner), file=sys.stderr)\n        if "Blind Maze Explorer" not in banner:\n            raise RuntimeError(f"Unexpected maze banner/output: {banner!r}"
+)\n\n    def _read_until_prompt(self, timeout: float = 5.0) -> str:\n        assert self.proc.stdout is not None\n        start = time.time()\n        chunks: L
+ist[str] = []\n        while True:\n            if time.time() - start > timeout:\n                raise TimeoutError(f"Timed out waiting for prompt; got {\'\'.
+join(chunks)!r}")\n            ch = self.proc.stdout.read(1)\n            if ch == "":\n                if self.proc.poll() is not None:\n                    br
+eak\n                time.sleep(0.01)\n                continue\n            chunks.append(ch)\n            if "\\n> " in "".join(chunks) or "".join(chunks).end
+swith("> "):\n                break\n        return "".join(chunks)\n\n    def move(self, direction: str) -> str:\n        assert direction in DIRS\n        ass
+ert self.proc.stdin is not None\n        self.proc.stdin.write(f"move {direction}\\n")\n        self.proc.stdin.flush()\n        out = self._read_until_prompt()
+\n        # Output after a command is usually: "hit wall\\n> "\n        cleaned = out.replace("> ", "").strip()\n        if self.debug:\n            print(f"[mo
+ve {direction}] {cleaned!r}", file=sys.stderr)\n        if cleaned not in {"hit wall", "moved", "reached exit"}:\n            raise RuntimeError(f"Unexpected re
+sponse to move {direction}: {out!r} -> {cleaned!r}")\n        return cleaned\n\n    def close(self) -> None:\n        if self.proc.poll() is not None:\n
+    return\n        try:\n            assert self.proc.stdin is not None\n            self.proc.stdin.write("exit\\n")\n            self.proc.stdin.flush()\n
+         # The process may or may not print a final message; wait briefly.\n            self.proc.wait(timeout=3)\n        except Exception:\n            self.p
+roc.kill()\n            self.proc.wait(timeout=3)\n\n\n@dataclass\nclass ExplorationResult:\n    open_cells: Set[Coord] = field(default_factory=set)\n    wall_c
+ells: Set[Coord] = field(default_factory=set)\n    start: Coord = (0, 0)\n    exit: Optional[Coord] = None\n\n\nclass MazeExplorer:\n    def __init__(self, move
+_func: Callable[[str], str], debug: bool = False):\n        self.move_func = move_func\n        self.debug = debug\n        self.result = ExplorationResult(open
+_cells={(0, 0)}, start=(0, 0))\n        self.current: Coord = (0, 0)\n        self.visited: Set[Coord] = set()\n\n    def _move(self, direction: str) -> str:\n
+       resp = self.move_func(direction)\n        target = add(self.current, DIRS[direction])\n        if resp == "hit wall":\n            self.result.wall_cells
+.add(target)\n        elif resp in {"moved", "reached exit"}:\n            self.current = target\n            self.result.open_cells.add(target)\n            if
+ resp == "reached exit":\n                self.result.exit = target\n        else:\n            raise RuntimeError(f"Unknown move response: {resp!r}")\n
+if self.debug:\n            print(f"{direction}: {resp}, now {self.current}", file=sys.stderr)\n        return resp\n\n    def explore(self) -> ExplorationResul
+t:\n        self._dfs((0, 0))\n        assert self.current == (0, 0), f"DFS should return to start, at {self.current}"\n        return self.result\n\n    def _d
+fs(self, coord: Coord) -> None:\n        self.visited.add(coord)\n        for direction in ORDER:\n            nb = add(coord, DIRS[direction])\n            if
+nb in self.result.wall_cells:\n                continue\n            if nb in self.visited:\n                continue\n            # If known open but not visit
+ed, move there; if unknown, probe it.\n            resp = self._move(direction)\n            if resp == "hit wall":\n                continue\n            # Suc
+cessfully moved to nb. Recursively explore, then backtrack.\n            self._dfs(nb)\n            back = OPPOSITE[direction]\n            back_resp = self._mo
+ve(back)\n            if back_resp == "hit wall":\n                raise RuntimeError(f"Backtrack {back} from {self.current} to {coord} hit a wall")\n
+  if self.current != coord:\n                raise RuntimeError(f"Backtrack failed: expected {coord}, at {self.current}")\n\n\ndef infer_walls_and_render(result
+: ExplorationResult) -> str:\n    """Render exact rectangular map for a maze whose all open spaces are reachable.\n\n    DFS discovers all reachable open cells
+and every wall adjacent to them. The outer\n    rectangular border is made of walls. Any still-unknown cell inside the minimal\n    discovered wall/open boundin
+g box cannot be a reachable open cell, so by the\n    challenge guarantee it must be a wall.\n    """\n    cells = set(result.open_cells) | set(result.wall_cell
+s)\n    if not cells:\n        raise ValueError("No cells discovered")\n    min_x = min(x for x, _ in cells)\n    max_x = max(x for x, _ in cells)\n    min_y =
+min(y for _, y in cells)\n    max_y = max(y for _, y in cells)\n\n    lines: List[str] = []\n    for y in range(min_y, max_y + 1):\n        chars: List[str] = [
+]\n        for x in range(min_x, max_x + 1):\n            c = (x, y)\n            if c == result.start:\n                chars.append("S")\n            elif res
+ult.exit is not None and c == result.exit:\n                chars.append("E")\n            elif c in result.open_cells:\n                chars.append(" ")\n
+        else:\n                chars.append("#")\n        lines.append("".join(chars))\n    return "\\n".join(lines) + "\\n"\n\n\ndef run_actual(output: Path, d
+ebug: bool = False) -> ExplorationResult:\n    client = MazeProcessClient(debug=debug)\n    try:\n        explorer = MazeExplorer(client.move, debug=debug)\n
+     result = explorer.explore()\n    finally:\n        # The game must be exited before writing the final map file.\n        client.close()\n    rendered = inf
+er_walls_and_render(result)\n    output.write_text(rendered)\n    return result\n\n\ndef main(argv: Optional[List[str]] = None) -> int:\n    parser = argparse.A
+rgumentParser()\n    parser.add_argument("--output", default="/app/maze_map.txt")\n    parser.add_argument("--debug", action="store_true")\n    args = parser.pa
+rse_args(argv)\n    result = run_actual(Path(args.output), debug=args.debug)\n    print(f"explored open={len(result.open_cells)} walls={len(result.wall_cells)}
+exit={result.exit}")\n    print(f"wrote {args.output}")\n    return 0\n\n\nif __name__ == "__main__":\n    raise SystemExit(main())\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/explore_maze.py
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 - /app/explore_maze.py 1 260 false <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+--- 文件: /app/explore_maze.py (第 1 至 215 行，共 215 行) ---
+   1 | #!/usr/bin/env python3
+   2 | """Automated blind maze explorer.
+   3 |
+   4 | Runs /app/maze_game.sh, explores every reachable open cell via DFS, then exits the
+   5 | maze process and writes /app/maze_map.txt.
+   6 | """
+   7 | from __future__ import annotations
+   8 |
+   9 | import argparse
+  10 | import subprocess
+  11 | import sys
+  12 | import time
+  13 | from dataclasses import dataclass, field
+  14 | from pathlib import Path
+  15 | from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
+  16 |
+  17 | Coord = Tuple[int, int]
+  18 |
+  19 | DIRS: Dict[str, Coord] = {
+  20 |     "N": (0, -1),
+  21 |     "E": (1, 0),
+  22 |     "S": (0, 1),
+  23 |     "W": (-1, 0),
+  24 | }
+  25 | OPPOSITE = {"N": "S", "S": "N", "E": "W", "W": "E"}
+  26 | ORDER = ["N", "E", "S", "W"]
+  27 |
+  28 |
+  29 | def add(a: Coord, b: Coord) -> Coord:
+  30 |     return (a[0] + b[0], a[1] + b[1])
+  31 |
+  32 |
+  33 | class MazeProcessClient:
+  34 |     """Line/prompt oriented client for /app/maze_game.sh."""
+  35 |
+  36 |     def __init__(self, cmd: str = "/app/maze_game.sh", debug: bool = False):
+  37 |         self.debug = debug
+  38 |         self.proc = subprocess.Popen(
+  39 |             [cmd],
+  40 |             stdin=subprocess.PIPE,
+  41 |             stdout=subprocess.PIPE,
+  42 |             stderr=subprocess.STDOUT,
+  43 |             text=True,
+  44 |             bufsize=0,
+  45 |         )
+  46 |         banner = self._read_until_prompt(timeout=10)
+  47 |         if self.debug:
+  48 |             print("[banner]", repr(banner), file=sys.stderr)
+  49 |         if "Blind Maze Explorer" not in banner:
+  50 |             raise RuntimeError(f"Unexpected maze banner/output: {banner!r}")
+  51 |
+  52 |     def _read_until_prompt(self, timeout: float = 5.0) -> str:
+  53 |         assert self.proc.stdout is not None
+  54 |         start = time.time()
+  55 |         chunks: List[str] = []
+  56 |         while True:
+  57 |             if time.time() - start > timeout:
+  58 |                 raise TimeoutError(f"Timed out waiting for prompt; got {''.join(chunks)!r}")
+  59 |             ch = self.proc.stdout.read(1)
+  60 |             if ch == "":
+  61 |                 if self.proc.poll() is not None:
+  62 |                     break
+  63 |                 time.sleep(0.01)
+  64 |                 continue
+  65 |             chunks.append(ch)
+  66 |             if "\n> " in "".join(chunks) or "".join(chunks).endswith("> "):
+  67 |                 break
+  68 |         return "".join(chunks)
+  69 |
+  70 |     def move(self, direction: str) -> str:
+  71 |         assert direction in DIRS
+  72 |         assert self.proc.stdin is not None
+  73 |         self.proc.stdin.write(f"move {direction}\n")
+  74 |         self.proc.stdin.flush()
+  75 |         out = self._read_until_prompt()
+  76 |         # Output after a command is usually: "hit wall\n> "
+  77 |         cleaned = out.replace("> ", "").strip()
+  78 |         if self.debug:
+  79 |             print(f"[move {direction}] {cleaned!r}", file=sys.stderr)
+  80 |         if cleaned not in {"hit wall", "moved", "reached exit"}:
+  81 |             raise RuntimeError(f"Unexpected response to move {direction}: {out!r} -> {cleaned!r}")
+  82 |         return cleaned
+  83 |
+  84 |     def close(self) -> None:
+  85 |         if self.proc.poll() is not None:
+  86 |             return
+  87 |         try:
+  88 |             assert self.proc.stdin is not None
+  89 |             self.proc.stdin.write("exit\n")
+  90 |             self.proc.stdin.flush()
+  91 |             # The process may or may not print a final message; wait briefly.
+  92 |             self.proc.wait(timeout=3)
+  93 |         except Exception:
+  94 |             self.proc.kill()
+  95 |             self.proc.wait(timeout=3)
+  96 |
+  97 |
+  98 | @dataclass
+  99 | class ExplorationResult:
+ 100 |     open_cells: Set[Coord] = field(default_factory=set)
+ 101 |     wall_cells: Set[Coord] = field(default_factory=set)
+ 102 |     start: Coord = (0, 0)
+ 103 |     exit: Optional[Coord] = None
+ 104 |
+ 105 |
+ 106 | class MazeExplorer:
+ 107 |     def __init__(self, move_func: Callable[[str], str], debug: bool = False):
+ 108 |         self.move_func = move_func
+ 109 |         self.debug = debug
+ 110 |         self.result = ExplorationResult(open_cells={(0, 0)}, start=(0, 0))
+ 111 |         self.current: Coord = (0, 0)
+ 112 |         self.visited: Set[Coord] = set()
+ 113 |
+ 114 |     def _move(self, direction: str) -> str:
+ 115 |         resp = self.move_func(direction)
+ 116 |         target = add(self.current, DIRS[direction])
+ 117 |         if resp == "hit wall":
+ 118 |             self.result.wall_cells.add(target)
+ 119 |         elif resp in {"moved", "reached exit"}:
+ 120 |             self.current = target
+ 121 |             self.result.open_cells.add(target)
+ 122 |             if resp == "reached exit":
+ 123 |                 self.result.exit = target
+ 124 |         else:
+ 125 |             raise RuntimeError(f"Unknown move response: {resp!r}")
+ 126 |         if self.debug:
+ 127 |             print(f"{direction}: {resp}, now {self.current}", file=sys.stderr)
+ 128 |         return resp
+ 129 |
+ 130 |     def explore(self) -> ExplorationResult:
+ 131 |         self._dfs((0, 0))
+ 132 |         assert self.current == (0, 0), f"DFS should return to start, at {self.current}"
+ 133 |         return self.result
+ 134 |
+ 135 |     def _dfs(self, coord: Coord) -> None:
+ 136 |         self.visited.add(coord)
+ 137 |         for direction in ORDER:
+ 138 |             nb = add(coord, DIRS[direction])
+ 139 |             if nb in self.result.wall_cells:
+ 140 |                 continue
+ 141 |             if nb in self.visited:
+ 142 |                 continue
+ 143 |             # If known open but not visited, move there; if unknown, probe it.
+ 144 |             resp = self._move(direction)
+ 145 |             if resp == "hit wall":
+ 146 |                 continue
+ 147 |             # Successfully moved to nb. Recursively explore, then backtrack.
+ 148 |             self._dfs(nb)
+ 149 |             back = OPPOSITE[direction]
+ 150 |             back_resp = self._move(back)
+ 151 |             if back_resp == "hit wall":
+ 152 |                 raise RuntimeError(f"Backtrack {back} from {self.current} to {coord} hit a wall")
+ 153 |             if self.current != coord:
+ 154 |                 raise RuntimeError(f"Backtrack failed: expected {coord}, at {self.current}")
+ 155 |
+ 156 |
+ 157 | def infer_walls_and_render(result: ExplorationResult) -> str:
+ 158 |     """Render exact rectangular map for a maze whose all open spaces are reachable.
+ 159 |
+ 160 |     DFS discovers all reachable open cells and every wall adjacent to them. The outer
+ 161 |     rectangular border is made of walls. Any still-unknown cell inside the minimal
+ 162 |     discovered wall/open bounding box cannot be a reachable open cell, so by the
+ 163 |     challenge guarantee it must be a wall.
+ 164 |     """
+ 165 |     cells = set(result.open_cells) | set(result.wall_cells)
+ 166 |     if not cells:
+ 167 |         raise ValueError("No cells discovered")
+ 168 |     min_x = min(x for x, _ in cells)
+ 169 |     max_x = max(x for x, _ in cells)
+ 170 |     min_y = min(y for _, y in cells)
+ 171 |     max_y = max(y for _, y in cells)
+ 172 |
+ 173 |     lines: List[str] = []
+ 174 |     for y in range(min_y, max_y + 1):
+ 175 |         chars: List[str] = []
+ 176 |         for x in range(min_x, max_x + 1):
+ 177 |             c = (x, y)
+ 178 |             if c == result.start:
+ 179 |                 chars.append("S")
+ 180 |             elif result.exit is not None and c == result.exit:
+ 181 |                 chars.append("E")
+ 182 |             elif c in result.open_cells:
+ 183 |                 chars.append(" ")
+ 184 |             else:
+ 185 |                 chars.append("#")
+ 186 |         lines.append("".join(chars))
+ 187 |     return "\n".join(lines) + "\n"
+ 188 |
+ 189 |
+ 190 | def run_actual(output: Path, debug: bool = False) -> ExplorationResult:
+ 191 |     client = MazeProcessClient(debug=debug)
+ 192 |     try:
+ 193 |         explorer = MazeExplorer(client.move, debug=debug)
+ 194 |         result = explorer.explore()
+ 195 |     finally:
+ 196 |         # The game must be exited before writing the final map file.
+ 197 |         client.close()
+ 198 |     rendered = infer_walls_and_render(result)
+ 199 |     output.write_text(rendered)
+ 200 |     return result
+ 201 |
+ 202 |
+ 203 | def main(argv: Optional[List[str]] = None) -> int:
+ 204 |     parser = argparse.ArgumentParser()
+ 205 |     parser.add_argument("--output", default="/app/maze_map.txt")
+ 206 |     parser.add_argument("--debug", action="store_true")
+ 207 |     args = parser.parse_args(argv)
+ 208 |     result = run_actual(Path(args.output), debug=args.debug)
+ 209 |     print(f"explored open={len(result.open_cells)} walls={len(result.wall_cells)} exit={result.exit}")
+ 210 |     print(f"wrote {args.output}")
+ 211 |     return 0
+ 212 |
+ 213 |
+ 214 | if __name__ == "__main__":
+ 215 |     raise SystemExit(main())
+--- 读取完毕 ---root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 - /app/test_explore_maze.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import sys\nfrom pathlib import Path\n\nsys.path.insert(0, "/app")\nfrom explore_maze import DIRS, MazeExplorer, add, infer_walls_and_render\n\n\nc
+lass FakeMaze:\n    def __init__(self, text):\n        self.lines = text.splitlines()\n        self.height = len(self.lines)\n        self.width = max(len(line)
+ for line in self.lines)\n        self.grid = {}\n        self.pos = None\n        self.exit = None\n        for y, line in enumerate(self.lines):\n
+for x, ch in enumerate(line):\n                self.grid[(x, y)] = ch\n                if ch == "S":\n                    self.pos = (x, y)\n                eli
+f ch == "E":\n                    self.exit = (x, y)\n        assert self.pos is not None\n        self.start = self.pos\n\n    def move(self, direction):\n
+    nb = add(self.pos, DIRS[direction])\n        if self.grid.get(nb, "#") == "#":\n            return "hit wall"\n        self.pos = nb\n        if nb == self.
+exit:\n            return "reached exit"\n        return "moved"\n\n    def normalize_relative_to_start(self):\n        sx, sy = self.start\n        rel = set()
+\n        walls = set()\n        for (x, y), ch in self.grid.items():\n            c = (x - sx, y - sy)\n            if ch == "#":\n                walls.add(c)
+\n            else:\n                rel.add(c)\n        return rel, walls\n\n\ndef test_explores_cycle_dead_end_and_exit_and_renders_exact_map():\n    maze_tex
+t = """#######\n#S #  #\n#  # ##\n##   E#\n#######"""\n    fake = FakeMaze(maze_text)\n    explorer = MazeExplorer(fake.move)\n    result = explorer.explore()\n
+\n    assert fake.pos == fake.start\n    open_rel, _ = fake.normalize_relative_to_start()\n    assert result.open_cells == open_rel\n    assert result.exit == (
+5 - 1, 3 - 1)  # relative to S at (1,1)\n    assert infer_walls_and_render(result) == maze_text + "\\n"\n\n\ndef test_renders_start_on_minimal_bounding_box_with
+_negative_coords():\n    maze_text = """#####\n#  S#\n# # #\n#E  #\n#####"""\n    fake = FakeMaze(maze_text)\n    result = MazeExplorer(fake.move).explore()\n
+  assert infer_walls_and_render(result) == maze_text + "\\n"\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_explore_maze.py
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 -m pytest -v -- /app/test_explore_maze.py
+/usr/local/bin/python3: No module named pytest
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 - /app/test_explore_maze.py <<'PY'
+> import os
+> import sys
+> path = sys.argv[1]
+> content = 'import sys\n\nsys.path.insert(0, "/app")\nfrom explore_maze import DIRS, MazeExplorer, add, infer_walls_and_render\n\n\nclass FakeMaze:\n    def __
+init__(self, text):\n        self.lines = text.splitlines()\n        self.grid = {}\n        self.pos = None\n        self.exit = None\n        for y, line in e
+numerate(self.lines):\n            for x, ch in enumerate(line):\n                self.grid[(x, y)] = ch\n                if ch == "S":\n                    sel
+f.pos = (x, y)\n                elif ch == "E":\n                    self.exit = (x, y)\n        assert self.pos is not None\n        self.start = self.pos\n\n
+   def move(self, direction):\n        nb = add(self.pos, DIRS[direction])\n        if self.grid.get(nb, "#") == "#":\n            return "hit wall"\n        se
+lf.pos = nb\n        if nb == self.exit:\n            return "reached exit"\n        return "moved"\n\n    def normalize_relative_to_start(self):\n        sx, s
+y = self.start\n        rel = set()\n        walls = set()\n        for (x, y), ch in self.grid.items():\n            c = (x - sx, y - sy)\n            if ch ==
+ "#":\n                walls.add(c)\n            else:\n                rel.add(c)\n        return rel, walls\n\n\ndef test_explores_cycle_dead_end_and_exit_and
+_renders_exact_map():\n    maze_text = """#######\n#S #  #\n#  # ##\n##   E#\n#######"""\n    fake = FakeMaze(maze_text)\n    explorer = MazeExplorer(fake.move)
+\n    result = explorer.explore()\n\n    assert fake.pos == fake.start\n    open_rel, _ = fake.normalize_relative_to_start()\n    assert result.open_cells == op
+en_rel\n    assert result.exit == (5 - 1, 3 - 1)  # relative to S at (1,1)\n    assert infer_walls_and_render(result) == maze_text + "\\n"\n\n\ndef test_renders
+_start_on_minimal_bounding_box_with_negative_coords():\n    maze_text = """#####\n#  S#\n# # #\n#E  #\n#####"""\n    fake = FakeMaze(maze_text)\n    result = Ma
+zeExplorer(fake.move).explore()\n    assert infer_walls_and_render(result) == maze_text + "\\n"\n\n\ndef main():\n    tests = [\n        test_explores_cycle_dea
+d_end_and_exit_and_renders_exact_map,\n        test_renders_start_on_minimal_bounding_box_with_negative_coords,\n    ]\n    for test in tests:\n        test()\n
+        print(f"PASS {test.__name__}")\n    print(f"{len(tests)} tests passed")\n\n\nif __name__ == "__main__":\n    main()\n'
+> dir_path = os.path.dirname(path)
+> if dir_path:
+>     os.makedirs(dir_path, exist_ok=True)
+> try:
+>     with open(path, 'w', encoding='utf-8', newline='\n') as f:
+>         f.write(content)
+>     print(f"成功: 已写入 {path}")
+> except Exception as exc:
+>     print(f"写入失败: {exc}")
+> PY
+成功: 已写入 /app/test_explore_maze.py
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 /app/test_explore_maze.py
+PASS test_explores_cycle_dead_end_and_exit_and_renders_exact_map
+PASS test_renders_start_on_minimal_bounding_box_with_negative_coords
+2 tests passed
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 /app/explore_maze.py --output /app/maze_map.txt --debug
+[banner] "Welcome to the Blind Maze Explorer!\nYou start at position 'S'. Use 'move N/S/E/W' commands to navigate.\nYou can also use batch commands like 'move N
+ & E', 'move S & S & W'\nType 'exit' to quit the game.\n> "
+[move N] 'hit wall'
+N: hit wall, now (0, 0)
+[move E] 'hit wall'
+E: hit wall, now (0, 0)
+[move S] 'moved'
+S: moved, now (0, 1)
+[move E] 'hit wall'
+E: hit wall, now (0, 1)
+[move S] 'moved'
+S: moved, now (0, 2)
+[move E] 'hit wall'
+E: hit wall, now (0, 2)
+[move S] 'hit wall'
+S: hit wall, now (0, 2)
+[move W] 'moved'
+W: moved, now (-1, 2)
+[move N] 'hit wall'
+N: hit wall, now (-1, 2)
+[move S] 'hit wall'
+S: hit wall, now (-1, 2)
+[move W] 'moved'
+W: moved, now (-2, 2)
+[move N] 'reached exit'
+N: reached exit, now (-2, 1)
+[move N] 'moved'
+N: moved, now (-2, 0)
+[move N] 'hit wall'
+N: hit wall, now (-2, 0)
+[move E] 'hit wall'
+E: hit wall, now (-2, 0)
+[move W] 'hit wall'
+W: hit wall, now (-2, 0)
+[move S] 'reached exit'
+S: reached exit, now (-2, 1)
+[move W] 'hit wall'
+W: hit wall, now (-2, 1)
+[move S] 'moved'
+S: moved, now (-2, 2)
+[move S] 'hit wall'
+S: hit wall, now (-2, 2)
+[move W] 'hit wall'
+W: hit wall, now (-2, 2)
+[move E] 'moved'
+E: moved, now (-1, 2)
+[move E] 'moved'
+E: moved, now (0, 2)
+[move N] 'moved'
+N: moved, now (0, 1)
+[move N] 'moved'
+N: moved, now (0, 0)
+explored open=7 walls=13 exit=(-2, 1)
+wrote /app/maze_map.txt
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# ls -l /app/maze_map.txt && wc -l /app/maze_map.txt && python3 - <<'PY'
+> from pathlib import Path
+> p=Path('/app/maze_map.txt')
+> s=p.read_text()
+> print('chars=', len(s))
+> print('S count=', s.count('S'))
+> print('E count=', s.count('E'))
+> print('lines:', [len(line) for line in s.splitlines()])
+> PY
+-rw-r--r-- 1 root root 30 Sep  5 09:52 /app/maze_map.txt
+5 /app/maze_map.txt
+chars= 30
+S count= 1
+E count= 1
+lines: [5, 5, 5, 5, 5]
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 - /app/maze_map.txt 1 50 false <<'PY'
+> import sys
+> path = sys.argv[1]
+> start_line = int(sys.argv[2])
+> end_line = None if sys.argv[3] == 'None' else int(sys.argv[3])
+> raw_mode = sys.argv[4].lower() == 'true'
+> try:
+>     with open(path, 'r', encoding='utf-8', errors='replace') as f:
+>         lines = f.readlines()
+> except FileNotFoundError:
+>     print(f"错误: 找不到文件 {path}")
+>     raise SystemExit(0)
+> except Exception as exc:
+>     print(f"读取失败: {exc}")
+>     raise SystemExit(0)
+>
+> total_lines = len(lines)
+> s_idx = max(0, start_line - 1)
+> e_idx = end_line if end_line is not None else total_lines
+> selected_lines = lines[s_idx:e_idx]
+> if raw_mode:
+>     sys.stdout.write(''.join(selected_lines))
+> else:
+>     output = []
+>     for i, line in enumerate(selected_lines):
+>         output.append(f"{s_idx + i + 1:4d} | {line.rstrip()}")
+>     header = f"--- 文件: {path} (第 {start_line} 至 {min(e_idx, total_lines)} 行，共 {total_lines} 行) ---\n"
+>     sys.stdout.write(header + "\n".join(output) + "\n--- 读取完毕 ---")
+> PY
+--- 文件: /app/maze_map.txt (第 1 至 5 行，共 5 行) ---
+   1 | #####
+   2 | # #S#
+   3 | #E# #
+   4 | #   #
+   5 | #####
+--- 读取完毕 ---root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app# export GIT_PAGER=cat PAGER=cat GIT_TERMINAL_PROMPT=0
+root@af9250e80e29:/app# python3 - <<'PY'
+> from pathlib import Path
+> from collections import deque
+> p=Path('/app/maze_map.txt')
+> lines=p.read_text().splitlines()
+> h=len(lines); w=len(lines[0])
+> assert all(len(line)==w for line in lines), 'ragged map'
+> starts=[(x,y) for y,row in enumerate(lines) for x,ch in enumerate(row) if ch=='S']
+> exits=[(x,y) for y,row in enumerate(lines) for x,ch in enumerate(row) if ch=='E']
+> assert len(starts)==1, starts
+> assert len(exits)==1, exits
+> s=starts[0]; e=exits[0]
+> q=deque([s]); seen={s}
+> while q:
+>     x,y=q.popleft()
+>     for dx,dy in [(0,-1),(1,0),(0,1),(-1,0)]:
+>         nx,ny=x+dx,y+dy
+>         if 0<=nx<w and 0<=ny<h and (nx,ny) not in seen and lines[ny][nx] != '#':
+>             seen.add((nx,ny)); q.append((nx,ny))
+> open_cells={(x,y) for y,row in enumerate(lines) for x,ch in enumerate(row) if ch!='#'}
+> assert seen==open_cells, (seen, open_cells)
+> assert e in seen
+> print('map connectivity validation passed')
+> print(p.read_text(), end='')
+> PY
+map connectivity validation passed
+#####
+# #S#
+#E# #
+#   #
+#####
+root@af9250e80e29:/app# true; tmux wait -S done
+root@af9250e80e29:/app#
