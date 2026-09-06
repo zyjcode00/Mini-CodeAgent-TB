@@ -270,6 +270,21 @@ uv run tb run \
 
 ---
 
+## 🛠️ 技术栈
+
+| 类别 | 技术 | 用途 |
+|:---|:---|:---|
+| 语言 / 运行时 | Python 3.9+ · asyncio | 异步并发 ReAct 引擎，多工具并行调度 |
+| LLM 接入 | OpenAI-compatible API（openai / anthropic SDK） | 模型无关可插拔，支持自定义端点与多模型 |
+| 上下文管理 | 自研压缩引擎（LLM 摘要 / 关键帧 / 滑动窗口）· ContextBudget | 长任务上下文不丢失，预算分区装配 |
+| 记忆与检索 | jieba（关键词）· rank_bm25 · 本地确定性向量嵌入 · RRF 混合融合 | Hybrid Recall 三层记忆检索 |
+| 会话 | SessionManager（JSON 持久化） | 多会话隔离、中断恢复、评测任务独立 session |
+| 工程化 | rich · pydantic · chardet | CLI 界面 / 结构化数据模型 / 编码兼容自愈 |
+| 测试 | pytest · pytest-asyncio | 单元与异步测试（38 个测试文件） |
+| 评测 | Terminal-Bench · Docker 沙箱 · uv | 真实终端任务端到端评测（85 个通过） |
+
+---
+
 ## 🛠️ 工具生态
 
 | 工具 | 功能 | 核心特性 |
