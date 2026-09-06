@@ -306,7 +306,7 @@ uv run tb run \
 | 会话 | SessionManager（JSON 持久化） | 多会话隔离、中断恢复、评测任务独立 session |
 | 工程化 | rich · pydantic · chardet | CLI 界面 / 结构化数据模型 / 编码兼容自愈 |
 | 测试 | pytest · pytest-asyncio | 单元与异步测试（38 个测试文件） |
-| 评测 | Terminal-Bench · Docker 沙箱 · uv | 真实终端任务端到端评测（85 个通过） |
+| 评测 | Terminal-Bench · Docker 沙箱 · uv | 真实终端任务端到端评测（86 个通过） |
 
 ---
 
@@ -420,7 +420,7 @@ pytest tests/test_memory_phase4.py -v
 pytest tests/test_memory_phase5.py -v
 ```
 
-**Terminal-Bench 评测**：累计 **85 个真实终端任务通过**（截至 2026-09-06），覆盖数据处理、Git 修复、安全解压、Cython/gRPC 服务实现、SQLite gcov 插桩编译、确定性构建等任务，全部经官方 scorer 判定 `is_resolved=True`。
+**Terminal-Bench 评测**：累计 **86 个真实终端任务通过**（截至 2026-09-06），覆盖数据处理、Git 修复、安全解压、Cython/gRPC 服务实现、SQLite gcov 插桩编译、确定性构建等任务，全部经官方 scorer 判定 `is_resolved=True`。
 
 **测试覆盖范围**：
 
@@ -460,7 +460,7 @@ pytest tests/test_memory_phase5.py -v
 ### 🚧 计划中
 
 - [ ] 多文件依赖图分析
-- [ ] SWE-bench 自动评测流水线（Terminal-Bench 已接入，共 85 个任务通过）
+- [ ] SWE-bench 自动评测流水线（Terminal-Bench 已接入，共 86 个任务通过）
 - [ ] 多模型切换与负载均衡
 - [ ] 可视化任务看板与执行轨迹
 - [ ] 向量检索深度集成与可选 agentmemory REST/MCP 对接
