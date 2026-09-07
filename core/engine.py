@@ -238,7 +238,7 @@ class AgentEngine:
                 )
 
             # 使用 await 调用异步客户端（带超时保护 + 自动重试一次 + 413 裁剪重试）
-            timeout_seconds = float(os.getenv("MAIN_LLM_TIMEOUT", "120"))
+            timeout_seconds = float(os.getenv("MAIN_LLM_TIMEOUT", "300"))
             for _attempt in range(3):
                 try:
                     resp = await asyncio.wait_for(
@@ -303,7 +303,7 @@ class AgentEngine:
         else:
             # Anthropic 异步调用
             # 🔥🔥🔥 Phase 4: 使用快照确保并发安全（带超时保护 + 自动重试一次）
-            timeout_seconds = float(os.getenv("MAIN_LLM_TIMEOUT", "120"))
+            timeout_seconds = float(os.getenv("MAIN_LLM_TIMEOUT", "300"))
             for _attempt in range(3):
                 try:
                     resp = await asyncio.wait_for(
