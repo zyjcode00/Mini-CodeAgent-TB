@@ -295,6 +295,21 @@ class MiniClaudeCodeTerminalBenchAgent(BaseAgent):
             print(f"[🧹] 评测 run 开始，清理旧 session: {_session_path}")
             os.remove(_session_path)
 
+        # 评测公平性：清理长期记忆库，避免旧记忆污染。
+        # 若不清理，agent 可能从长期记忆“回忆”出该任务此前已完成，直接宣称完成而不做任何操作。
+        _mem_root = os.path.join(os.getcwd(), "memory", "long_term")
+        if os.path.isdir(_mem_root):
+            _removed = 0
+            for _f in os.listdir(_mem_root):
+                _p = os.path.join(_mem_root, _f)
+                try:
+                    if os.path.isfile(_p):
+                        os.remove(_p)
+                        _removed += 1
+                except OSError:
+                    pass
+            print(f"[🧹] 评测 run 开始，清理长期记忆库（移除 {_removed} 个文件）")
+
         return AgentEngine(
             tools=tools_list,
             model=self.model,
