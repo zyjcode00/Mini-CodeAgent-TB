@@ -228,6 +228,14 @@ Turn 元数据 → 关键帧/摘要选择 → CompressedSessionState 结构化�
 > 详细说明见：[`docs/new_long_term_memory_system.md`](docs/new_long_term_memory_system.md)
 > 重构路线见：[`docs/memory_system_refactor_roadmap.md`](docs/memory_system_refactor_roadmap.md)
 
+### 📊 记忆系统全景架构图
+
+三层记忆、上下文压缩与 Hybrid Recall 的完整闭环（事件/压缩双通道沉淀 → 三层存储 → RRF 融合召回 → 注入 Prompt）：
+
+![记忆系统全景架构图](docs/memory_architecture.svg)
+
+> 图中权重、容量与阈值均来自代码实现（`memory_layers.py` / `compression_engine.py` / `memory_retrieval.py` / `memory_context_builder.py`）。
+
 ### 8. 📂 会话级状态持久化与隔离
 
 - **多会话并存**：`--session <id>` 指定会话，每个会话独立持久化，互不干扰
